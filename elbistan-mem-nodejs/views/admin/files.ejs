@@ -1,0 +1,398 @@
+<%- include('../layouts/header') %>
+
+    <style>
+        /* 🎨 Renk Paleti: Kırmızı (#E31E24), Beyaz, Lacivert (#1e3a5a) */
+
+        .page-header {
+            margin-bottom: 24px;
+            padding: 20px 24px;
+            background: white;
+            border-radius: 16px;
+            color: #1e293b;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .page-header-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #E31E24 0%, #b91c1c 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .page-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 4px 0;
+        }
+
+        .page-header p {
+            color: #64748b;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        .page-header-stats {
+            display: flex;
+            gap: 12px;
+        }
+
+        .page-header-stat {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 12px 20px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .page-header-stat-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: #E31E24;
+        }
+
+        .page-header-stat-label {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 25px;
+            align-items: start;
+        }
+
+        @media (max-width: 1000px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            border: none;
+            overflow: hidden;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            padding: 20px 25px;
+            border-bottom: 2px solid #f1f5f9;
+            font-weight: 700;
+            font-size: 16px;
+            color: #1e3a5a;
+            background: linear-gradient(135deg, #f8fafc 0%, #fff 100%);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header i {
+            color: #1e3a5a;
+        }
+
+        .file-list {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .file-item {
+            padding: 18px 25px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.2s;
+        }
+
+        .file-item:hover {
+            background: linear-gradient(135deg, #fef2f2 0%, #fff 100%);
+            transform: translateX(5px);
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #1e3a5a 0%, #2d4a6f 100%);
+            color: white;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(30, 58, 90, 0.3);
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-info h4 {
+            margin: 0 0 5px 0;
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .file-info p {
+            margin: 0;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-download,
+        .btn-delete {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            color: #10b981;
+            border: 2px solid #a7f3d0;
+        }
+
+        .btn-download:hover {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border-color: #10b981;
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            color: #E31E24;
+            border: 2px solid #fecaca;
+        }
+
+        .btn-delete:hover {
+            background: linear-gradient(135deg, #E31E24 0%, #dc2626 100%);
+            color: white;
+            border-color: #E31E24;
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(227, 30, 36, 0.4);
+        }
+
+        .form-card {
+            padding: 30px;
+            border-top: 4px solid #E31E24;
+        }
+
+        .form-card h3 {
+            margin: 0 0 25px 0;
+            font-size: 18px;
+            color: #1e3a5a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e3a5a;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s;
+            box-sizing: border-box;
+            background: #f8fafc;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #1e3a5a;
+            box-shadow: 0 0 0 4px rgba(30, 58, 90, 0.1);
+            background: white;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #E31E24 0%, #b91c1c 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(227, 30, 36, 0.3);
+        }
+
+        .btn-submit:hover {
+            background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(227, 30, 36, 0.4);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state i {
+            font-size: 60px;
+            margin-bottom: 20px;
+            color: #E31E24;
+            opacity: 0.3;
+        }
+
+        .empty-state p {
+            font-size: 15px;
+            color: #64748b;
+        }
+    </style>
+
+    <div class="page-header">
+        <div class="page-header-left">
+            <div class="page-header-icon">
+                <i class="fas fa-folder-open"></i>
+            </div>
+            <div>
+                <h1>Dosya Yönetimi</h1>
+                <p>Okulların erişebileceği sistem dosyalarını yönetin.</p>
+            </div>
+        </div>
+        <div class="page-header-stats">
+            <div class="page-header-stat">
+                <div class="page-header-stat-value">
+                    <%= files.length %>
+                </div>
+                <div class="page-header-stat-label">Toplam Dosya</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-folder-open"></i> Sistem Dosyaları (<%= files.length %>)
+            </div>
+            <% if(files.length===0) { %>
+                <div class="empty-state">
+                    <i class="fas fa-file-upload"></i>
+                    <p>Henüz dosya yüklenmemiş.</p>
+                </div>
+                <% } else { %>
+                    <ul class="file-list">
+                        <% files.forEach(file=> { %>
+                            <li class="file-item">
+                                <div class="file-icon"><i class="fas fa-file-alt"></i></div>
+                                <div class="file-info">
+                                    <h4>
+                                        <%= file.title %>
+                                    </h4>
+                                    <p>
+                                        <%= file.file_path %>
+                                    </p>
+                                </div>
+                                <div class="file-actions">
+                                    <a href="/uploads/system/<%= file.file_path %>" target="_blank" class="btn-download"
+                                        title="İndir"><i class="fas fa-download"></i></a>
+                                    <form action="/admin/files/<%= file.id %>/delete" method="POST"
+                                        style="display: inline;">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                        <button type="submit" class="btn-delete" title="Sil"
+                                            onclick="return confirm('Bu dosyayı silmek istediğinize emin misiniz?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </li>
+                            <% }) %>
+                    </ul>
+                    <% } %>
+        </div>
+
+        <div class="card form-card">
+            <h3 style="margin: 0 0 20px 0; font-size: 16px; color: #0f172a;">
+                <i class="fas fa-upload" style="color: #E31E24;"></i> Dosya Yükle
+            </h3>
+
+            <form action="/admin/files" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div class="form-group">
+                    <label>Dosya Başlığı</label>
+                    <input type="text" name="title" class="form-control" placeholder="Örn: 2024 Yıllık Takvim" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Dosya</label>
+                    <input type="file" name="file" class="form-control" required>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-upload"></i> Dosyayı Yükle
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <%- include('../layouts/footer') %>

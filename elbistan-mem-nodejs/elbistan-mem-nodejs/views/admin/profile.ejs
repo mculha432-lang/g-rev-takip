@@ -1,0 +1,376 @@
+<%- include('../layouts/header') %>
+
+    <style>
+        .page-header {
+            margin-bottom: 24px;
+            padding: 20px 24px;
+            background: white;
+            border-radius: 16px;
+            color: #1e293b;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .page-header-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #E31E24 0%, #b91c1c 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .page-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 4px 0;
+        }
+
+        .page-header p {
+            color: #64748b;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            align-items: start;
+        }
+
+        @media (max-width: 1000px) {
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid #f1f5f9;
+            font-weight: 700;
+            font-size: 16px;
+            color: #0f172a;
+            background: #f8fafc;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #E31E24 0%, #ff6b6b 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            font-weight: 700;
+        }
+
+        .profile-details h3 {
+            margin: 0 0 5px 0;
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .profile-details p {
+            margin: 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .profile-details .badge {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 12px;
+            background: #fef3c7;
+            color: #d97706;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #E31E24;
+            box-shadow: 0 0 0 3px rgba(227, 30, 36, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: #E31E24;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-submit:hover {
+            background: #C1181E;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success {
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-danger {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        .log-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 13px;
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-action {
+            color: #334155;
+            font-weight: 500;
+        }
+
+        .log-meta {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        .empty-logs {
+            text-align: center;
+            padding: 30px;
+            color: #94a3b8;
+        }
+    </style>
+
+    <div class="page-header">
+        <div class="page-header-icon">
+            <i class="fas fa-user-cog"></i>
+        </div>
+        <div>
+            <h1>Profil Ayarları</h1>
+            <p>Hesap bilgilerinizi ve şifrenizi buradan yönetebilirsiniz.</p>
+        </div>
+    </div>
+
+    <% if(status==='password_changed' ) { %>
+        <div class="alert alert-success"><i class="fas fa-check-circle"></i> Şifreniz başarıyla değiştirildi!</div>
+        <% } else if(status==='wrong_password' ) { %>
+            <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> Mevcut şifreniz hatalı!</div>
+            <% } else if(status==='mismatch' ) { %>
+                <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> Yeni şifreler eşleşmiyor!
+                </div>
+                <% } else if(status==='too_short' ) { %>
+                    <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> Şifre en az 6 karakter
+                        olmalıdır!</div>
+                    <% } else if(status==='error' ) { %>
+                        <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> Bir hata oluştu!</div>
+                        <% } %>
+
+                            <div class="profile-grid">
+                                <div>
+                                    <div class="card" style="margin-bottom: 25px;">
+                                        <div class="card-header">
+                                            <i class="fas fa-user-circle"></i> Hesap Bilgileri
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="profile-info">
+                                                <div class="profile-avatar">
+                                                    <%= user.full_name ? user.full_name.charAt(0).toUpperCase() : 'A' %>
+                                                </div>
+                                                <div class="profile-details">
+                                                    <h3>
+                                                        <%= user.full_name || 'Admin' %>
+                                                    </h3>
+                                                    <p>@<%= user.username %>
+                                                    </p>
+                                                    <span class="badge">
+                                                        <i class="fas fa-shield-alt"></i> Yönetici
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div class="info-row">
+                                                <span class="info-label">Kullanıcı Adı</span>
+                                                <span class="info-value">
+                                                    <%= user.username %>
+                                                </span>
+                                            </div>
+                                            <div class="info-row">
+                                                <span class="info-label">Ad Soyad</span>
+                                                <span class="info-value">
+                                                    <%= user.full_name || '-' %>
+                                                </span>
+                                            </div>
+                                            <div class="info-row">
+                                                <span class="info-label">Rol</span>
+                                                <span class="info-value">Sistem Yöneticisi</span>
+                                            </div>
+                                            <div class="info-row">
+                                                <span class="info-label">Kayıt Tarihi</span>
+                                                <span class="info-value">
+                                                    <%= user.created_at ? new
+                                                        Date(user.created_at).toLocaleDateString('tr-TR') : '-' %>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <i class="fas fa-history"></i> Son Giriş Aktiviteleri
+                                        </div>
+                                        <div class="card-body">
+                                            <% if(logs && logs.length> 0) { %>
+                                                <% logs.forEach(log=> { %>
+                                                    <div class="log-item">
+                                                        <span class="log-action">
+                                                            <i class="fas fa-sign-in-alt"
+                                                                style="color: #10b981; margin-right: 5px;"></i>
+                                                            <%= log.action %>
+                                                        </span>
+                                                        <span class="log-meta">
+                                                            <%= log.ip_address || '-' %> •
+                                                                <%= log.created_at ? new
+                                                                    Date(log.created_at).toLocaleString('tr-TR') : '-'
+                                                                    %>
+                                                        </span>
+                                                    </div>
+                                                    <% }) %>
+                                                        <% } else { %>
+                                                            <div class="empty-logs">
+                                                                <i class="fas fa-info-circle"></i>
+                                                                <p>Henüz giriş kaydı yok.</p>
+                                                            </div>
+                                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card">
+                                    <div class="card-header">
+                                        <i class="fas fa-key"></i> Şifre Değiştir
+                                    </div>
+                                    <div class="card-body">
+                                        <form action="/admin/profile/password" method="POST">
+                                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                            <div class="form-group">
+                                                <label>Mevcut Şifre</label>
+                                                <input type="password" name="current_password" class="form-control"
+                                                    placeholder="••••••••" required>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>Yeni Şifre</label>
+                                                <input type="password" name="new_password" class="form-control"
+                                                    placeholder="••••••••" minlength="6" required>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>Yeni Şifre (Tekrar)</label>
+                                                <input type="password" name="confirm_password" class="form-control"
+                                                    placeholder="••••••••" minlength="6" required>
+                                            </div>
+
+                                            <button type="submit" class="btn-submit">
+                                                <i class="fas fa-save"></i> Şifreyi Güncelle
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <%- include('../layouts/footer') %>

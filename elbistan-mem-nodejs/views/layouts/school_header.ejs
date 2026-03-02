@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %> | Elbistan İlçe MEM
+    </title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #E31E24;
+            --primary-hover: #C1181E;
+            --sidebar-bg: #0f172a;
+            --sidebar-hover: #1e293b;
+            --body-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--body-bg);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            /* Ensure particles stay within bounds */
+        }
+
+        #sidebar-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* Ensure content sits above particles */
+        .sidebar-brand,
+        .nav-menu,
+        .sidebar-footer {
+            position: relative;
+            z-index: 1;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0 30px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .sidebar-brand h2 {
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .sidebar-brand span {
+            color: #94a3b8;
+            font-size: 12px;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .nav-menu {
+            list-style: none;
+            flex: 1;
+        }
+
+        .nav-item {
+            margin-bottom: 5px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: var(--sidebar-hover);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, #9b1b22 0%, #E31E24 100%);
+            box-shadow: 0 4px 12px rgba(227, 30, 36, 0.3);
+            animation: slideInSidebar 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideInSidebar {
+            0% {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateX(5px);
+            }
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: var(--sidebar-hover);
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .user-details h4 {
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .user-details span {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        .btn-logout {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 10px;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 30px;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+                padding: 15px;
+            }
+
+            .sidebar-brand h2,
+            .sidebar-brand span,
+            .nav-link span,
+            .user-details,
+            .btn-logout span {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 70px;
+            }
+        }
+
+        /* ===== Bildirim Sistemi ===== */
+        .notification-section {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .notification-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 15px;
+            background: linear-gradient(135deg, rgba(227, 30, 36, 0.2) 0%, rgba(227, 30, 36, 0.1) 100%);
+            border: 1px solid rgba(227, 30, 36, 0.3);
+            border-radius: 10px;
+            color: #E31E24;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .notification-btn:hover {
+            background: linear-gradient(135deg, rgba(227, 30, 36, 0.3) 0%, rgba(227, 30, 36, 0.2) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(227, 30, 36, 0.2);
+        }
+
+        .notification-btn i {
+            font-size: 18px;
+            animation: bellRing 2s infinite;
+        }
+
+        @keyframes bellRing {
+
+            0%,
+            100% {
+                transform: rotate(0);
+            }
+
+            5%,
+            15% {
+                transform: rotate(15deg);
+            }
+
+            10%,
+            20% {
+                transform: rotate(-15deg);
+            }
+
+            25% {
+                transform: rotate(0);
+            }
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            background: linear-gradient(135deg, #E31E24 0%, #c41a1f 100%);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            right: 0;
+            width: 280px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .notification-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .notification-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+        }
+
+        .notification-header h4 {
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notification-header h4 i {
+            color: #E31E24;
+        }
+
+        .notification-count {
+            font-size: 11px;
+            padding: 3px 8px;
+            background: rgba(227, 30, 36, 0.2);
+            color: #E31E24;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .notification-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 15px;
+            text-decoration: none;
+            border-bottom: 1px solid #f1f5f9;
+            transition: all 0.2s ease;
+        }
+
+        .notification-item:hover {
+            background: #f8fafc;
+        }
+
+        .notification-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, rgba(227, 30, 36, 0.1) 0%, rgba(227, 30, 36, 0.2) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .notification-icon i {
+            color: #E31E24;
+            font-size: 14px;
+        }
+
+        .notification-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 2px;
+        }
+
+        .notification-text {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.4;
+            margin-bottom: 4px;
+        }
+
+        .notification-meta {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .notification-empty {
+            text-align: center;
+            padding: 30px;
+            color: #94a3b8;
+        }
+
+        .notification-empty i {
+            font-size: 32px;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        .notification-empty p {
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="sidebar" id="sidebar-container">
+        <canvas id="sidebar-particles"></canvas>
+        <div class="sidebar-brand">
+            <div>
+                <h2>
+                    <%= user ? user.full_name : 'Okul' %>
+                </h2>
+                <span>Okul Paneli</span>
+            </div>
+        </div>
+
+        <!-- Bildirim Zili -->
+        <% if (typeof unreadMessageCount !=='undefined' && unreadMessageCount> 0) { %>
+            <div class="notification-section">
+                <button class="notification-btn" onclick="toggleNotifications()">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">
+                        <%= unreadMessageCount> 99 ? '99+' : unreadMessageCount %>
+                    </span>
+                </button>
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <h4><i class="fas fa-envelope"></i> Yönetici Mesajları</h4>
+                        <span class="notification-count">
+                            <%= unreadMessageCount %> okunmamış
+                        </span>
+                    </div>
+                    <div class="notification-list">
+                        <% if (typeof unreadMessages !=='undefined' && unreadMessages.length> 0) { %>
+                            <% unreadMessages.forEach(msg=> { %>
+                                <a href="/okul/tasks/<%= msg.assignment_id %>#messages" class="notification-item">
+                                    <div class="notification-icon">
+                                        <i class="fas fa-comment-dots"></i>
+                                    </div>
+                                    <div class="notification-content">
+                                        <div class="notification-title">Yönetici</div>
+                                        <div class="notification-text">
+                                            <%= msg.message.length> 50 ? msg.message.substring(0, 50) + '...' :
+                                                msg.message %>
+                                        </div>
+                                        <div class="notification-meta">
+                                            <span>
+                                                <%= msg.task_title.length> 25 ? msg.task_title.substring(0, 25) + '...'
+                                                    : msg.task_title %>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </a>
+                                <% }); %>
+                                    <% } else { %>
+                                        <div class="notification-empty">
+                                            <i class="fas fa-inbox"></i>
+                                            <p>Yeni mesaj yok</p>
+                                        </div>
+                                        <% } %>
+                    </div>
+                </div>
+            </div>
+            <% } %>
+
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="/okul/dashboard" class="nav-link <%= activePage === 'dashboard' ? 'active' : '' %>">
+                            <i class="fas fa-home"></i>
+                            <span>Ana Sayfa</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="sidebar-footer">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <%= user && user.full_name ? user.full_name.charAt(0).toUpperCase() : 'O' %>
+                        </div>
+                        <div class="user-details">
+                            <h4>
+                                <%= user ? user.full_name : 'Okul' %>
+                            </h4>
+                            <span>Kurum</span>
+                        </div>
+                    </div>
+                    <a href="/logout" class="btn-logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Çıkış Yap</span>
+                    </a>
+                </div>
+    </aside>
+
+    <main class="main-content">
+        <script>
+            // Bildirim dropdown toggle
+            function toggleNotifications() {
+                const dropdown = document.getElementById('notificationDropdown');
+                if (dropdown) {
+                    dropdown.classList.toggle('show');
+                }
+            }
+
+            // Dışarı tıklandığında dropdown'ı kapat
+            document.addEventListener('click', function (event) {
+                const dropdown = document.getElementById('notificationDropdown');
+                const btn = document.querySelector('.notification-btn');
+                if (dropdown && btn && !dropdown.contains(event.target) && !btn.contains(event.target)) {
+                    dropdown.classList.remove('show');
+                }
+            });
+        </script>
+        <script>
+            // Sidebar Particle Animation
+            const sidebarCanvas = document.getElementById('sidebar-particles');
+            const sidebarCtx = sidebarCanvas.getContext('2d');
+            const sidebarContainer = document.getElementById('sidebar-container');
+
+            let particlesArray;
+
+            function setSidebarCanvasSize() {
+                sidebarCanvas.width = sidebarContainer.offsetWidth;
+                sidebarCanvas.height = sidebarContainer.offsetHeight;
+            }
+
+            window.addEventListener('resize', () => {
+                setSidebarCanvasSize();
+                initParticles();
+            });
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * sidebarCanvas.width;
+                    this.y = Math.random() * sidebarCanvas.height;
+                    this.directionX = (Math.random() * 0.5) - 0.25;
+                    this.directionY = (Math.random() * 0.5) - 0.25;
+                    this.size = (Math.random() * 1.5) + 0.5;
+                    this.color = 'rgba(255, 255, 255, 0.15)'; // Subtle white/transparent
+                }
+
+                draw() {
+                    sidebarCtx.beginPath();
+                    sidebarCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                    sidebarCtx.fillStyle = this.color;
+                    sidebarCtx.fill();
+                }
+
+                update() {
+                    if (this.x > sidebarCanvas.width || this.x < 0) this.directionX = -this.directionX;
+                    if (this.y > sidebarCanvas.height || this.y < 0) this.directionY = -this.directionY;
+
+                    this.x += this.directionX;
+                    this.y += this.directionY;
+                    this.draw();
+                }
+            }
+
+            function initParticles() {
+                particlesArray = [];
+                // Fewer particles for sidebar to avoid clutter
+                let numberOfParticles = (sidebarCanvas.width * sidebarCanvas.height) / 8000;
+                for (let i = 0; i < numberOfParticles; i++) {
+                    particlesArray.push(new Particle());
+                }
+            }
+
+            function connectParticles() {
+                let opacityValue = 1;
+                for (let a = 0; a < particlesArray.length; a++) {
+                    for (let b = a; b < particlesArray.length; b++) {
+                        let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) +
+                            ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+
+                        if (distance < (sidebarCanvas.width / 7) * (sidebarCanvas.height / 7)) {
+                            opacityValue = 1 - (distance / 10000);
+                            sidebarCtx.strokeStyle = 'rgba(255, 255, 255,' + opacityValue * 0.05 + ')'; // Very subtle lines
+                            sidebarCtx.lineWidth = 1;
+                            sidebarCtx.beginPath();
+                            sidebarCtx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                            sidebarCtx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                            sidebarCtx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animateParticles() {
+                requestAnimationFrame(animateParticles);
+                sidebarCtx.clearRect(0, 0, sidebarCanvas.width, sidebarCanvas.height);
+
+                for (let i = 0; i < particlesArray.length; i++) {
+                    particlesArray[i].update();
+                }
+                connectParticles();
+            }
+
+            // Init
+            setSidebarCanvasSize();
+            initParticles();
+            animateParticles();
+        </script>

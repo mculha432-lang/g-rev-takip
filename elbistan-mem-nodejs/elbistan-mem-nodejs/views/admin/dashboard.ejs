@@ -1,0 +1,1329 @@
+<%- include('../layouts/header') %>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --red: #E31E24;
+            --red-dark: #b91c1c;
+            --red-light: #fff5f5;
+            --white: #ffffff;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-400: #94a3b8;
+            --gray-600: #475569;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        /* Clean White Header */
+        .page-header {
+            margin-bottom: 20px;
+            padding: 16px 24px;
+            background: var(--white);
+            border-radius: 12px;
+            color: var(--gray-900);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--gray-200);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .page-header-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-header h1 i {
+            color: var(--red);
+            font-size: 20px;
+        }
+
+        .page-header p {
+            display: none;
+        }
+
+        .header-date {
+            background: var(--gray-100);
+            padding: 8px 14px;
+            border-radius: 8px;
+            color: var(--gray-600);
+            font-weight: 500;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Clean Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s ease;
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .stat-card::before,
+        .stat-card::after {
+            display: none;
+        }
+
+        .stat-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-color: var(--gray-300);
+        }
+
+        .sc-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        /* Kırmızı accent iconlar */
+        .stat-card:nth-child(1) .sc-icon {
+            background: var(--red-light);
+            color: var(--red);
+        }
+
+        .stat-card:nth-child(2) .sc-icon {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .stat-card:nth-child(3) .sc-icon {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .stat-card:nth-child(4) .sc-icon {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .sc-info h3 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--gray-900);
+            line-height: 1;
+        }
+
+        .sc-info p {
+            margin: 6px 0 0 0;
+            font-size: 12px;
+            color: var(--gray-500);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Two Column Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 1100px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .header-date {
+                width: 100%;
+                box-sizing: border-box;
+            }
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .ch-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ch-title i {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--red-light);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--red);
+        }
+
+        .announce-card {
+            background: var(--white);
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .announce-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .announce-input-area {
+            padding: 12px 14px;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            gap: 10px;
+        }
+
+        .an-input {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--gray-200);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+            background: var(--white);
+            font-family: inherit;
+        }
+
+        .an-input:focus {
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+
+        .btn-send {
+            background: var(--red);
+            color: white;
+            border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-send:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+        }
+
+        .an-list {
+            padding: 6px;
+            margin: 0;
+            list-style: none;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+
+        .an-item {
+            padding: 14px 16px;
+            border-radius: 14px;
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            transition: all 0.2s ease;
+            margin-bottom: 6px;
+        }
+
+        .an-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .an-item:hover {
+            background: #f1f5f9;
+            transform: translateX(4px);
+        }
+
+        .an-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+            color: #ef4444;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+        }
+
+        .an-content h4 {
+            margin: 0;
+            font-size: 14px;
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .an-content p {
+            margin: 4px 0 0 0;
+            font-size: 12px;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-del {
+            background: transparent;
+            border: none;
+            color: #d1d5db;
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            margin-left: auto;
+        }
+
+        .btn-del:hover {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        /* Input alanı iyileştirmesi */
+        .announce-input-area {
+            padding: 20px;
+            background: #fff;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .an-input {
+            flex: 1;
+            padding: 12px 18px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            font-size: 14px;
+            outline: none;
+            transition: 0.2s;
+            background: #f8fafc;
+        }
+
+        .an-input:focus {
+            background: #fff;
+            border-color: #1e3a5a;
+        }
+
+        /* Takvim Widget - Beyaz Tema */
+        .calendar-widget {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--gray-200);
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .calendar-widget::before {
+            display: none;
+        }
+
+        .cal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .cal-month {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .cal-legend {
+            font-size: 12px;
+            color: var(--gray-600);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cal-legend::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--red);
+            border-radius: 50%;
+        }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            text-align: center;
+        }
+
+        .cal-day-name {
+            font-size: 11px;
+            color: var(--gray-500);
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .cal-day {
+            font-size: 13px;
+            color: var(--gray-700);
+            padding: 8px 0;
+            border-radius: 8px;
+            cursor: default;
+            transition: 0.2s;
+            font-weight: 500;
+        }
+
+        .cal-day:hover {
+            background: var(--gray-100);
+        }
+
+        .cal-today {
+            color: var(--white);
+            font-weight: 700;
+            background: var(--gray-800);
+            border-radius: 8px;
+        }
+
+        .has-event {
+            background: var(--red);
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+        .has-event:hover {
+            background: var(--red-dark);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* Sabit Dosyalar - Beyaz Tema */
+        .file-list-card {
+            background: var(--white);
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .file-list-card::before {
+            display: none;
+        }
+
+        .file-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .file-card-header i {
+            width: 36px;
+            height: 36px;
+            background: #fef3c7;
+            color: #d97706;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .file-card-header span {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+
+        .file-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: 0.2s;
+            background: var(--gray-50);
+            margin-bottom: 8px;
+            border: 1px solid var(--gray-100);
+        }
+
+        .file-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .file-row:hover {
+            background: var(--gray-100);
+            border-color: var(--gray-200);
+        }
+
+        .f-icon-box {
+            width: 32px;
+            height: 32px;
+            background: var(--red-light);
+            color: var(--red);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .file-row span {
+            color: var(--gray-800);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .file-row .fa-download {
+            color: var(--gray-400);
+        }
+
+        .file-empty {
+            text-align: center;
+            padding: 32px 20px;
+        }
+
+        .file-empty i {
+            font-size: 40px;
+            color: var(--gray-300);
+            margin-bottom: 12px;
+        }
+
+        .file-empty p {
+            color: var(--gray-500);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .task-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%) scale(0.9);
+            background: #1e3a5a;
+            color: white;
+            padding: 15px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: normal;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(30, 58, 90, 0.5);
+            pointer-events: none;
+            min-width: 250px;
+            width: max-content;
+            max-width: 280px;
+            text-align: left;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Sağ sütun düzeltmeleri - Tooltip Sola Hizalanır */
+        .cal-grid .cal-day:nth-child(7n) .task-tooltip,
+        .cal-grid .cal-day:nth-child(7n-1) .task-tooltip,
+        .cal-grid .cal-day:nth-child(7n-2) .task-tooltip {
+            left: auto;
+            right: 0;
+            transform: scale(0.9);
+        }
+
+        /* Sol sütun düzeltmeleri - Tooltip Sağa Hizalanır */
+        .cal-grid .cal-day:nth-child(7n-6) .task-tooltip,
+        .cal-grid .cal-day:nth-child(7n-5) .task-tooltip {
+            left: 0;
+            transform: scale(0.9);
+        }
+
+        .task-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -6px;
+            border-width: 6px;
+            border-style: solid;
+            border-color: #1e3a5a transparent transparent transparent;
+        }
+
+        /* Sağ sütun ok düzeltmesi */
+        .cal-grid .cal-day:nth-child(7n) .task-tooltip::after,
+        .cal-grid .cal-day:nth-child(7n-1) .task-tooltip::after,
+        .cal-grid .cal-day:nth-child(7n-2) .task-tooltip::after {
+            left: auto;
+            right: 15px;
+            margin-left: 0;
+        }
+
+        /* Sol sütun ok düzeltmesi */
+        .cal-grid .cal-day:nth-child(7n-6) .task-tooltip::after,
+        .cal-grid .cal-day:nth-child(7n-5) .task-tooltip::after {
+            left: 15px;
+            margin-left: 0;
+        }
+
+        .task-tooltip .tooltip-header {
+            font-weight: 700;
+            color: #fbbf24;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 5px;
+        }
+
+        .task-tooltip .tooltip-list {
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .task-tooltip .tooltip-list li {
+            margin-bottom: 4px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .task-tooltip .tooltip-list li::before {
+            content: '•';
+            color: #fbbf24;
+        }
+
+        .has-event:hover .task-tooltip {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) scale(1);
+        }
+
+        /* Hover durumunda transform düzeltmeleri */
+        .cal-grid .cal-day:nth-child(7n) .has-event:hover .task-tooltip,
+        .cal-grid .cal-day:nth-child(7n-1) .has-event:hover .task-tooltip,
+        .cal-grid .cal-day:nth-child(7n-2) .has-event:hover .task-tooltip,
+        .cal-grid .cal-day:nth-child(7n-6) .has-event:hover .task-tooltip,
+        .cal-grid .cal-day:nth-child(7n-5) .has-event:hover .task-tooltip {
+            transform: scale(1);
+        }
+
+        /* Görev Tamamlanma Durumu Kartı */
+        .task-status-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .task-status-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .task-status-header i {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            color: #1e3a5a;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .task-status-header span {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .progress-item {
+            margin-bottom: 16px;
+        }
+
+        .progress-item:last-of-type {
+            margin-bottom: 20px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .progress-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .progress-value {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-green {
+            background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+        }
+
+        .progress-yellow {
+            background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
+        }
+
+        .task-status-link {
+            display: block;
+            text-align: center;
+            padding-top: 16px;
+            border-top: 1px solid #f1f5f9;
+            font-size: 13px;
+            color: #E31E24;
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .task-status-link:hover {
+            color: #b91c1c;
+        }
+
+        .task-status-link i {
+            margin-left: 6px;
+            transition: 0.2s;
+        }
+
+        .task-status-link:hover i {
+            transform: translateX(3px);
+        }
+    </style>
+
+    <div class="dashboard-container">
+
+        <script src="/js/chart.min.js"></script>
+
+        <style>
+            .detailed-stats-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 16px;
+                margin-bottom: 20px;
+            }
+
+            @media (max-width: 1024px) {
+                .detailed-stats-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            .chart-card {
+                background: var(--white);
+                border-radius: 12px;
+                padding: 18px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+                border: 1px solid var(--gray-200);
+            }
+
+            .chart-card:hover {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            }
+
+            .chart-header {
+                font-size: 14px;
+                font-weight: 700;
+                color: var(--gray-800);
+                margin-bottom: 16px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .chart-header i {
+                width: 28px;
+                height: 28px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--red-light);
+                border-radius: 6px;
+                color: var(--red);
+                font-size: 12px;
+            }
+
+            .chart-container {
+                position: relative;
+                height: 180px;
+                width: 100%;
+            }
+
+            .top-schools-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .top-school-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 8px 10px;
+                border-radius: 6px;
+                margin-bottom: 4px;
+                background: var(--gray-50);
+                transition: all 0.15s ease;
+            }
+
+            .top-school-item:hover {
+                background: var(--gray-100);
+            }
+
+            .top-school-item:last-child {
+                margin-bottom: 0;
+            }
+
+            .ts-rank {
+                width: 24px;
+                height: 24px;
+                background: var(--red);
+                color: white;
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 11px;
+                font-weight: 700;
+                margin-right: 12px;
+            }
+
+            .top-school-item:nth-child(1) .ts-rank {
+                background: #f59e0b;
+            }
+
+            .top-school-item:nth-child(2) .ts-rank {
+                background: #6b7280;
+            }
+
+            .top-school-item:nth-child(3) .ts-rank {
+                background: #c2410c;
+            }
+
+            .ts-name {
+                flex: 1;
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--gray-800);
+                line-height: 1.4;
+            }
+
+            .ts-score {
+                font-size: 11px;
+                font-weight: 700;
+                color: #059669;
+                background: #d1fae5;
+                padding: 4px 10px;
+                border-radius: 6px;
+            }
+        </style>
+
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1><i class="fas fa-chart-line" style="margin-right: 12px;"></i>İlçe Milli Eğitim Kontrol Paneli</h1>
+                <p>Tüm okulların görev takibi, durum raporları ve iletişim merkezi</p>
+            </div>
+
+            <div class="header-date">
+                <i class="far fa-calendar-alt"></i>
+                <span id="headerDateDisplay"></span>
+            </div>
+        </div>
+
+        <script>
+            // Tarihi formatla
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const today = new Date();
+            document.getElementById('headerDateDisplay').innerText = today.toLocaleDateString('tr-TR', options);
+        </script>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="sc-icon"><i class="fas fa-school"></i></div>
+                <div class="sc-info">
+                    <h3>
+                        <%= totalUsers %>
+                    </h3>
+                    <p>Kurum</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="sc-icon"><i class="fas fa-tasks"></i></div>
+                <div class="sc-info">
+                    <h3>
+                        <%= totalTasks %>
+                    </h3>
+                    <p>Aktif Görev</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="sc-icon"><i class="fas fa-clock"></i></div>
+                <div class="sc-info">
+                    <h3>
+                        <%= pendingTasks || 0 %>
+                    </h3>
+                    <p>Bekleyen</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="sc-icon"><i class="fas fa-check-circle"></i>
+                </div>
+                <div class="sc-info">
+                    <h3>%<%= successRate %>
+                    </h3>
+                    <p>Başarı</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- YENİ DETAYLI İSTATİSTİKLER BÖLÜMÜ -->
+        <div class="detailed-stats-grid">
+            <!-- Okul Türü Performansı -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <span>Okul Türü Başarısı (%)</span>
+                    <i class="fas fa-chart-bar" style="color: #cbd5e1;"></i>
+                </div>
+                <canvas id="schoolTypeChart" data-chart='<%- JSON.stringify(chartData.schoolTypes) %>'></canvas>
+            </div>
+
+            <!-- Durum Dağılımı -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <span>Görev Durumları</span>
+                    <i class="fas fa-chart-pie" style="color: #cbd5e1;"></i>
+                </div>
+                <div style="height: 200px; display: flex; justify-content: center;">
+                    <canvas id="statusChart" data-chart='<%- JSON.stringify(chartData.statusDist) %>'></canvas>
+                </div>
+            </div>
+
+            <!-- En Başarılı Okullar -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <span>En Başarılı 5 Okul</span>
+                    <i class="fas fa-trophy" style="color: #fbbf24;"></i>
+                </div>
+                <ul class="top-schools-list">
+                    <% if (chartData && chartData.topSchools.length> 0) { %>
+                        <% chartData.topSchools.forEach((school, index)=> { %>
+                            <li class="top-school-item">
+                                <div class="ts-rank">
+                                    <%= index + 1 %>
+                                </div>
+                                <div class="ts-name">
+                                    <%= school.school_name %>
+                                </div>
+                                <div class="ts-score">
+                                    <%= school.completed_count %> Görev
+                                </div>
+                            </li>
+                            <% }); %>
+                                <% } else { %>
+                                    <li style="text-align: center; color: #94a3b8; font-size: 13px; padding: 20px;">Veri
+                                        yok</li>
+                                    <% } %>
+                </ul>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                if (typeof Chart === 'undefined') {
+                    console.error('Chart.js yüklenemedi!');
+                    return;
+                }
+
+                // Verileri data attribute'dan al
+                const canvas1 = document.getElementById('schoolTypeChart');
+                const canvas2 = document.getElementById('statusChart');
+                const schoolTypeData = JSON.parse(canvas1.getAttribute('data-chart'));
+                const statusData = JSON.parse(canvas2.getAttribute('data-chart'));
+
+                // 1. Okul Türü Chart
+                if (canvas1) {
+                    const ctx1 = canvas1.getContext('2d');
+                    new Chart(ctx1, {
+                        type: 'bar',
+                        data: {
+                            labels: schoolTypeData.labels,
+                            datasets: [{
+                                label: 'Tamamlanma Oranı (%)',
+                                data: schoolTypeData.data,
+                                backgroundColor: '#3b82f6',
+                                borderRadius: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: { beginAtZero: true, max: 100 }
+                            }
+                        }
+                    });
+                }
+
+                // 2. Durum Pasta Grafiği
+                if (canvas2) {
+                    const ctx2 = canvas2.getContext('2d');
+                    new Chart(ctx2, {
+                        type: 'doughnut',
+                        data: {
+                            labels: statusData.labels,
+                            datasets: [{
+                                data: statusData.counts,
+                                backgroundColor: [
+                                    '#fbbf24', // Bekleyen (Yellow)
+                                    '#3b82f6', // Devam Eden (Blue)
+                                    '#10b981', // Tamamlanan (Green)
+                                    '#ef4444'  // Reddedilen (Red)
+                                ],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                            }
+                        }
+                    });
+                }
+            });
+        </script>
+
+        <div class="main-grid">
+
+            <div>
+                <div class="card-header">
+                    <span class="ch-title"><i class="fas fa-bullhorn" style="color:#E31E24;"></i> Kurumsal
+                        Duyurular</span>
+                </div>
+
+                <div class="announce-card">
+                    <form action="/admin/announcements" method="POST" class="announce-input-area">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <input type="text" name="title" class="an-input" placeholder="Okullara hızlı duyuru yayınla..."
+                            required autocomplete="off">
+                        <input type="hidden" name="content" value="Detaylar için panele bakınız.">
+                        <button type="submit" class="btn-send"><i class="fas fa-paper-plane"></i></button>
+                    </form>
+
+                    <ul class="an-list">
+                        <% if(announcements.length===0) { %>
+                            <li style="padding:30px; text-align:center; color:#94a3b8; font-size:13px;">Aktif duyuru
+                                yok.</li>
+                            <% } else { %>
+                                <% announcements.forEach(ann=> { %>
+                                    <li class="an-item">
+                                        <div class="an-icon"><i class="fas fa-bell"></i></div>
+                                        <div class="an-content">
+                                            <h4>
+                                                <%= ann.title %>
+                                            </h4>
+                                            <p>
+                                                <i class="far fa-clock" style="font-size: 12px;"></i>
+                                                <%= ann.created_at ? new
+                                                    Date(ann.created_at).toLocaleDateString('tr-TR') : '' %>
+                                                    <span
+                                                        style="width: 4px; height: 4px; background: #cbd5e1; border-radius: 50%; display: inline-block; margin: 0 2px;"></span>
+                                                    <span>Yayında</span>
+                                            </p>
+                                        </div>
+                                        <form action="/admin/announcements/<%= ann.id %>/delete" method="POST"
+                                            style="display: inline;">
+                                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                            <button type="submit" class="btn-del"
+                                                onclick="return confirm('Bu duyuruyu silmek istediğinize emin misiniz?')"
+                                                title="Duyuruyu Sil">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    </li>
+                                    <% }) %>
+                                        <% } %>
+                    </ul>
+                </div>
+
+                <div class="file-list-card">
+                    <div class="file-card-header">
+                        <i class="fas fa-folder-open"></i>
+                        <span>Sabit Dosyalar</span>
+                    </div>
+                    <% if(systemFiles.length===0) { %>
+                        <div class="file-empty">
+                            <i class="fas fa-folder-open"></i>
+                            <p>Dosya eklenmemiş.</p>
+                        </div>
+                        <% } else { %>
+                            <% systemFiles.forEach(file=> { %>
+                                <a href="/uploads/system/<%= file.file_path %>" target="_blank" class="file-row">
+                                    <div class="f-icon-box"><i class="fas fa-file-alt"></i></div>
+                                    <span style="font-size:13px; font-weight:600; flex:1;">
+                                        <%= file.title %>
+                                    </span>
+                                    <i class="fas fa-download"></i>
+                                </a>
+                                <% }) %>
+                                    <% } %>
+                </div>
+            </div>
+
+            <div>
+
+                <div class="calendar-widget">
+                    <div class="cal-header">
+                        <span class="cal-month" id="calMonthYear"></span>
+                        <span class="cal-legend">Teslim Günü</span>
+                    </div>
+                    <!-- Veriyi data attribute olarak gönderiyoruz, script hatasını önlemek için -->
+                    <div class="cal-grid" id="adminCalendar" data-events='<%- calendarEvents %>'>
+                    </div>
+                </div>
+
+                <div class="task-status-card">
+                    <div class="task-status-header">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Görev Tamamlanma Durumu</span>
+                    </div>
+
+                    <div class="progress-item">
+                        <div class="progress-info">
+                            <span class="progress-label">Tamamlanan</span>
+                            <span class="progress-value">
+                                <%= completedTasks %>
+                            </span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill progress-green"
+                                style="width:<%= totalAssignments > 0 ? (completedTasks/totalAssignments)*100 : 0 %>%;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="progress-item">
+                        <div class="progress-info">
+                            <span class="progress-label">Bekleyen / İşlemde</span>
+                            <span class="progress-value">
+                                <%= pendingTasks %>
+                            </span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill progress-yellow"
+                                style="width:<%= totalAssignments > 0 ? (pendingTasks/totalAssignments)*100 : 0 %>%;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="/admin/tasks" class="task-status-link">
+                        Tüm Görevleri İncele <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const container = document.getElementById('adminCalendar');
+            if (!container) return;
+
+            let events = {};
+            try {
+                // Veriyi data attribute'dan al
+                const rawEvents = container.getAttribute('data-events');
+                if (rawEvents) {
+                    events = JSON.parse(rawEvents);
+                }
+            } catch (e) {
+                console.error("Takvim verisi işlenirken hata oluştu:", e);
+                events = {};
+            }
+
+            const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+            const dayNames = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
+
+            const date = new Date();
+            const currentMonth = date.getMonth();
+            const currentYear = date.getFullYear();
+
+            const title = document.getElementById('calMonthYear');
+
+            if (title) {
+                title.innerText = `${monthNames[currentMonth]} ${currentYear}`;
+            }
+
+            // Önce temizle
+            container.innerHTML = '';
+
+            // Gün başlıklarını ekle
+            dayNames.forEach(day => {
+                const div = document.createElement('div');
+                div.className = 'cal-day-name';
+                div.innerText = day;
+                container.appendChild(div);
+            });
+
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            // Pazartesi'den başlatmak için (Pazar(0) -> 6, diğerleri -> gün-1)
+            let startSlot = firstDay === 0 ? 6 : firstDay - 1;
+
+            // Boşlukları ekle
+            for (let i = 0; i < startSlot; i++) {
+                container.appendChild(document.createElement('div'));
+            }
+
+            // Günleri ekle
+            for (let i = 1; i <= daysInMonth; i++) {
+                const div = document.createElement('div');
+                div.className = 'cal-day';
+                div.innerText = i;
+
+                // Bugünün kontrolü
+                if (i === date.getDate() && currentMonth === date.getMonth() && currentYear === date.getFullYear()) {
+                    div.classList.add('cal-today');
+                }
+
+                // Görev (Event) kontrolü
+                const checkDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+
+                if (events && events[checkDate]) {
+                    div.classList.add('has-event');
+
+                    // Tooltip oluştur
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'task-tooltip';
+
+                    const taskTitles = events[checkDate];
+                    const dateStr = i + ' ' + monthNames[currentMonth];
+
+                    let tooltipContent = '<div class="tooltip-header"><i class="fas fa-calendar-check"></i> ' + dateStr + '</div>';
+                    tooltipContent += '<div class="tooltip-list">';
+
+                    if (Array.isArray(taskTitles)) {
+                        taskTitles.forEach(function (task) {
+                            tooltipContent += '• ' + task + '<br>';
+                        });
+                    } else {
+                        tooltipContent += '• ' + taskTitles;
+                    }
+
+                    tooltipContent += '</div>';
+                    tooltip.innerHTML = tooltipContent;
+
+                    div.appendChild(tooltip);
+                }
+
+                container.appendChild(div);
+            }
+        });
+    </script>
+
+    <%- include('../layouts/footer') %>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Sayfa Bulunamadı | Elbistan İlçe MEM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .error-container {
+            padding: 40px;
+        }
+
+        h1 {
+            font-size: 120px;
+            color: #E31E24;
+            margin: 0;
+            font-weight: 800;
+        }
+
+        h2 {
+            font-size: 24px;
+            color: #1e293b;
+            margin: 10px 0 20px 0;
+        }
+
+        p {
+            color: #64748b;
+            margin-bottom: 30px;
+        }
+
+        a {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #E31E24;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        a:hover {
+            background: #C1181E;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="error-container">
+        <h1>
+            <%= typeof title !=='undefined' ? title : '404' %>
+        </h1>
+        <h2>
+            <%= typeof title !=='undefined' ? title : 'Sayfa Bulunamadı' %>
+        </h2>
+        <p>
+            <%= typeof message !=='undefined' ? message : 'Aradığınız sayfa mevcut değil veya taşınmış olabilir.' %>
+        </p>
+        <a href="/login">Ana Sayfaya Dön</a>
+    </div>
+</body>
+
+</html>

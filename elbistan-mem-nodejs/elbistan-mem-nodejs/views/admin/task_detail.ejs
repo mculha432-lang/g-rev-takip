@@ -1,0 +1,972 @@
+<%- include('../layouts/header') %>
+
+    <style>
+        /* 🎨 Beyaz-Kırmızı Ferah Tema */
+        :root {
+            --red: #dc2626;
+            --red-dark: #b91c1c;
+            --red-light: #fef2f2;
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-400: #9ca3af;
+            --gray-600: #4b5563;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+            padding: 20px 24px;
+            background: var(--white);
+            border-radius: 12px;
+            color: var(--gray-800);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .page-header-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--red);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .page-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin: 0 0 4px 0;
+        }
+
+        .page-header p {
+            color: var(--gray-600);
+            font-size: 13px;
+            margin: 0;
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: var(--gray-100);
+            color: var(--gray-600);
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+            border: 1px solid var(--gray-200);
+        }
+
+        .btn-back:hover {
+            background: var(--gray-200);
+            color: var(--gray-800);
+        }
+
+        .task-card {
+            background: var(--white);
+            border-radius: 16px;
+            border: 1px solid var(--gray-200);
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+
+        .task-card::before {
+            display: none;
+        }
+
+        .task-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin: 0 0 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        .btn-edit-task {
+            background: var(--red);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+
+        .btn-edit-task:hover {
+            background: var(--red-dark);
+            color: white;
+        }
+
+        .task-desc {
+            color: var(--gray-600);
+            font-size: 15px;
+            line-height: 1.7;
+            margin-bottom: 20px;
+            padding: 18px;
+            background: var(--gray-50);
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            padding-top: 16px;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .task-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            color: var(--gray-800);
+            font-weight: 600;
+        }
+
+        .task-meta-item i {
+            color: var(--red);
+            font-size: 16px;
+            background: var(--red-light);
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--gray-200);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            transition: all 0.2s;
+        }
+
+        .stat-card::before {
+            display: none;
+        }
+
+        .stat-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .stat-info h3 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--gray-900);
+        }
+
+        .stat-info p {
+            margin: 6px 0 0 0;
+            font-size: 12px;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-blue .stat-icon {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .stat-yellow .stat-icon {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .stat-green .stat-icon {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 16px;
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+
+        .card::before {
+            display: none;
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--gray-800);
+            background: var(--gray-50);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-header i {
+            color: var(--red);
+            background: var(--red-light);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 14px 20px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--gray-100);
+            font-size: 14px;
+            color: var(--gray-800);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: var(--gray-50);
+        }
+
+        /* Card beyaz tema - ferah ve okunabilir */
+        .card {
+            background: var(--white);
+            border-radius: 16px;
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .card::before {
+            display: none;
+        }
+
+        /* Tablo zebra pattern */
+        tbody tr:nth-child(even) td {
+            background: var(--gray-50);
+        }
+
+        tbody tr:nth-child(odd) td {
+            background: var(--white);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-pending {
+            background: #fff7ed;
+            color: #ea580c;
+            border: 1px solid #ffedd5;
+        }
+
+        .badge-in_progress {
+            background: #eff6ff;
+            color: #2563eb;
+            border: 1px solid #dbeafe;
+        }
+
+        .badge-completed {
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #d1fae5;
+        }
+
+        .badge-rejected {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fee2e2;
+        }
+
+        .badge-school-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--gray-800);
+        }
+
+        .school-code {
+            font-family: monospace;
+            background: var(--gray-100);
+            padding: 6px 10px;
+            border-radius: 6px;
+            color: var(--gray-800);
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid var(--gray-200);
+        }
+
+        .btn-reject {
+            padding: 8px 15px;
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-reject:hover {
+            background: #dc2626;
+            color: white;
+            border-color: #dc2626;
+        }
+
+        .btn-view-file {
+            padding: 8px 15px;
+            background: #eff6ff;
+            color: #2563eb;
+            border: 1px solid #dbeafe;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-view-file:hover {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        .response-note {
+            font-style: italic;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(30, 58, 90, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            border-top: 5px solid #dc2626;
+            transform: scale(0.95);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes popIn {
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #dc2626;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-form textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-family: inherit;
+            font-size: 14px;
+            background: #f8fafc;
+            resize: vertical;
+            transition: 0.2s;
+            box-sizing: border-box;
+        }
+
+        .modal-form textarea:focus {
+            outline: none;
+            border-color: #dc2626;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-modal-cancel {
+            padding: 12px 20px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-modal-cancel:hover {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .btn-modal-submit {
+            padding: 12px 25px;
+            background: #dc2626;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+        }
+
+        .btn-modal-submit:hover {
+            background: #b91c1c;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+        }
+    </style>
+
+    <div class="page-header">
+        <div class="page-header-left">
+            <div class="page-header-icon">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <div>
+                <h1>Görev Takibi</h1>
+                <p>Görevin okul bazlı durumunu ve istatistiklerini inceleyin.</p>
+            </div>
+        </div>
+        <a href="/admin/tasks" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Geri Dön
+        </a>
+    </div>
+
+    <div class="task-card">
+        <div class="task-title">
+            <%= task.title %>
+                <div class="task-actions">
+                    <a href="/admin/tasks/<%= task.id %>/edit" class="btn-edit-task">
+                        <i class="fas fa-edit"></i> Düzenle
+                    </a>
+                </div>
+        </div>
+
+        <% if(task.description) { %>
+            <div class="task-desc">
+                <%= task.description %>
+            </div>
+            <% } %>
+
+                <div class="task-meta">
+                    <div class="task-meta-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <div>
+                            <span
+                                style="display:block; font-size:11px; color:rgba(255,255,255,0.7); font-weight:500;">Son
+                                Teslim
+                                Tarihi</span>
+                            <%= task.deadline || 'Belirtilmemiş' %>
+                        </div>
+                    </div>
+
+                    <% if(task.file_path) { %>
+                        <div class="task-meta-item">
+                            <i class="fas fa-file-alt"></i>
+                            <a href="/uploads/tasks/<%= task.file_path %>" target="_blank"
+                                style="text-decoration:none; color:inherit;">
+                                <span
+                                    style="display:block; font-size:11px; color:rgba(255,255,255,0.7); font-weight:500;">Ek
+                                    Dosya</span>
+                                Dosyayı Görüntüle
+                            </a>
+                        </div>
+                        <% } %>
+                </div>
+    </div>
+
+    <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="stat-card stat-blue">
+            <div class="stat-icon"><i class="fas fa-school"></i></div>
+            <div class="stat-info">
+                <h3>
+                    <%= total %>
+                </h3>
+                <p>Toplam Atama</p>
+            </div>
+        </div>
+        <div class="stat-card stat-yellow">
+            <div class="stat-icon"><i class="fas fa-eye"></i></div>
+            <div class="stat-info">
+                <h3>
+                    <%= readCount %>
+                </h3>
+                <p>Okuyan Okul</p>
+            </div>
+        </div>
+        <!-- Onay Bekleyen Kartı - TURUNCU -->
+        <div class="stat-card stat-orange" style="border-left: 4px solid #f97316;">
+            <div class="stat-icon" style="background: #ffedd5; color: #f97316;"><i class="fas fa-clock"></i></div>
+            <div class="stat-info">
+                <h3>
+                    <%= pendingApprovalCount %>
+                </h3>
+                <p>Onay Bekleyen</p>
+            </div>
+        </div>
+        <div class="stat-card stat-green">
+            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-info">
+                <h3>
+                    <%= completedCount %>
+                </h3>
+                <p>Tamamlanan</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-list-ul"></i> Okul Durumları
+        </div>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Okul</th>
+                        <th style="width: 10%;">Kurum Kodu</th>
+                        <th>Okundu</th>
+                        <th>Durum</th>
+                        <th>Yanıt Notu</th>
+                        <th>Dosya</th>
+                        <th style="width: 180px;">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% assignments.forEach(assignment=> { %>
+                        <tr>
+                            <td>
+                                <div class="badge-school-name">
+                                    <%= assignment.full_name %>
+                                </div>
+                            </td>
+                            <td><span class="school-code">
+                                    <%= assignment.username %>
+                                </span></td>
+                            <td>
+                                <% if(assignment.is_read) { %>
+                                    <span style="color: #10b981; font-size: 12px; font-weight: 600;"><i
+                                            class="fas fa-check-double"></i> Evet</span>
+                                    <div style="font-size: 10px; color: #94a3b8;">
+                                        <%= assignment.read_at ? new Date(assignment.read_at).toLocaleString('tr-TR')
+                                            : '' %>
+                                    </div>
+                                    <% } else { %>
+                                        <span style="color: #94a3b8; font-size: 12px;"><i
+                                                class="fas fa-minus-circle"></i> Hayır</span>
+                                        <% } %>
+                            </td>
+                            <td>
+                                <% if(assignment.status==='completed' ) { %>
+                                    <span class="badge badge-completed"><i class="fas fa-check"></i> Tamamlandı</span>
+                                    <div style="font-size: 10px; color: #10b981; margin-top: 2px;">
+                                        <%= assignment.completed_at ? new
+                                            Date(assignment.completed_at).toLocaleString('tr-TR') : '' %>
+                                    </div>
+                                    <% } else if(assignment.status==='rejected' ) { %>
+                                        <span class="badge badge-rejected"><i class="fas fa-times"></i>
+                                            Reddedildi</span>
+                                        <% } else if(assignment.status==='pending_approval' ) { %>
+                                            <span class="badge"
+                                                style="background:#fff7ed; color:#c2410c; border:1px solid #ffedd5;"><i
+                                                    class="fas fa-hourglass-half"></i> Onay Bekliyor</span>
+                                            <% } else if(assignment.status==='in_progress' ) { %>
+                                                <span class="badge badge-in_progress"><i
+                                                        class="fas fa-spinner fa-spin"></i>
+                                                    İşleniyor</span>
+                                                <% } else { %>
+                                                    <span class="badge badge-pending"><i class="fas fa-clock"></i>
+                                                        Bekliyor</span>
+                                                    <% } %>
+                            </td>
+                            <td>
+                                <% if(assignment.response_note) { %>
+                                    <div class="response-note">"<%= assignment.response_note %>"</div>
+                                    <% } else { %>
+                                        <span style="color: #cbd5e1;">-</span>
+                                        <% } %>
+                            </td>
+                            <td>
+                                <% if(assignment.response_file) { %>
+                                    <a href="/uploads/responses/<%= assignment.response_file %>" target="_blank"
+                                        class="btn-view-file">
+                                        <i class="fas fa-paperclip"></i> İncele
+                                    </a>
+                                    <% } else { %>
+                                        <span style="color: #cbd5e1;">-</span>
+                                        <% } %>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 5px;">
+                                    <button
+                                        onclick="openMessageModal('<%= assignment.id %>', '<%= assignment.full_name %>')"
+                                        class="btn-message"
+                                        style="padding: 6px 10px; background: #eff6ff; color: #3b82f6; border: 1px solid #dbeafe; border-radius: 6px; cursor: pointer; font-weight: 600; position: relative;">
+                                        <i class="fas fa-comment-dots"></i>
+                                        <!-- Mesaj varsa nokta koy -->
+                                        <!-- JS Kontrolü Buraya Gelecek -->
+                                    </button>
+
+                                    <% if(assignment.status==='pending_approval' ) { %>
+                                        <button
+                                            onclick="openApproveModal('<%= assignment.id %>', '<%= assignment.full_name %>')"
+                                            class="btn-approve"
+                                            style="padding: 6px 10px; background: #ecfdf5; color: #059669; border: 1px solid #d1fae5; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button
+                                            onclick="openRejectModal('<%= assignment.id %>', '<%= assignment.full_name %>')"
+                                            class="btn-reject" style="padding: 6px 10px;">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                        <% } else if(assignment.status==='completed' ) { %>
+                                            <button
+                                                onclick="openRejectModal('<%= assignment.id %>', '<%= assignment.full_name %>')"
+                                                class="btn-reject" title="Tekrar Reddet/Düzeltme İste">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+                                            <% } %>
+                                </div>
+                            </td>
+                        </tr>
+                        <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Reddetme Modalı -->
+    <div id="rejectModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                Görevi Reddet
+            </div>
+            <p style="margin-bottom: 15px; color: #475569; font-size: 14px;">
+                <strong id="modalSchoolName">Okul Adı</strong> tarafından gönderilen görevi reddetmek üzeresiniz. Lütfen
+                red sebebini belirtin:
+            </p>
+            <form id="rejectForm" method="POST" class="modal-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <textarea name="rejection_note" placeholder="Örn: Dosya eksik veya hatalı yüklenmiş..."
+                    required></textarea>
+                <div class="modal-actions">
+                    <button type="button" class="btn-modal-cancel" onclick="closeRejectModal()">İptal</button>
+                    <button type="submit" class="btn-modal-submit">Görevi Reddet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Onaylama Modalı -->
+    <div id="approveModal" class="modal-overlay">
+        <div class="modal-box" style="border-top-color: #10b981;">
+            <div class="modal-title" style="color: #10b981;">
+                <i class="fas fa-check-circle"></i>
+                Görevi Onayla
+            </div>
+            <p style="margin-bottom: 20px; color: #475569; font-size: 14px;">
+                <strong id="approveModalSchoolName">Okul Adı</strong> tarafından yapılan görevi onaylamak üzeresiniz.
+                İşlem tamamlanacaktır.
+            </p>
+            <form id="approveForm" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div class="modal-actions">
+                    <button type="button" class="btn-modal-cancel" onclick="closeApproveModal()">İptal</button>
+                    <button type="submit" class="btn-modal-submit"
+                        style="background: #10b981; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">Onayla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Mesajlaşma Modalı -->
+    <div id="messageModal" class="modal-overlay">
+        <div class="modal-box" style="border-top-color: #3b82f6; max-width: 600px;">
+            <div class="modal-title"
+                style="color: #3b82f6; display: flex; justify-content: space-between; align-items: center;">
+                <span><i class="fas fa-comments"></i> Mesajlar</span>
+                <button onclick="closeMessageModal()"
+                    style="background:none; border:none; cursor:pointer; color:#94a3b8; font-size:18px;"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <p style="margin-bottom: 15px; color: #475569; font-size: 14px;">
+                <strong id="msgModalSchoolName">Okul Adı</strong> ile mesajlaşma geçmişi:
+            </p>
+
+            <div id="messagesContainer"
+                style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; height: 300px; overflow-y: auto; padding: 15px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px;">
+                <!-- Mesajlar buraya gelecek -->
+            </div>
+
+            <form id="messageForm" method="POST" style="display: flex; gap: 10px;">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="task_id" value="<%= task.id %>"> <!-- Redirect için -->
+                <input type="text" name="message" class="form-control" placeholder="Bir mesaj yazın..." required
+                    style="flex:1; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px;">
+                <button type="submit" class="btn-modal-submit"
+                    style="background: #3b82f6; margin: 0; white-space: nowrap;"><i
+                        class="fas fa-paper-plane"></i></button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Verileri Client Side'a Aktar -->
+    <script>
+        const messagesMap = <%- messagesMap %>;
+        const currentUserId = "<%= currentUserId %>";
+    </script>
+
+    <script>
+        // Reject Modal
+        const rejectModal = document.getElementById('rejectModal');
+        const rejectForm = document.getElementById('rejectForm');
+        const modalSchoolName = document.getElementById('modalSchoolName');
+
+        function openRejectModal(assignmentId, schoolName) {
+            rejectForm.action = `/admin/tasks/<%= task.id %>/assignments/${assignmentId}/reject`;
+            modalSchoolName.textContent = schoolName;
+            rejectModal.classList.add('active');
+            setTimeout(() => { rejectForm.querySelector('textarea').focus(); }, 100);
+        }
+
+        function closeRejectModal() {
+            rejectModal.classList.remove('active');
+        }
+
+        // Approve Modal
+        const approveModal = document.getElementById('approveModal');
+        const approveForm = document.getElementById('approveForm');
+        const approveModalSchoolName = document.getElementById('approveModalSchoolName');
+
+        function openApproveModal(assignmentId, schoolName) {
+            approveForm.action = `/admin/tasks/<%= task.id %>/assignments/${assignmentId}/approve`;
+            approveModalSchoolName.textContent = schoolName;
+            approveModal.classList.add('active');
+        }
+
+        function closeApproveModal() {
+            approveModal.classList.remove('active');
+        }
+
+        // Message Modal
+        const messageModal = document.getElementById('messageModal');
+        const messageForm = document.getElementById('messageForm');
+        const msgModalSchoolName = document.getElementById('msgModalSchoolName');
+        const messagesContainer = document.getElementById('messagesContainer');
+
+        function openMessageModal(assignmentId, schoolName) {
+            msgModalSchoolName.textContent = schoolName;
+            messageForm.action = `/admin/tasks/assignments/${assignmentId}/message`;
+
+            // Mesajları temizle
+            messagesContainer.innerHTML = '';
+
+            // Mesajları yükle
+            const msgs = messagesMap[assignmentId] || [];
+
+            if (msgs.length === 0) {
+                messagesContainer.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">Henüz mesaj yok.</div>';
+            } else {
+                msgs.forEach(msg => {
+                    const isMe = msg.sender_id === currentUserId;
+                    const bubble = document.createElement('div');
+                    bubble.style.cssText = `
+                        max-width: 80%;
+                        padding: 10px 14px;
+                        border-radius: 12px;
+                        font-size: 13px;
+                        align-self: ${isMe ? 'flex-end' : 'flex-start'};
+                        background: ${isMe ? '#dbeafe' : 'white'};
+                        color: ${isMe ? '#1e3a8a' : '#334155'};
+                        border: ${isMe ? 'none' : '1px solid #e2e8f0'};
+                    `;
+
+                    const senderName = isMe ? 'Siz' : msg.full_name;
+                    const time = new Date(msg.created_at).toLocaleString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+                    bubble.innerHTML = `
+                        <div style="font-weight:700; font-size:11px; margin-bottom:2px; opacity:0.7;">${senderName}</div>
+                        <div>${msg.message}</div>
+                        <div style="font-size:10px; opacity:0.5; margin-top:4px; text-align:right;">${time}</div>
+                    `;
+
+                    messagesContainer.appendChild(bubble);
+                });
+
+                // En alta kaydır
+                setTimeout(() => {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 50);
+            }
+
+            messageModal.classList.add('active');
+        }
+
+        function closeMessageModal() {
+            messageModal.classList.remove('active');
+        }
+
+        // Close on outside click
+        window.onclick = function (event) {
+            if (event.target == rejectModal) closeRejectModal();
+            if (event.target == approveModal) closeApproveModal();
+            if (event.target == messageModal) closeMessageModal();
+        }
+
+        // Close on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeRejectModal();
+                closeApproveModal();
+                closeMessageModal();
+            }
+        });
+    </script>
+
+    <%- include('../layouts/footer') %>

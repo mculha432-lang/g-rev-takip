@@ -1,0 +1,1353 @@
+<%- include('../layouts/school_header') %>
+
+    <style>
+        .page-container {
+            max-width: 860px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Geri Butonu */
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: white;
+            color: #475569;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .btn-back:hover {
+            background: #f8fafc;
+            transform: translateX(-3px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Bildirim Alertleri */
+        .alert {
+            padding: 14px 20px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideDown 0.4s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            color: #d97706;
+            border: 1px solid #fde68a;
+        }
+
+        .alert i {
+            font-size: 18px;
+        }
+
+        /* Görev Kartı */
+        .task-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+            transition: box-shadow 0.3s;
+        }
+
+        .task-card:hover {
+            box-shadow: 0 8px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Görev Başlık */
+        .task-header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #E31E24 100%);
+            padding: 28px 30px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+
+        .task-header::after {
+            content: '';
+            position: absolute;
+            bottom: -60%;
+            left: -10%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 50%;
+        }
+
+        .task-header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .task-header h1 {
+            margin: 0 0 14px 0;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+
+        .task-header-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 13px;
+        }
+
+        .task-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Durum Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-in_progress {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .status-completed {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .status-pending_approval {
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
+
+        .status-rejected {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        /* Görev İçerik */
+        .task-body {
+            padding: 30px;
+        }
+
+        .task-desc {
+            color: #475569;
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            padding: 18px 20px;
+            background: #f8fafc;
+            border-radius: 14px;
+            border-left: 4px solid #E31E24;
+        }
+
+        /* Dosya Kartı */
+        .task-file {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 18px 20px;
+            background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+            border-radius: 14px;
+            margin-bottom: 25px;
+            border: 1px solid #bfdbfe;
+            transition: all 0.2s;
+        }
+
+        .task-file:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        .task-file-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .task-file-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .task-file-info h4 {
+            margin: 0 0 3px 0;
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .task-file-info p {
+            margin: 0;
+            font-size: 12px;
+            color: #64748b;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .btn-download {
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Mevcut Yanıt */
+        .current-response {
+            padding: 22px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 16px;
+            margin-bottom: 25px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .current-response-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .current-response-header h4 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .current-response p {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .current-response a {
+            color: #3b82f6;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .current-response a:hover {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+
+        /* Bölüm Başlıkları */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0 0 22px 0;
+            font-size: 17px;
+            font-weight: 700;
+            color: #0f172a;
+            padding-bottom: 14px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .section-title .icon-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+
+        .icon-reply {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            color: #059669;
+        }
+
+        .icon-chat {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            color: #3b82f6;
+        }
+
+        .icon-form {
+            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+            color: #7c3aed;
+        }
+
+        /* Yanıt Bölümü */
+        .response-section {
+            padding-top: 25px;
+            margin-top: 10px;
+        }
+
+        /* Form Grupları */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            box-sizing: border-box;
+            background: #f8fafc;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        /* Durum Seçici */
+        .status-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .status-option {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .status-option input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .status-option-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 20px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+            transition: all 0.25s;
+        }
+
+        .status-option-content i {
+            font-size: 18px;
+        }
+
+        .status-option input:checked+.status-option-content {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            color: #059669;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .status-option:first-child input:checked+.status-option-content {
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            color: #2563eb;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        /* Form Alanları Kutusu */
+        .form-fields-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f5f3ff 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 22px;
+        }
+
+        .form-fields-card h4 {
+            margin: 0 0 18px 0;
+            font-size: 14px;
+            font-weight: 700;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-field-item {
+            margin-bottom: 16px;
+        }
+
+        .form-field-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .radio-option,
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 14px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #334155;
+            transition: all 0.2s;
+            margin-bottom: 6px;
+        }
+
+        .radio-option:hover,
+        .checkbox-option:hover {
+            border-color: #c7d2fe;
+            background: #fafafe;
+        }
+
+        .radio-option input[type="radio"]:checked~span,
+        .checkbox-option input[type="checkbox"]:checked~span {
+            color: #4f46e5;
+            font-weight: 600;
+        }
+
+        /* Dosya Yükleme */
+        .file-upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            background: #fafbfc;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .file-upload-area:hover {
+            border-color: #3b82f6;
+            background: #f0f7ff;
+        }
+
+        .file-upload-area i {
+            font-size: 28px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+
+        .file-upload-area p {
+            margin: 0;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .file-upload-area input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .existing-file-note {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+
+        .existing-file-note i {
+            color: #10b981;
+            font-size: 14px;
+        }
+
+        /* Gönder Butonu */
+        .btn-submit-response {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
+        }
+
+        .btn-submit-response:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+        }
+
+        /* ===== Mesajlar ===== */
+        .messages-section {
+            margin-top: 5px;
+        }
+
+        .messages-container {
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 22px;
+            max-height: 420px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .msg-wrap {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 16px;
+        }
+
+        .msg-wrap:last-child {
+            margin-bottom: 0;
+        }
+
+        .msg-own {
+            align-items: flex-end;
+        }
+
+        .msg-other {
+            align-items: flex-start;
+        }
+
+        .msg-bubble {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .msg-own .msg-bubble {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .msg-other .msg-bubble {
+            background: white;
+            border: 1px solid #e2e8f0;
+            color: #334155;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .msg-sender {
+            font-weight: 700;
+            font-size: 11px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .msg-own .msg-sender {
+            opacity: 0.85;
+        }
+
+        .msg-other .msg-sender {
+            color: #E31E24;
+        }
+
+        .msg-time {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 6px;
+        }
+
+        .msg-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+        }
+
+        .msg-empty i {
+            font-size: 36px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+            display: block;
+        }
+
+        .msg-empty p {
+            font-size: 14px;
+            margin: 0;
+        }
+
+        /* Mesaj Gönderme Formu */
+        .msg-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .msg-input {
+            flex: 1;
+            padding: 14px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .msg-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-send-msg {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+        }
+
+        .btn-send-msg:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(59, 130, 246, 0.35);
+        }
+
+        /* İade/Red Uyarı Kutusu */
+        .rejection-box {
+            padding: 18px 22px;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 1px solid #fecaca;
+            border-radius: 14px;
+            margin-bottom: 22px;
+        }
+
+        .rejection-box .rejection-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: #dc2626;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .rejection-box .rejection-reason {
+            font-size: 13px;
+            color: #7f1d1d;
+            line-height: 1.6;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-container {
+                padding: 0 5px;
+            }
+
+            .task-header {
+                padding: 22px 20px;
+            }
+
+            .task-header h1 {
+                font-size: 18px;
+            }
+
+            .task-body {
+                padding: 20px;
+            }
+
+            .status-selector {
+                grid-template-columns: 1fr;
+            }
+
+            .msg-bubble {
+                max-width: 85%;
+            }
+        }
+    </style>
+
+    <div class="page-container">
+        <!-- Geri Butonu -->
+        <a href="/okul/dashboard" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Ana Sayfaya Dön
+        </a>
+
+        <!-- Bildirimler -->
+        <% if(success==='updated' ) { %>
+            <div class="alert alert-success"><i class="fas fa-check-circle"></i> Yanıtınız başarıyla kaydedildi!</div>
+            <% } %>
+                <% if(success==='message_sent' ) { %>
+                    <div class="alert alert-success"><i class="fas fa-paper-plane"></i> Mesajınız gönderildi!</div>
+                    <% } %>
+                        <% if(error==='missing_file' ) { %>
+                            <div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> Bu görev için
+                                dosya yüklemeniz zorunludur!</div>
+                            <% } else if(error==='empty_message' ) { %>
+                                <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> Mesaj boş
+                                    gönderilemez!</div>
+                                <% } else if(error) { %>
+                                    <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> Bir hata
+                                        oluştu, lütfen tekrar deneyin.</div>
+                                    <% } %>
+
+                                        <!-- Görev Kartı -->
+                                        <div class="task-card">
+                                            <!-- Görev Başlık -->
+                                            <div class="task-header">
+                                                <div class="task-header-content">
+                                                    <h1>
+                                                        <%= task.title %>
+                                                    </h1>
+                                                    <div class="task-header-meta">
+                                                        <span class="task-meta-item">
+                                                            <i class="fas fa-calendar-alt"></i>
+                                                            Son Teslim: <%= task.deadline || 'Belirtilmemiş' %>
+                                                        </span>
+                                                        <% if(task.requires_file) { %>
+                                                            <span class="task-meta-item">
+                                                                <i class="fas fa-paperclip"></i> Dosya Zorunlu
+                                                            </span>
+                                                            <% } %>
+                                                                <span class="task-meta-item">
+                                                                    <i class="fas fa-info-circle"></i>
+                                                                    <% if(task.status==='pending' ) { %>Bekliyor
+                                                                        <% } else if(task.status==='in_progress' ) { %>
+                                                                            İşlemde
+                                                                            <% } else if(task.status==='completed' ) {
+                                                                                %>Tamamlandı
+                                                                                <% } else
+                                                                                    if(task.status==='pending_approval'
+                                                                                    ) { %>Onay Bekliyor
+                                                                                    <% } else
+                                                                                        if(task.status==='rejected' ) {
+                                                                                        %>İade Edildi
+                                                                                        <% } else { %>
+                                                                                            <%= task.status %>
+                                                                                                <% } %>
+                                                                </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Görev İçerik -->
+                                            <div class="task-body">
+                                                <!-- Açıklama -->
+                                                <% if(task.description) { %>
+                                                    <div class="task-desc">
+                                                        <%= task.description %>
+                                                    </div>
+                                                    <% } %>
+
+                                                        <!-- Görev Ek Dosyası -->
+                                                        <% if(task.task_file) { %>
+                                                            <div class="task-file">
+                                                                <div class="task-file-icon"><i
+                                                                        class="fas fa-file-alt"></i></div>
+                                                                <div class="task-file-info">
+                                                                    <h4>Görev Eki</h4>
+                                                                    <p>
+                                                                        <%= task.task_file %>
+                                                                    </p>
+                                                                </div>
+                                                                <a href="/uploads/tasks/<%= task.task_file %>"
+                                                                    target="_blank" class="btn-download">
+                                                                    <i class="fas fa-download"></i> İndir
+                                                                </a>
+                                                            </div>
+                                                            <% } %>
+
+                                                                <!-- Mevcut Yanıt -->
+                                                                <% if(task.response_note || task.response_file) { %>
+                                                                    <div class="current-response">
+                                                                        <div class="current-response-header">
+                                                                            <h4><i class="fas fa-reply"></i> Mevcut
+                                                                                Yanıtınız</h4>
+                                                                            <% var statusText=task.status==='pending'
+                                                                                ? 'Bekliyor' :
+                                                                                (task.status==='in_progress' ? 'İşlemde'
+                                                                                : (task.status==='completed'
+                                                                                ? 'Tamamlandı' :
+                                                                                (task.status==='pending_approval'
+                                                                                ? 'Onay Bekliyor' :
+                                                                                (task.status==='rejected'
+                                                                                ? 'İade Edildi' : task.status)))); %>
+                                                                                <span
+                                                                                    class="status-badge status-<%= task.status %>">
+                                                                                    <%= statusText %>
+                                                                                </span>
+                                                                        </div>
+                                                                        <% if(task.response_note) { %>
+                                                                            <p><strong>Not:</strong>
+                                                                                <%= task.response_note %>
+                                                                            </p>
+                                                                            <% } %>
+                                                                                <% if(task.response_file) { %>
+                                                                                    <p>
+                                                                                        <i class="fas fa-paperclip"
+                                                                                            style="color: #3b82f6; margin-right: 4px;"></i>
+                                                                                        <strong>Dosya:</strong>
+                                                                                        <a href="/uploads/responses/<%= task.response_file %>"
+                                                                                            target="_blank">
+                                                                                            <%= task.response_file %>
+                                                                                        </a>
+                                                                                    </p>
+                                                                                    <% } %>
+                                                                    </div>
+                                                                    <% } %>
+
+                                                                        <!-- ===== YANIT GÖNDERİM BÖLÜMÜ ===== -->
+                                                                        <div class="response-section">
+                                                                            <h3 class="section-title">
+                                                                                <span class="icon-circle icon-reply"><i
+                                                                                        class="fas fa-reply"></i></span>
+                                                                                Yanıtınızı Gönderin
+                                                                            </h3>
+
+                                                                            <!-- Tamamlandı Bildirimi -->
+                                                                            <% if(task.status==='completed' ) { %>
+                                                                                <div class="alert alert-success">
+                                                                                    <i class="fas fa-check-double"></i>
+                                                                                    <span>Bu görev tamamlanmış ve
+                                                                                        onaylanmıştır. Değişiklik
+                                                                                        yapılamaz.</span>
+                                                                                </div>
+                                                                                <% } else if(task.status==='rejected' )
+                                                                                    { %>
+                                                                                    <div class="rejection-box">
+                                                                                        <div class="rejection-title">
+                                                                                            <i
+                                                                                                class="fas fa-exclamation-triangle"></i>
+                                                                                            Görev İade Edildi — Düzeltme
+                                                                                            Yapın
+                                                                                        </div>
+                                                                                        <% if(task.rejection_note) { %>
+                                                                                            <div
+                                                                                                class="rejection-reason">
+                                                                                                <strong>İade
+                                                                                                    Sebebi:</strong>
+                                                                                                <%= task.rejection_note
+                                                                                                    %>
+                                                                                            </div>
+                                                                                            <% } %>
+                                                                                    </div>
+                                                                                    <% } %>
+
+                                                                                        <!-- Yanıt Formu -->
+                                                                                        <% if(task.status !=='completed'
+                                                                                            ) { %>
+                                                                                            <form
+                                                                                                action="/okul/tasks/<%= task.id %>/response"
+                                                                                                method="POST"
+                                                                                                enctype="multipart/form-data">
+                                                                                                <input type="hidden"
+                                                                                                    name="_csrf"
+                                                                                                    value="<%= csrfToken %>">
+
+                                                                                                <!-- Durum Seçimi -->
+                                                                                                <div class="form-group">
+                                                                                                    <label>Görev
+                                                                                                        Durumu</label>
+                                                                                                    <div
+                                                                                                        class="status-selector">
+                                                                                                        <label
+                                                                                                            class="status-option">
+                                                                                                            <input
+                                                                                                                type="radio"
+                                                                                                                name="status"
+                                                                                                                value="in_progress"
+                                                                                                                <%=task.status==='in_progress'
+                                                                                                                ? 'checked'
+                                                                                                                : '' %>>
+                                                                                                            <div
+                                                                                                                class="status-option-content">
+                                                                                                                <i
+                                                                                                                    class="fas fa-spinner"></i>
+                                                                                                                İşlemde
+                                                                                                            </div>
+                                                                                                        </label>
+                                                                                                        <label
+                                                                                                            class="status-option">
+                                                                                                            <input
+                                                                                                                type="radio"
+                                                                                                                name="status"
+                                                                                                                value="completed"
+                                                                                                                <%=task.status==='completed'
+                                                                                                                ||
+                                                                                                                task.status==='pending_approval'
+                                                                                                                ? 'checked'
+                                                                                                                : '' %>>
+                                                                                                            <div
+                                                                                                                class="status-option-content">
+                                                                                                                <i
+                                                                                                                    class="fas fa-check-circle"></i>
+                                                                                                                Tamamlandı
+                                                                                                            </div>
+                                                                                                        </label>
+                                                                                                    </div>
+                                                                                                </div>
+
+                                                                                                <!-- Açıklama / Not -->
+                                                                                                <div class="form-group">
+                                                                                                    <label>Yanıt
+                                                                                                        Notu</label>
+                                                                                                    <textarea
+                                                                                                        name="response_note"
+                                                                                                        class="form-control"
+                                                                                                        placeholder="Görevle ilgili notunuzu yazın..."><%= task.response_note || '' %></textarea>
+                                                                                                </div>
+
+                                                                                                <!-- Form Alanları (Google Forms benzeri) -->
+                                                                                                <% if(typeof taskFields
+                                                                                                    !=='undefined' &&
+                                                                                                    taskFields.length>
+                                                                                                    0) { %>
+                                                                                                    <div
+                                                                                                        class="form-fields-card">
+                                                                                                        <h4>
+                                                                                                            <span
+                                                                                                                class="icon-circle icon-form"
+                                                                                                                style="width:28px;height:28px;border-radius:8px;font-size:12px;">
+                                                                                                                <i
+                                                                                                                    class="fas fa-list-alt"></i>
+                                                                                                            </span>
+                                                                                                            Form
+                                                                                                            Alanları
+                                                                                                        </h4>
+                                                                                                        <% for(var i=0;
+                                                                                                            i <
+                                                                                                            taskFields.length;
+                                                                                                            i++) { var
+                                                                                                            f=taskFields[i];
+                                                                                                            %>
+                                                                                                            <div
+                                                                                                                class="form-field-item">
+                                                                                                                <label
+                                                                                                                    style="font-size:13px;font-weight:600;color:#334155;margin-bottom:8px;display:block;">
+                                                                                                                    <%= f.field_label
+                                                                                                                        %>
+                                                                                                                        <% if(f.is_required)
+                                                                                                                            {
+                                                                                                                            %>
+                                                                                                                            <span
+                                                                                                                                style="color:#ef4444;">*</span>
+                                                                                                                            <% }
+                                                                                                                                %>
+                                                                                                                </label>
+
+                                                                                                                <% if(f.field_type==='short_text'
+                                                                                                                    ) {
+                                                                                                                    var
+                                                                                                                    sv=(typeof
+                                                                                                                    responsesMap
+                                                                                                                    !=='undefined'
+                                                                                                                    &&
+                                                                                                                    responsesMap[f.id])
+                                                                                                                    ?
+                                                                                                                    responsesMap[f.id]
+                                                                                                                    : ''
+                                                                                                                    ; %>
+                                                                                                                    <input
+                                                                                                                        type="text"
+                                                                                                                        name="field_<%= f.id %>"
+                                                                                                                        class="form-control"
+                                                                                                                        value="<%= sv %>"
+                                                                                                                        <%if(f.is_required){%>required
+                                                                                                                    <%}%>
+                                                                                                                        >
+
+                                                                                                                        <% } else
+                                                                                                                            if(f.field_type==='paragraph'
+                                                                                                                            )
+                                                                                                                            {
+                                                                                                                            var
+                                                                                                                            pv=(typeof
+                                                                                                                            responsesMap
+                                                                                                                            !=='undefined'
+                                                                                                                            &&
+                                                                                                                            responsesMap[f.id])
+                                                                                                                            ?
+                                                                                                                            responsesMap[f.id]
+                                                                                                                            : ''
+                                                                                                                            ;
+                                                                                                                            %>
+                                                                                                                            <textarea
+                                                                                                                                name="field_<%= f.id %>"
+                                                                                                                                class="form-control"
+                                                                                                                                style="min-height:80px;"
+                                                                                                                                <%if(f.is_required){%>required<%}%>><%= pv %></textarea>
+
+                                                                                                                            <% } else
+                                                                                                                                if(f.field_type==='multiple_choice'
+                                                                                                                                )
+                                                                                                                                {
+                                                                                                                                var
+                                                                                                                                mo=f.field_options
+                                                                                                                                ?
+                                                                                                                                f.field_options.split(',')
+                                                                                                                                :
+                                                                                                                                [];
+                                                                                                                                var
+                                                                                                                                ms=(typeof
+                                                                                                                                responsesMap
+                                                                                                                                !=='undefined'
+                                                                                                                                &&
+                                                                                                                                responsesMap[f.id])
+                                                                                                                                ?
+                                                                                                                                responsesMap[f.id]
+                                                                                                                                : ''
+                                                                                                                                ;
+                                                                                                                                %>
+                                                                                                                                <div
+                                                                                                                                    style="display:flex;flex-direction:column;gap:6px;">
+                                                                                                                                    <% for(var
+                                                                                                                                        j=0;
+                                                                                                                                        j
+                                                                                                                                        <
+                                                                                                                                        mo.length;
+                                                                                                                                        j++)
+                                                                                                                                        {
+                                                                                                                                        var
+                                                                                                                                        o=mo[j].trim();
+                                                                                                                                        %>
+                                                                                                                                        <label
+                                                                                                                                            class="radio-option">
+                                                                                                                                            <input
+                                                                                                                                                type="radio"
+                                                                                                                                                name="field_<%= f.id %>"
+                                                                                                                                                value="<%= o %>"
+                                                                                                                                                <%if(ms===o){%>checked
+                                                                                                                                            <%}%>
+                                                                                                                                                <%if(f.is_required){%>
+                                                                                                                                                    required
+                                                                                                                                                    <%}%>
+                                                                                                                                                        >
+                                                                                                                                                        <span>
+                                                                                                                                                            <%= o
+                                                                                                                                                                %>
+                                                                                                                                                        </span>
+                                                                                                                                        </label>
+                                                                                                                                        <% }
+                                                                                                                                            %>
+                                                                                                                                </div>
+
+                                                                                                                                <% } else
+                                                                                                                                    if(f.field_type==='checkbox'
+                                                                                                                                    )
+                                                                                                                                    {
+                                                                                                                                    var
+                                                                                                                                    co=f.field_options
+                                                                                                                                    ?
+                                                                                                                                    f.field_options.split(',')
+                                                                                                                                    :
+                                                                                                                                    [];
+                                                                                                                                    var
+                                                                                                                                    cs=(typeof
+                                                                                                                                    responsesMap
+                                                                                                                                    !=='undefined'
+                                                                                                                                    &&
+                                                                                                                                    responsesMap[f.id])
+                                                                                                                                    ?
+                                                                                                                                    responsesMap[f.id].split(', ') : []; %>
+                                            <div style="display:flex;flex-direction:column;gap:6px;">
+                                                <% for(var k = 0; k < co.length; k++) { var c = co[k].trim(); %>
+                                                    <label class="checkbox-option">
+                                                        <input type="checkbox" name="field_<%= f.id %>" value="<%= c %>"
+                                                            <%if(cs.indexOf(c)!==-1){%>checked<%}%>>
+                                                        <span><%= c %></span>
+                                                    </label>
+                                                <% } %>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                <% } %>
+                            </div>
+                        <% } %>
+
+                        <!-- Dosya Yükleme -->
+                        <% if(task.requires_file) { %>
+                            <div class="form-group">
+                                <label>Dosya Yükle</label>
+                                <div class="file-upload-area">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Dosya seçmek için tıklayın veya sürükleyin</p>
+                                    <input type="file" name="response_file">
+                                </div>
+                                <% if(task.response_file) { %>
+                                    <div class="existing-file-note">
+                                        <i class="fas fa-check-circle"></i>
+                                        Mevcut dosya: <strong><%= task.response_file %></strong>
+                                    </div>
+                                <% } %>
+                            </div>
+                        <% } %>
+
+                        <button type="submit" class="btn-submit-response">
+                            <i class="fas fa-paper-plane"></i> Yanıtı Kaydet
+                        </button>
+                    </form>
+                <% } %>
+            </div>
+
+            <!-- ===== MESAJLAR BÖLÜMÜ ===== -->
+            <div class="response-section messages-section" id="messages">
+                <h3 class="section-title">
+                    <span class="icon-circle icon-chat"><i class="fas fa-comments"></i></span>
+                    Mesajlar
+                    <% if(messages && messages.length > 0) { %>
+                        <span style="font-size:12px;font-weight:600;color:#64748b;margin-left:auto;">
+                            <%= messages.length %> mesaj
+                        </span>
+                    <% } %>
+                </h3>
+
+                <div class="messages-container">
+                    <% if(messages && messages.length > 0) { %>
+                        <% for(var m = 0; m < messages.length; m++) {
+                            var msg = messages[m];
+                            var own = msg.sender_id === currentUserId; %>
+                            <div class="msg-wrap <%= own ? ' msg-own' : 'msg-other' %>">
+                                                                                                                                    <div
+                                                                                                                                        class="msg-bubble">
+                                                                                                                                        <div
+                                                                                                                                            class="msg-sender">
+                                                                                                                                            <%= own
+                                                                                                                                                ? 'Siz'
+                                                                                                                                                :
+                                                                                                                                                msg.full_name
+                                                                                                                                                %>
+                                                                                                                                        </div>
+                                                                                                                                        <%= msg.message
+                                                                                                                                            %>
+                                                                                                                                    </div>
+                                                                                                                                    <div
+                                                                                                                                        class="msg-time">
+                                                                                                                                        <%= new
+                                                                                                                                            Date(msg.created_at).toLocaleString('tr-TR')
+                                                                                                                                            %>
+                                                                                                                                    </div>
+                                                                                                            </div>
+                                                                                                            <% } %>
+                                                                                                                <% } else
+                                                                                                                    { %>
+                                                                                                                    <div
+                                                                                                                        class="msg-empty">
+                                                                                                                        <i
+                                                                                                                            class="fas fa-comment-dots"></i>
+                                                                                                                        <p>Henüz
+                                                                                                                            mesaj
+                                                                                                                            yok.
+                                                                                                                            İlk
+                                                                                                                            mesajı
+                                                                                                                            siz
+                                                                                                                            gönderin!
+                                                                                                                        </p>
+                                                                                                                    </div>
+                                                                                                                    <% }
+                                                                                                                        %>
+                                                                                                    </div>
+
+                                                                                                    <!-- Mesaj Gönderme Formu -->
+                                                                                                    <form
+                                                                                                        action="/okul/tasks/<%= task.id %>/message"
+                                                                                                        method="POST"
+                                                                                                        class="msg-form">
+                                                                                                        <input
+                                                                                                            type="hidden"
+                                                                                                            name="_csrf"
+                                                                                                            value="<%= csrfToken %>">
+                                                                                                        <input
+                                                                                                            type="text"
+                                                                                                            name="message"
+                                                                                                            class="msg-input"
+                                                                                                            placeholder="Mesajınızı yazın..."
+                                                                                                            required
+                                                                                                            autocomplete="off">
+                                                                                                        <button
+                                                                                                            type="submit"
+                                                                                                            class="btn-send-msg"
+                                                                                                            title="Gönder">
+                                                                                                            <i
+                                                                                                                class="fas fa-paper-plane"></i>
+                                                                                                        </button>
+                                                                                                    </form>
+                                                                        </div>
+
+                                            </div>
+                                        </div>
+    </div>
+
+    <script>
+        // Mesaj alanını en alta scroll et
+        const msgContainer = document.querySelector('.messages-container');
+        if (msgContainer) {
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+        }
+
+        // Dosya yükleme alanı - seçilen dosya adını göster
+        const fileInput = document.querySelector('.file-upload-area input[type="file"]');
+        if (fileInput) {
+            fileInput.addEventListener('change', function () {
+                const area = this.closest('.file-upload-area');
+                if (this.files.length > 0) {
+                    area.querySelector('p').textContent = this.files[0].name;
+                    area.querySelector('i').className = 'fas fa-file-check';
+                    area.style.borderColor = '#10b981';
+                    area.style.background = '#ecfdf5';
+                }
+            });
+        }
+    </script>
+
+    <%- include('../layouts/school_footer') %>

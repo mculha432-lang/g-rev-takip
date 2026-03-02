@@ -1,0 +1,492 @@
+<%- include('../layouts/header') %>
+
+    <style>
+        /* 🎨 Renk Paleti: Kırmızı (#E31E24), Beyaz, Lacivert (#1e3a5a) */
+
+        .page-header {
+            margin-bottom: 24px;
+            padding: 20px 24px;
+            background: white;
+            border-radius: 16px;
+            color: #1e293b;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .page-header-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #E31E24 0%, #b91c1c 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .page-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 4px 0;
+        }
+
+        .page-header p {
+            color: #64748b;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        .page-header-stats {
+            display: flex;
+            gap: 12px;
+        }
+
+        .page-header-stat {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 12px 20px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .page-header-stat-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: #E31E24;
+        }
+
+        .page-header-stat-label {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        .reports-container {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 25px;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .reports-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .report-card {
+            background: white;
+            border-radius: 20px;
+            border: none;
+            padding: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .report-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #E31E24 0%, #f87171 100%);
+        }
+
+        .report-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(227, 30, 36, 0.15);
+        }
+
+        .report-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .report-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .report-icon.excel {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .report-icon.stats {
+            background: linear-gradient(135deg, #1e3a5a 0%, #2d4a6f 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(30, 58, 90, 0.3);
+        }
+
+        .report-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .report-card p {
+            font-size: 13px;
+            color: #64748b;
+            margin: 0 0 18px 0;
+            line-height: 1.6;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-download {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-excel {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            color: #059669;
+            border: 2px solid #a7f3d0;
+        }
+
+        .btn-excel:hover {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border-color: #10b981;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-pdf {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            color: #dc2626;
+            border: 2px solid #fecaca;
+        }
+
+        .btn-pdf:hover {
+            background: linear-gradient(135deg, #E31E24 0%, #dc2626 100%);
+            color: white;
+            border-color: #E31E24;
+            box-shadow: 0 4px 15px rgba(227, 30, 36, 0.3);
+        }
+
+        .sidebar-info {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            border: none;
+            border-top: 4px solid #1e3a5a;
+        }
+
+        .sidebar-info h4 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e3a5a;
+            margin: 0 0 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 15px 0;
+            border-bottom: 1px solid #f8fafc;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .info-item i {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .info-item .icon-excel {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            color: #10b981;
+        }
+
+        .info-item .icon-pdf {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            color: #E31E24;
+        }
+
+        .info-item .icon-detail {
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+            color: #1e3a5a;
+        }
+
+        .info-item-content h5 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            margin: 0 0 4px 0;
+        }
+
+        .info-item-content p {
+            font-size: 12px;
+            color: #94a3b8;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .alert {
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            color: #dc2626;
+            border: 2px solid #fecaca;
+        }
+
+        /* Tek Görev Raporu Kartı - Özel Stil */
+        .report-card.featured {
+            grid-column: span 2;
+            background: linear-gradient(135deg, #fef2f2 0%, #fff 50%, #fef2f2 100%);
+            border: 2px solid #fecaca;
+        }
+
+        .report-card.featured::before {
+            height: 5px;
+            background: linear-gradient(90deg, #E31E24 0%, #f87171 50%, #E31E24 100%);
+        }
+
+        .report-card.featured .report-icon {
+            background: linear-gradient(135deg, #E31E24 0%, #b91c1c 100%);
+            width: 55px;
+            height: 55px;
+            font-size: 22px;
+        }
+
+        .task-select {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #fecaca;
+            border-radius: 12px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #334155;
+        }
+
+        .task-select:focus {
+            outline: none;
+            border-color: #E31E24;
+            box-shadow: 0 0 0 4px rgba(227, 30, 36, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #E31E24 0%, #b91c1c 100%);
+            color: white;
+            padding: 14px 28px;
+            min-width: 160px;
+            box-shadow: 0 4px 15px rgba(227, 30, 36, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(227, 30, 36, 0.4);
+        }
+    </style>
+
+    <div class="page-header">
+        <div class="page-header-left">
+            <div class="page-header-icon">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <div>
+                <h1>Raporlar</h1>
+                <p>Sistem raporlarını Excel veya PDF formatında indirin ve analiz edin.</p>
+            </div>
+        </div>
+        <div class="page-header-stats">
+            <div class="page-header-stat">
+                <div class="page-header-stat-value">
+                    <%= typeof tasks !=='undefined' ? tasks.length : 0 %>
+                </div>
+                <div class="page-header-stat-label">Toplam Görev</div>
+            </div>
+            <div class="page-header-stat">
+                <div class="page-header-stat-value">3</div>
+                <div class="page-header-stat-label">Rapor Türü</div>
+            </div>
+        </div>
+    </div>
+
+    <% if(status==='error' ) { %>
+        <div class="alert alert-danger"><i class="fas fa-times-circle"></i> Rapor oluşturulurken hata!</div>
+        <% } %>
+
+            <div class="reports-container">
+                <div class="reports-grid">
+                    <div class="report-card">
+                        <div class="report-header">
+                            <div class="report-icon excel">
+                                <i class="fas fa-file-excel"></i>
+                            </div>
+                            <h3>Görev Özet Raporu</h3>
+                        </div>
+                        <p>Tüm görevler, atama sayıları ve tamamlanma oranları.</p>
+                        <div class="report-actions">
+                            <a href="/admin/reports/task-summary/excel" class="btn-download btn-excel">
+                                <i class="fas fa-download"></i> Excel
+                            </a>
+                            <a href="/admin/reports/task-summary/pdf" class="btn-download btn-pdf">
+                                <i class="fas fa-file-pdf"></i> PDF
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="report-card">
+                        <div class="report-header">
+                            <div class="report-icon stats">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <h3>Okul Performans Raporu</h3>
+                        </div>
+                        <p>Okul bazlı görev tamamlama ve başarı oranları.</p>
+                        <div class="report-actions">
+                            <a href="/admin/reports/school-performance/excel" class="btn-download btn-excel"
+                                style="width: 100%;">
+                                <i class="fas fa-download"></i> Excel İndir
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Tek Görev Raporu -->
+                    <div class="report-card featured">
+                        <div class="report-header">
+                            <div class="report-icon stats">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                            <div>
+                                <h3>Tek Görev Detay Raporu</h3>
+                                <span style="font-size: 12px; color: #E31E24; font-weight: 500;">📋 Form cevapları dahil
+                                    Excel raporu</span>
+                            </div>
+                        </div>
+                        <p>Belirli bir göreve ait tüm okul cevaplarını ve form alanı verilerini Excel olarak indirin.
+                        </p>
+
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <select id="taskSelect" class="task-select">
+                                <option value="">-- Görev Seçin --</option>
+                                <% if(typeof tasks !=='undefined' ) { %>
+                                    <% tasks.forEach(task=> { %>
+                                        <option value="<%= task.id %>">
+                                            <%= task.title %>
+                                        </option>
+                                        <% }); %>
+                                            <% } %>
+                            </select>
+                            <button onclick="downloadTaskReport()" class="btn-download btn-primary">
+                                <i class="fas fa-file-excel"></i> Excel İndir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-info">
+                    <h4><i class="fas fa-info-circle" style="color: #1e3a5a;"></i> Rapor Bilgisi</h4>
+
+                    <div class="info-item">
+                        <div class="icon-excel"><i class="fas fa-file-excel"></i></div>
+                        <div class="info-item-content">
+                            <h5>Excel Raporları</h5>
+                            <p>Filtreleme yapılabilir, düzenlenebilir tablo formatı</p>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="icon-pdf"><i class="fas fa-file-pdf"></i></div>
+                        <div class="info-item-content">
+                            <h5>PDF Raporları</h5>
+                            <p>Yazdırmaya hazır resmi rapor formatı</p>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="icon-detail"><i class="fas fa-clipboard-list"></i></div>
+                        <div class="info-item-content">
+                            <h5>Görev Detay Raporu</h5>
+                            <p>Her görev sayfasından ayrı ayrı indirilebilir</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                function downloadTaskReport() {
+                    const taskId = document.getElementById('taskSelect').value;
+                    if (!taskId) {
+                        alert('Lütfen bir görev seçin!');
+                        return;
+                    }
+                    window.location.href = '/admin/reports/task-detail/' + taskId + '/excel';
+                }
+            </script>
+
+            <%- include('../layouts/footer') %>

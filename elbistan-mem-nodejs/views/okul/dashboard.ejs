@@ -1,0 +1,969 @@
+<%- include('../layouts/school_header') %>
+
+    <style>
+        :root {
+            --red: #dc2626;
+            --red-dark: #b91c1c;
+            --red-light: #fef2f2;
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-400: #9ca3af;
+            --gray-600: #4b5563;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
+        .dashboard-container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* Modern White Header */
+        .page-header-compact {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 16px 22px;
+            background: var(--white);
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .page-header-compact h1 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-header-compact h1 i {
+            color: var(--red) !important;
+        }
+
+        .header-date {
+            font-size: 13px;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+
+        /* Clean Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 500px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .stat-card::before {
+            display: none;
+        }
+
+        .stat-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--gray-900);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--gray-600);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Color Variations - Light Backgrounds */
+        .stat-card.blue .stat-icon {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .stat-card.red .stat-icon {
+            background: var(--red-light);
+            color: var(--red);
+        }
+
+        .stat-card.yellow .stat-icon {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .stat-card.green .stat-icon {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        /* Main Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-card {
+            background: var(--white);
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .section-card::before {
+            display: none;
+        }
+
+        .section-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--gray-200);
+            background: var(--gray-50);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-title {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: var(--red);
+            background: var(--red-light);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Task List */
+        .task-list-container {
+            padding: 0;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--gray-100);
+            transition: all 0.2s;
+            text-decoration: none;
+            color: inherit;
+            border-left: 3px solid transparent;
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .task-item:hover {
+            background: var(--gray-50);
+        }
+
+        /* Status Colors & Borders */
+        .task-item.status-pending {
+            border-left-color: #ef4444;
+        }
+
+        .task-item.status-pending .task-icon-box {
+            background: #fef2f2;
+            color: #ef4444;
+            border: 1px solid #fecaca;
+        }
+
+        .task-item.status-in_progress {
+            border-left-color: #eab308;
+        }
+
+        .task-item.status-in_progress .task-icon-box {
+            background: #fef3c7;
+            color: #d97706;
+            border: 1px solid #fde68a;
+        }
+
+        .task-item.status-completed {
+            border-left-color: #22c55e;
+        }
+
+        .task-item.status-completed .task-icon-box {
+            background: #d1fae5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+
+        .task-item.status-rejected {
+            border-left-color: #f97316;
+            background: #fff7ed;
+        }
+
+        .task-item.status-rejected .task-icon-box {
+            background: #ffedd5;
+            color: #ea580c;
+            border: 1px solid #fed7aa;
+        }
+
+        .badge-rejected {
+            display: inline-block;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: white;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            margin-left: 8px;
+            text-transform: uppercase;
+            animation: pulse-orange 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-orange {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .task-icon-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+
+        .task-meta {
+            font-size: 12px;
+            color: var(--gray-500);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badge-new {
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* Status Indicator Dots */
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 10px;
+            flex-shrink: 0;
+        }
+
+        .status-dot.dot-pending {
+            background: #ef4444;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+            animation: pulse-red 1.5s ease-in-out infinite;
+        }
+
+        .status-dot.dot-in_progress {
+            background: #eab308;
+            box-shadow: 0 0 8px rgba(234, 179, 8, 0.5);
+            animation: pulse-yellow 1.5s ease-in-out infinite;
+        }
+
+        .status-dot.dot-completed {
+            background: #22c55e;
+            box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+        }
+
+        @keyframes pulse-red {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes pulse-yellow {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.9;
+            }
+        }
+
+        /* Calendar Widget - Clean White Theme */
+        .calendar-widget {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 0;
+            border: 1px solid var(--gray-200);
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+
+        .cal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .cal-month {
+            font-weight: 700;
+            color: var(--gray-800);
+            font-size: 15px;
+        }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            text-align: center;
+            padding: 15px;
+        }
+
+        .cal-day-name {
+            font-size: 11px;
+            color: var(--gray-500);
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .cal-day {
+            font-size: 12px;
+            color: var(--gray-700);
+            padding: 8px 0;
+            border-radius: 8px;
+            cursor: default;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .cal-day:hover {
+            background: var(--gray-100);
+        }
+
+        .cal-today {
+            color: var(--white);
+            font-weight: 700;
+            background: var(--red);
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+        }
+
+        .has-event {
+            background: var(--red) !important;
+            color: white !important;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+        .has-event:hover {
+            background: var(--red-dark) !important;
+        }
+
+        /* Custom Tooltip */
+        .cal-tooltip {
+            position: fixed;
+            background: #1e293b;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
+            max-width: 220px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(5px);
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .cal-tooltip.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .cal-tooltip::before {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid #1e293b;
+        }
+
+        .cal-tooltip .tooltip-title {
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #fbbf24;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cal-tooltip .tooltip-tasks {
+            line-height: 1.5;
+        }
+
+        /* Announcement */
+        .announcement-card {
+            background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%);
+            border: none;
+            border-left: 5px solid #E31E24;
+            border-radius: 16px;
+            padding: 18px 22px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(227, 30, 36, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .announcement-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #E31E24 0%, #ff6b6b 50%, #E31E24 100%);
+            animation: announcement-shimmer 2s ease-in-out infinite;
+        }
+
+        @keyframes announcement-shimmer {
+
+            0%,
+            100% {
+                opacity: 0.7;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .announcement-title {
+            color: #E31E24;
+            font-weight: 800;
+            font-size: 15px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .announcement-title i {
+            font-size: 16px;
+        }
+
+        .announcement-text {
+            color: #64748b;
+            font-size: 13px;
+            margin: 0;
+            line-height: 1.6;
+        }
+    </style>
+
+    <div class="dashboard-container">
+
+        <!-- Header -->
+        <div class="page-header-compact">
+            <h1><i class="fas fa-school" style="color: #E31E24;"></i> Kurum Yönetim Paneli</h1>
+            <span class="header-date" id="headerDate"></span>
+        </div>
+
+        <!-- İstatistikler -->
+        <div class="stats-grid">
+            <div class="stat-card blue">
+                <div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
+                <div class="stat-value">
+                    <%= totalTasks %>
+                </div>
+                <div class="stat-label">Toplam Görev</div>
+            </div>
+            <div class="stat-card red">
+                <div class="stat-icon"><i class="fas fa-hourglass-start"></i></div>
+                <div class="stat-value">
+                    <%= pendingTasks %>
+                </div>
+                <div class="stat-label">Bekleyen (İşlemsiz)</div>
+            </div>
+            <div class="stat-card yellow">
+                <div class="stat-icon"><i class="fas fa-spinner"></i></div>
+                <div class="stat-value">
+                    <%= inProgressTasks %>
+                </div>
+                <div class="stat-label">İşlemde</div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-value">
+                    <%= completedTasks %>
+                </div>
+                <div class="stat-label">Tamamlanan</div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <!-- Sol Kolon: Duyurular ve Görevler -->
+            <div class="left-col">
+                <% if(announcement) { %>
+                    <div class="announcement-card">
+                        <div class="announcement-title"><i class="fas fa-bullhorn"></i>
+                            <%= announcement.title %>
+                        </div>
+                        <p class="announcement-text">
+                            <%= announcement.content %>
+                        </p>
+                    </div>
+                    <% } %>
+
+                        <div class="section-card">
+                            <div class="section-header">
+                                <div class="section-title"><i class="fas fa-tasks" style="color: #E31E24;"></i> Görev
+                                    Listesi</div>
+                            </div>
+
+                            <div class="task-list-container">
+                                <% if(myTasks.length===0) { %>
+                                    <div style="padding: 40px; text-align: center; color: #9ca3af;">
+                                        <i class="fas fa-inbox"
+                                            style="font-size: 32px; margin-bottom: 10px; color: #d1d5db;"></i>
+                                        <p>Henüz atanmış bir görev bulunmuyor.</p>
+                                    </div>
+                                    <% } else { %>
+                                        <% myTasks.forEach(task=> { %>
+                                            <a href="/okul/tasks/<%= task.assignment_id %>"
+                                                class="task-item status-<%= task.status %>">
+                                                <div class="task-icon-box">
+                                                    <% if(task.status==='pending' ) { %>
+                                                        <i class="fas fa-exclamation"></i>
+                                                        <% } else if(task.status==='in_progress' ) { %>
+                                                            <i class="fas fa-spinner fa-spin"></i>
+                                                            <% } else if(task.status==='rejected' ) { %>
+                                                                <i class="fas fa-undo"></i>
+                                                                <% } else { %>
+                                                                    <i class="fas fa-check"></i>
+                                                                    <% } %>
+                                                </div>
+                                                <div class="task-content">
+                                                    <div class="task-title">
+                                                        <%= task.title %>
+                                                            <% if(task.status==='rejected' ) { %>
+                                                                <span class="badge-rejected">İADE</span>
+                                                                <% } else if(task.status==='pending' && !task.is_read) {
+                                                                    %>
+                                                                    <span class="badge-new">YENİ</span>
+                                                                    <% } %>
+                                                    </div>
+                                                    <div class="task-meta">
+                                                        <span><i class="far fa-calendar"></i> Son Tarih: <%=
+                                                                task.deadline || 'Belirtilmemiş' %></span>
+                                                    </div>
+                                                </div>
+                                                <% if(task.status !=='rejected' ) { %>
+                                                    <span class="status-dot dot-<%= task.status %>"></span>
+                                                    <% } %>
+                                                        <i class="fas fa-chevron-right"
+                                                            style="color: #9ca3af; font-size: 12px;"></i>
+                                            </a>
+                                            <% }) %>
+                                                <% } %>
+                            </div>
+                        </div>
+            </div>
+
+            <!-- Sağ Kolon: Takvim ve Dosyalar -->
+            <div class="right-col">
+                <div class="calendar-widget" style="overflow: visible; padding: 0;">
+                    <div class="cal-header"
+                        style="padding: 16px 18px; background: var(--gray-50); border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div
+                                style="width: 32px; height: 32px; background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-calendar-alt" style="color: #E31E24; font-size: 14px;"></i>
+                            </div>
+                            <span class="cal-month" id="calMonthYear"
+                                style="font-weight: 700; color: var(--gray-800); font-size: 15px;"></span>
+                        </div>
+                        <div style="display: flex; gap: 5px; align-items: center;">
+                            <button onclick="calChangeMonth(-1)"
+                                style="width: 30px; height: 30px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #64748b; transition: all 0.2s;"
+                                onmouseover="this.style.background='#E31E24'; this.style.color='white'; this.style.borderColor='#E31E24';"
+                                onmouseout="this.style.background='white'; this.style.color='#64748b'; this.style.borderColor='#e2e8f0';">
+                                <i class="fas fa-chevron-left" style="font-size: 11px;"></i>
+                            </button>
+                            <button onclick="calGoToday()"
+                                style="padding: 5px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer; font-size: 11px; font-weight: 600; color: #64748b; transition: all 0.2s; font-family: inherit;"
+                                onmouseover="this.style.background='#1e293b'; this.style.color='white'; this.style.borderColor='#1e293b';"
+                                onmouseout="this.style.background='white'; this.style.color='#64748b'; this.style.borderColor='#e2e8f0';">
+                                Bugün
+                            </button>
+                            <button onclick="calChangeMonth(1)"
+                                style="width: 30px; height: 30px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #64748b; transition: all 0.2s;"
+                                onmouseover="this.style.background='#E31E24'; this.style.color='white'; this.style.borderColor='#E31E24';"
+                                onmouseout="this.style.background='white'; this.style.color='#64748b'; this.style.borderColor='#e2e8f0';">
+                                <i class="fas fa-chevron-right" style="font-size: 11px;"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="cal-grid" id="schoolCalendar" data-events='<%- calendarEvents %>'></div>
+                    <!-- Yaklaşan Görevler -->
+                    <div id="schoolUpcomingTasks" style="padding: 0 18px 16px; border-top: 1px solid #f1f5f9;">
+                        <div
+                            style="font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin: 12px 0 8px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-clock" style="font-size: 10px;"></i> Yaklaşan Teslim Tarihleri
+                        </div>
+                        <div id="schoolUpcomingList"></div>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title"><i class="fas fa-folder-open"></i> Sabit Dosyalar</div>
+                    </div>
+                    <div style="padding: 15px;">
+                        <% if(systemFiles.length===0) { %>
+                            <div style="text-align: center; color: #9ca3af; padding: 30px; font-size: 13px;">
+                                <i class="fas fa-folder-open"
+                                    style="font-size: 28px; margin-bottom: 10px; display: block; color: #d1d5db;"></i>
+                                Dosya eklenmemiş.
+                            </div>
+                            <% } else { %>
+                                <% systemFiles.forEach(file=> { %>
+                                    <a href="/uploads/system/<%= file.file_path %>" target="_blank"
+                                        style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #1f2937; transition: all 0.2s ease; margin-bottom: 8px; border: 1px solid #e5e7eb; background: #f9fafb;"
+                                        onmouseover="this.style.background='#f3f4f6'; this.style.borderColor='#d1d5db';"
+                                        onmouseout="this.style.background='#f9fafb'; this.style.borderColor='#e5e7eb';">
+                                        <div
+                                            style="width: 36px; height: 36px; background: #fef2f2; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-file-pdf" style="color: #dc2626; font-size: 14px;"></i>
+                                        </div>
+                                        <span style="font-size: 13px; flex: 1; font-weight: 500;">
+                                            <%= file.title %>
+                                        </span>
+                                        <div
+                                            style="width: 28px; height: 28px; background: #dbeafe; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-download" style="color: #2563eb; font-size: 11px;"></i>
+                                        </div>
+                                    </a>
+                                    <% }) %>
+                                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Header Date
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('headerDate').innerText = new Date().toLocaleDateString('tr-TR', dateOptions);
+
+        // Calendar Logic
+        (function () {
+            const container = document.getElementById('schoolCalendar');
+            if (!container) return;
+
+            let events = {};
+            try {
+                const rawEvents = container.getAttribute('data-events');
+                if (rawEvents) {
+                    events = JSON.parse(rawEvents);
+                }
+            } catch (e) {
+                console.error("Takvim verisi işlenemedi", e);
+            }
+
+            const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+            const dayNames = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
+
+            const now = new Date();
+            let displayMonth = now.getMonth();
+            let displayYear = now.getFullYear();
+
+            // Tooltip element
+            let tooltip = document.querySelector('.cal-tooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.className = 'cal-tooltip';
+                document.body.appendChild(tooltip);
+            }
+
+            function renderCalendar() {
+                const title = document.getElementById('calMonthYear');
+                if (title) {
+                    title.innerText = monthNames[displayMonth] + " " + displayYear;
+                }
+
+                container.innerHTML = '';
+                container.style.transition = 'opacity 0.2s ease';
+                container.style.opacity = '0';
+
+                // Gün başlıkları
+                dayNames.forEach(function (day) {
+                    const div = document.createElement('div');
+                    div.className = 'cal-day-name';
+                    div.innerText = day;
+                    container.appendChild(div);
+                });
+
+                const firstDay = new Date(displayYear, displayMonth, 1).getDay();
+                const daysInMonth = new Date(displayYear, displayMonth + 1, 0).getDate();
+                let startSlot = firstDay === 0 ? 6 : firstDay - 1;
+
+                // Önceki ayın günleri (soluk)
+                const prevMonthDays = new Date(displayYear, displayMonth, 0).getDate();
+                for (let i = startSlot - 1; i >= 0; i--) {
+                    const div = document.createElement('div');
+                    div.className = 'cal-day';
+                    div.style.color = '#d1d5db';
+                    div.style.fontSize = '10px';
+                    div.innerText = prevMonthDays - i;
+                    container.appendChild(div);
+                }
+
+                // Günleri oluştur
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'cal-day';
+                    div.innerText = i;
+                    div.style.position = 'relative';
+
+                    const isToday = (i === now.getDate() && displayMonth === now.getMonth() && displayYear === now.getFullYear());
+
+                    if (isToday) {
+                        div.classList.add('cal-today');
+                    }
+
+                    const checkDate = displayYear + "-" + String(displayMonth + 1).padStart(2, '0') + "-" + String(i).padStart(2, '0');
+
+                    if (events && events[checkDate]) {
+                        div.classList.add('has-event');
+                        if (isToday) {
+                            div.style.background = 'linear-gradient(135deg, #E31E24, #b91c1c)';
+                            div.style.boxShadow = '0 2px 8px rgba(227, 30, 36, 0.4)';
+                        }
+
+                        // Küçük nokta göstergesi
+                        const dot = document.createElement('div');
+                        dot.style.cssText = 'width:4px;height:4px;background:white;border-radius:50%;position:absolute;bottom:3px;left:50%;transform:translateX(-50%);';
+                        div.appendChild(dot);
+
+                        div.dataset.tasks = events[checkDate].join("|||");
+                        div.dataset.date = i + " " + monthNames[displayMonth];
+
+                        div.addEventListener('mouseenter', function (e) {
+                            const tasks = this.dataset.tasks.split("|||");
+                            const dateStr = this.dataset.date;
+                            tooltip.innerHTML = '<div class="tooltip-title"><i class="fas fa-calendar-check"></i> ' + dateStr + '</div><div class="tooltip-tasks">' + tasks.map(function (t) { return '• ' + t; }).join('<br>') + '</div>';
+                            const rect = this.getBoundingClientRect();
+                            tooltip.style.left = (rect.left + rect.width / 2 - tooltip.offsetWidth / 2) + 'px';
+                            tooltip.style.top = (rect.top - tooltip.offsetHeight - 10) + 'px';
+                            tooltip.classList.add('visible');
+                        });
+
+                        div.addEventListener('mouseleave', function () {
+                            tooltip.classList.remove('visible');
+                        });
+                    } else if (!isToday) {
+                        const checkD = new Date(displayYear, displayMonth, i);
+                        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                        if (checkD < todayStart) {
+                            div.style.color = '#cbd5e1';
+                        }
+                    }
+
+                    container.appendChild(div);
+                }
+
+                // Sonraki ayın günleri (soluk)
+                const totalCells = startSlot + daysInMonth;
+                const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+                for (let i = 1; i <= remaining; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'cal-day';
+                    div.style.color = '#d1d5db';
+                    div.style.fontSize = '10px';
+                    div.innerText = i;
+                    container.appendChild(div);
+                }
+
+                setTimeout(function () { container.style.opacity = '1'; }, 50);
+
+                // Yaklaşan görevleri güncelle
+                renderUpcoming();
+            }
+
+            function renderUpcoming() {
+                const listEl = document.getElementById('schoolUpcomingList');
+                if (!listEl) return;
+                listEl.innerHTML = '';
+
+                const upcoming = [];
+                const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+
+                if (events) {
+                    Object.keys(events).sort().forEach(function (date) {
+                        if (date >= todayStr) {
+                            const tasks = Array.isArray(events[date]) ? events[date] : [events[date]];
+                            tasks.forEach(function (task) {
+                                upcoming.push({ date: date, task: task });
+                            });
+                        }
+                    });
+                }
+
+                if (upcoming.length === 0) {
+                    listEl.innerHTML = '<div style="text-align: center; padding: 12px; color: #94a3b8; font-size: 12px;"><i class="fas fa-check-circle" style="font-size: 18px; display: block; margin-bottom: 6px; opacity: 0.4;"></i>Yaklaşan görev yok</div>';
+                    return;
+                }
+
+                upcoming.slice(0, 4).forEach(function (item, index) {
+                    const parts = item.date.split('-');
+                    const day = parseInt(parts[2]);
+                    const month = parseInt(parts[1]) - 1;
+                    const dateObj = new Date(parseInt(parts[0]), month, day);
+                    const diffDays = Math.ceil((dateObj - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / (1000 * 60 * 60 * 24));
+
+                    var uc = '#059669', ubg = '#ecfdf5', ub = '#a7f3d0', ul = diffDays + ' gün';
+                    if (diffDays === 0) { uc = '#E31E24'; ubg = '#fef2f2'; ub = '#fecaca'; ul = 'Bugün!'; }
+                    else if (diffDays === 1) { uc = '#ea580c'; ubg = '#fff7ed'; ub = '#fed7aa'; ul = 'Yarın'; }
+                    else if (diffDays <= 3) { uc = '#d97706'; ubg = '#fefce8'; ub = '#fde68a'; }
+
+                    var el = document.createElement('div');
+                    el.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;margin-bottom:5px;background:' + ubg + ';border:1px solid ' + ub + ';transition:all 0.2s;cursor:default;animation:slideIn 0.3s ease ' + (index * 0.05) + 's both;';
+                    el.innerHTML = '<div style="min-width:36px;text-align:center;"><div style="font-size:16px;font-weight:800;color:' + uc + ';line-height:1;">' + day + '</div><div style="font-size:9px;color:' + uc + ';opacity:0.7;font-weight:600;">' + monthNames[month].substring(0, 3) + '</div></div><div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + item.task + '</div></div><div style="font-size:10px;font-weight:700;color:' + uc + ';background:white;padding:2px 8px;border-radius:6px;white-space:nowrap;">' + ul + '</div>';
+                    listEl.appendChild(el);
+                });
+
+                if (!document.getElementById('calAnimStyle')) {
+                    var style = document.createElement('style');
+                    style.id = 'calAnimStyle';
+                    style.textContent = '@keyframes slideIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }';
+                    document.head.appendChild(style);
+                }
+            }
+
+            window.calChangeMonth = function (delta) {
+                displayMonth += delta;
+                if (displayMonth > 11) { displayMonth = 0; displayYear++; }
+                if (displayMonth < 0) { displayMonth = 11; displayYear--; }
+                renderCalendar();
+            };
+
+            window.calGoToday = function () {
+                displayMonth = now.getMonth();
+                displayYear = now.getFullYear();
+                renderCalendar();
+            };
+
+            renderCalendar();
+        })();
+    </script>
+
+    <%- include('../layouts/school_footer') %>
