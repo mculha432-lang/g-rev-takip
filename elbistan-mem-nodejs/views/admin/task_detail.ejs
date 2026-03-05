@@ -171,9 +171,15 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 20px;
             margin-bottom: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         @media (max-width: 768px) {
@@ -185,6 +191,38 @@
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 15px;
+            }
+
+            .task-title {
+                font-size: 18px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .task-actions {
+                margin-left: 0;
+            }
+
+            .task-card {
+                padding: 20px;
+            }
+
+            .task-meta {
+                gap: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .task-title {
+                font-size: 16px;
+            }
+
+            .task-card {
+                padding: 16px;
+            }
+
+            .stat-info h3 {
+                font-size: 24px;
             }
         }
 
@@ -620,7 +658,7 @@
                 </div>
     </div>
 
-    <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+    <div class="stats-grid">
         <div class="stat-card stat-blue">
             <div class="stat-icon"><i class="fas fa-school"></i></div>
             <div class="stat-info">
@@ -664,7 +702,7 @@
         <div class="card-header">
             <i class="fas fa-list-ul"></i> Okul Durumları
         </div>
-        <div style="overflow-x: auto;">
+        <div class="table-container" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
             <table>
                 <thead>
                     <tr>
@@ -858,7 +896,7 @@
 
     <!-- Verileri Client Side'a Aktar -->
     <script>
-        const messagesMap = <%- messagesMap %>;
+        const messagesMap = <% - messagesMap %>;
         const currentUserId = "<%= currentUserId %>";
     </script>
 

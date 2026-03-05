@@ -631,6 +631,53 @@
             color: #dc2626;
             border: 2px solid #fecaca;
         }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .page-header-stats {
+                flex-wrap: wrap;
+                width: 100%;
+            }
+
+            .page-header-stat {
+                flex: 1;
+                min-width: 100px;
+            }
+
+            .report-card {
+                padding: 20px;
+            }
+
+            .report-actions {
+                flex-direction: column;
+            }
+
+            .report-actions a,
+            .report-actions button {
+                width: 100%;
+                text-align: center;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-header h1 {
+                font-size: 16px;
+            }
+
+            .page-header-stat {
+                padding: 10px 14px;
+            }
+
+            .report-card-header h3 {
+                font-size: 15px;
+            }
+        }
     </style>
 
     <div class="page-header">
@@ -839,7 +886,8 @@
                     <div class="info-item">
                         <div
                             style="background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); color: #8b5cf6; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">
-                            <i class="fas fa-sign-in-alt"></i></div>
+                            <i class="fas fa-sign-in-alt"></i>
+                        </div>
                         <div class="info-item-content">
                             <h5>Giriş-Çıkış Raporu</h5>
                             <p>Okul bazlı giriş-çıkış logları ve aktivite durumu</p>
