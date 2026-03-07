@@ -224,18 +224,19 @@
             background: #f8f9fa;
         }
 
-        .error-message {
-            background: rgba(255, 255, 255, 0.9);
-            color: #d32f2f;
-            padding: 14px;
-            border-radius: 10px;
-            font-size: 14px;
+        .input-error-text {
+            color: #ffcccc;
+            font-size: 13px;
             font-weight: 500;
-            margin-bottom: 25px;
+            margin-top: 8px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            gap: 6px;
+        }
+
+        .input-box input.has-error {
+            border-color: #ffcccc;
+            background: #fffafa;
         }
 
         .footer-copyright {
@@ -361,41 +362,49 @@
                 <h2>Giriş Yap</h2>
             </div>
 
-            <% if(error) { %>
-                <div class="error-message">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <%= error %>
-                </div>
-                <% } %>
+            <form action="/login" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
-                    <form action="/login" method="POST">
-                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-
-                        <div class="input-group">
-                            <label>Kullanıcı Adı</label>
-                            <div class="input-box">
-                                <i class="fas fa-user-circle"></i>
-                                <input type="text" name="username" required placeholder="Kullanıcı adı veya kurum kodu"
-                                    autocomplete="off">
-                            </div>
-                        </div>
-
-                        <div class="input-group">
-                            <label>Şifre</label>
-                            <div class="input-box">
-                                <i class="fas fa-lock"></i>
-                                <input type="password" name="password" required placeholder="••••••••">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn-submit">
-                            Güvenli Giriş <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </form>
-
-                    <div class="footer-copyright">
-                        &copy; <%= new Date().getFullYear() %> Elbistan İlçe Milli Eğitim Müdürlüğü
+                <div class="input-group">
+                    <label>Kullanıcı Adı</label>
+                    <div class="input-box">
+                        <i class="fas fa-user-circle"></i>
+                        <input type="text" name="username" class="<%= error ? 'has-error' : '' %>" required
+                            placeholder="Kullanıcı adı veya kurum kodu" autocomplete="off">
                     </div>
+                    <% if(error) { %>
+                        <div class="input-error-text">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <%= error %>
+                        </div>
+                        <% } %>
+                </div>
+
+                <div class="input-group">
+                    <label>Şifre</label>
+                    <div class="input-box">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password" id="password-input" required placeholder="••••••••">
+                        <i class="fas fa-eye" id="togglePassword"
+                            style="left: auto; right: 16px; cursor: pointer; color: var(--primary-color);"></i>
+                    </div>
+                </div>
+
+                <div class="remember-me"
+                    style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px; color: rgba(255, 255, 255, 0.95); font-size: 14px; font-weight: 500;">
+                    <input type="checkbox" name="remember" id="remember"
+                        style="width: 16px; height: 16px; accent-color: var(--primary-color); cursor: pointer;">
+                    <label for="remember" style="margin: 0; cursor: pointer;">Beni Hatırla</label>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    Güvenli Giriş <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <div class="footer-copyright">
+                &copy; <%= new Date().getFullYear() %> Elbistan İlçe Milli Eğitim Müdürlüğü
+            </div>
         </div>
     </div>
 
@@ -501,6 +510,17 @@
         setCanvasSize();
         init();
         animate();
+
+        // Password visibility toggle
+        const togglePassword = document.querySelector('#togglePassword');
+        const passwordInput = document.querySelector('#password-input');
+
+        togglePassword.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
     </script>
 </body>
 
