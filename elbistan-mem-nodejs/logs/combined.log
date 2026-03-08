@@ -6209,3 +6209,70 @@ Or, if you meant to create an async function, pass `async: true` as an option.
 [2026-03-02 16:08:13] INFO: GET /admin/profile - 200 - 17ms - IP: ::1
 [2026-03-02 16:08:29] INFO: GET /admin/profile - 200 - 12ms - IP: ::1
 [2026-03-02 16:08:44] INFO: GET /admin/dashboard - 200 - 17ms - IP: ::1
+[2026-03-07 22:16:59] INFO: Sunucu başlatıldı: http://localhost:3000
+[2026-03-07 22:16:59] INFO: Yedekleme sistemi başlatıldı
+[2026-03-07 22:17:08] INFO: GET / - 302 - 8ms - IP: ::1
+[2026-03-07 22:17:08] INFO: GET /login - 200 - 14ms - IP: ::1
+[2026-03-07 22:17:23] INFO: POST /login - 302 - 127ms - IP: ::1
+[2026-03-07 22:17:23] INFO: GET /admin/dashboard - 200 - 13ms - IP: ::1
+[2026-03-07 22:17:26] INFO: GET /admin/tasks - 200 - 20ms - IP: ::1
+[2026-03-07 22:17:26] INFO: GET /admin/schools - 200 - 28ms - IP: ::1
+[2026-03-07 22:17:27] INFO: GET /admin/files - 200 - 7ms - IP: ::1
+[2026-03-07 22:17:27] INFO: GET /admin/reports - 304 - 9ms - IP: ::1
+[2026-03-07 22:17:28] INFO: GET /admin/backups - 200 - 13ms - IP: ::1
+[2026-03-07 22:17:29] INFO: GET /admin/schools - 200 - 20ms - IP: ::1
+[2026-03-07 22:17:29] INFO: GET /admin/tasks - 200 - 18ms - IP: ::1
+[2026-03-07 22:17:32] INFO: GET /logout - 302 - 1ms - IP: ::1
+[2026-03-07 22:17:32] INFO: GET /login - 200 - 4ms - IP: ::1
+[2026-03-07 22:17:34] WARN: GET /.well-known/appspecific/com.chrome.devtools.json - 404 - 2ms - IP: ::1
+[2026-03-09 02:11:38] INFO: Sunucu başlatıldı: http://localhost:3000
+[2026-03-09 02:11:38] INFO: Yedekleme sistemi başlatıldı
+[2026-03-09 02:11:50] INFO: GET / - 302 - 8ms - IP: ::1
+[2026-03-09 02:11:50] INFO: GET /login - 200 - 21ms - IP: ::1
+[2026-03-09 02:11:50] WARN: GET /favicon.ico - 404 - 4ms - IP: ::1
+[2026-03-09 02:12:04] WARN: GET /.well-known/appspecific/com.chrome.devtools.json - 404 - 2ms - IP: ::1
+[2026-03-09 02:14:12] INFO: POST /login - 302 - 142ms - IP: ::1
+[2026-03-09 02:14:12] INFO: GET /admin/dashboard - 200 - 19ms - IP: ::1
+[2026-03-09 02:14:14] WARN: GET /.well-known/appspecific/com.chrome.devtools.json - 404 - 5ms - IP: ::1
+[2026-03-09 02:14:15] WARN: GET /js/chart.umd.js.map - 404 - 3ms - IP: ::1
+[2026-03-09 02:22:42] WARN: GET /.well-known/appspecific/com.chrome.devtools.json - 404 - 3ms - IP: ::1
+[2026-03-09 02:22:42] WARN: GET /js/chart.umd.js.map - 404 - 3ms - IP: ::1
+[2026-03-09 02:23:04] INFO: GET /admin/schools - 200 - 24ms - IP: ::1
+[2026-03-09 02:23:04] WARN: GET /.well-known/appspecific/com.chrome.devtools.json - 404 - 2ms - IP: ::1
+[2026-03-09 02:23:14] INFO: GET /admin/dashboard - 200 - 11ms - IP: ::1
+[2026-03-09 02:23:14] WARN: GET /.well-known/appspecific/com.chrome.devtools.json - 404 - 3ms - IP: ::1
+[2026-03-09 02:23:15] WARN: GET /js/chart.umd.js.map - 404 - 1ms - IP: ::1
+[2026-03-09 02:23:53] INFO: GET /logout - 302 - 2ms - IP: ::1
+[2026-03-09 02:23:53] INFO: GET /login - 200 - 3ms - IP: ::1
+[2026-03-09 02:23:53] WARN: GET /.well-known/appspecific/com.chrome.devtools.json - 404 - 1ms - IP: ::1
+[2026-03-09 02:24:02] WARN: GET /.well-known/appspecific/com.chrome.devtools.json - 404 - 1ms - IP: ::1
+[2026-03-09 02:29:01] INFO: GET /login - 200 - 39ms - IP: ::1
+[2026-03-09 02:31:34] INFO: Sunucu başlatıldı: http://localhost:3000
+[2026-03-09 02:31:34] INFO: Yedekleme sistemi başlatıldı
+[2026-03-09 02:31:49] INFO: GET / - 302 - 10ms - IP: ::1
+[2026-03-09 02:31:49] INFO: GET /login - 200 - 22ms - IP: ::1
+[2026-03-09 02:31:55] INFO: POST /login - 302 - 132ms - IP: ::1
+[2026-03-09 02:31:55] INFO: GET /admin/dashboard - 200 - 17ms - IP: ::1
+[2026-03-09 02:31:56] INFO: GET /admin/files - 200 - 10ms - IP: ::1
+[2026-03-09 02:31:57] INFO: GET /admin/reports - 304 - 10ms - IP: ::1
+[2026-03-09 02:31:59] INFO: GET /admin/tasks - 200 - 23ms - IP: ::1
+[2026-03-09 02:31:59] INFO: GET /admin/schools - 200 - 20ms - IP: ::1
+[2026-03-09 02:32:01] INFO: GET /admin/dashboard - 200 - 12ms - IP: ::1
+[2026-03-09 02:32:03] WARN: GET /.well-known/appspecific/com.chrome.devtools.json - 404 - 4ms - IP: ::1
+[2026-03-09 02:32:04] WARN: GET /js/chart.umd.js.map - 404 - 2ms - IP: ::1
+[2026-03-09 02:32:07] INFO: GET /admin/schools - 200 - 23ms - IP: ::1
+[2026-03-09 02:32:07] WARN: GET /.well-known/appspecific/com.chrome.devtools.json - 404 - 2ms - IP: ::1
+[2026-03-09 02:32:11] INFO: GET /logout - 302 - 2ms - IP: ::1
+[2026-03-09 02:32:11] INFO: GET /login - 200 - 4ms - IP: ::1
+[2026-03-09 02:32:11] WARN: GET /.well-known/appspecific/com.chrome.devtools.json - 404 - 2ms - IP: ::1
+[2026-03-09 02:32:15] INFO: POST /login - 302 - 119ms - IP: ::1
+[2026-03-09 02:32:15] INFO: GET /okul/dashboard - 304 - 12ms - IP: ::1
+[2026-03-09 02:32:15] WARN: GET /.well-known/appspecific/com.chrome.devtools.json - 404 - 2ms - IP: ::1
+[2026-03-09 02:32:28] INFO: GET /logout - 302 - 3ms - IP: ::1
+[2026-03-09 02:32:28] INFO: GET /login - 200 - 3ms - IP: ::1
+[2026-03-09 02:32:28] WARN: GET /.well-known/appspecific/com.chrome.devtools.json - 404 - 2ms - IP: ::1
+[2026-03-09 02:32:37] WARN: GET /.well-known/appspecific/com.chrome.devtools.json - 404 - 2ms - IP: ::1
+[2026-03-09 02:32:45] INFO: POST /login - 302 - 125ms - IP: ::1
+[2026-03-09 02:32:45] INFO: GET /admin/dashboard - 200 - 9ms - IP: ::1
+[2026-03-09 02:38:34] INFO: GET /logout - 302 - 1ms - IP: ::1
+[2026-03-09 02:38:34] INFO: GET /login - 200 - 3ms - IP: ::1
