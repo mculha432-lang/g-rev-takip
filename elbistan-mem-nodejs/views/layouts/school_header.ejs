@@ -15,8 +15,57 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#E31E24">
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js');
+        // Push Bildirimlerine Abone Olma Fonksiyonu
+        async function subscribeToPush(registration) {
+            try {
+                const sub = await registration.pushManager.getSubscription();
+                if (sub) return; // Zaten abone
+
+                const response = await fetch('/push/vapidPublicKey');
+                const vapidData = await response.json();
+                
+                // base64 to Uint8Array
+                const padding = '='.repeat((4 - vapidData.publicKey.length % 4) % 4);
+                const base64 = (vapidData.publicKey + padding).replace(/\-/g, '+').replace(/_/g, '/');
+                const rawData = window.atob(base64);
+                const outputArray = new Uint8Array(rawData.length);
+                for (let i = 0; i < rawData.length; ++i) {
+                    outputArray[i] = rawData.charCodeAt(i);
+                }
+
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: outputArray
+                });
+
+                await fetch('/push/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(subscription)
+                });
+                console.log('Push bildirimlerine başarıyla abone olundu.');
+            } catch (err) {
+                console.error('Push abonelik hatası:', err);
+            }
+        }
+
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(reg => {
+                    // Kullanıcı daha önce izin verdiyse hemen abone et
+                    if (Notification.permission === 'granted') {
+                        subscribeToPush(reg);
+                    } else if (Notification.permission === 'default') {
+                        // İlk girişte izin iste
+                        Notification.requestPermission().then(permission => {
+                            if (permission === 'granted') {
+                                subscribeToPush(reg);
+                            }
+                        });
+                    }
+                });
         }
     </script>
     
