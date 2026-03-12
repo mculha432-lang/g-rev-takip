@@ -37,3 +37,41 @@ self.addEventListener('fetch', e => {
             })
     );
 });
+
+// Push notification (Anlık Bildirim) yakalayıcı
+self.addEventListener('push', e => {
+    let payload = { title: 'Yeni Bildirim', body: '', icon: '/icons/icon-192.png', url: '/' };
+    try {
+        if (e.data) {
+            payload = e.data.json();
+        }
+    } catch (err) {
+        console.error('Push data parse error:', err);
+    }
+
+    const options = {
+        body: payload.body,
+        icon: payload.icon,
+        vibrate: [100, 50, 100],
+        data: { url: payload.url },
+        badge: '/icons/icon-192.png'
+    };
+
+    e.waitUntil(
+        self.registration.showNotification(payload.title, options)
+    );
+});
+
+// Bildirime tıklandığında aksiyon al
+self.addEventListener('notificationclick', e => {
+    e.notification.close();
+    if (e.notification.data && e.notification.data.url) {
+        e.waitUntil(
+            clients.openWindow(e.notification.data.url)
+        );
+    } else {
+        e.waitUntil(
+            clients.openWindow('/')
+        );
+    }
+});
