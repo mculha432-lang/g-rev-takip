@@ -763,12 +763,19 @@
                                                     <% } %>
                             </td>
                             <td>
+                                <% if(assignment.fieldResponses && assignment.fieldResponses.length > 0) { %>
+                                    <button onclick="openAnswersModal('<%= assignment.id %>', '<%= assignment.full_name %>')" 
+                                            class="btn-view-file" style="margin-bottom: 5px; background: #fef2f2; color: #dc2626; border-color: #fecaca; display: flex; width: max-content;">
+                                            <i class="fas fa-list"></i> Form Cevapları
+                                    </button>
+                                <% } %>
                                 <% if(assignment.response_note) { %>
                                     <div class="response-note">"<%= assignment.response_note %>"</div>
-                                    <% } else { %>
+                                <% } else if (!assignment.fieldResponses || assignment.fieldResponses.length === 0) { %>
                                         <span style="color: #cbd5e1;">-</span>
-                                        <% } %>
+                                <% } %>
                             </td>
+
                             <td>
                                 <% if(assignment.response_file) { %>
                                     <a href="/uploads/responses/<%= assignment.response_file %>" target="_blank"
@@ -894,9 +901,37 @@
         </div>
     </div>
 
+    <!-- Form Cevapları Modalı -->
+    <div id="answersModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 600px; border-top-color: #dc2626;">
+            <div class="modal-title" style="color: #dc2626; display: flex; justify-content: space-between; align-items: center;">
+                <span><i class="fas fa-tasks"></i> Form Cevapları</span>
+                <button onclick="closeAnswersModal()" style="background:none; border:none; cursor:pointer; color:#94a3b8; font-size:18px;"><i class="fas fa-times"></i></button>
+            </div>
+            <p style="margin-bottom: 15px; color: #475569; font-size: 14px;">
+                <strong id="ansModalSchoolName">Okul Adı</strong> tarafından gönderilen form cevapları:
+            </p>
+
+            <div id="answersContainer" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; max-height: 400px; overflow-y: auto; padding: 15px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 15px;">
+                <!-- Cevaplar buraya gelecek -->
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn-modal-cancel" onclick="closeAnswersModal()">Kapat</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Verileri Client Side'a Aktar -->
     <script>
         const messagesMap = <%- JSON.stringify(messagesMap || {}) %>;
+        const assignmentsData = <%- JSON.stringify(assignments || []) %>;
+        const responsesMap = {};
+        assignmentsData.forEach(a => {
+            if(a.fieldResponses && a.fieldResponses.length > 0) {
+                responsesMap[a.id] = a.fieldResponses;
+            }
+        });
         const currentUserId = "<%= currentUserId %>";
     </script>
 
@@ -990,11 +1025,44 @@
             messageModal.classList.remove('active');
         }
 
+        // Answers Modal
+        const answersModal = document.getElementById('answersModal');
+        const ansModalSchoolName = document.getElementById('ansModalSchoolName');
+        const answersContainer = document.getElementById('answersContainer');
+
+        function openAnswersModal(assignmentId, schoolName) {
+            ansModalSchoolName.textContent = schoolName;
+            answersContainer.innerHTML = '';
+
+            const responses = responsesMap[assignmentId] || [];
+
+            if (responses.length === 0) {
+                answersContainer.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">Form cevabı bulunamadı.</div>';
+            } else {
+                responses.forEach(resp => {
+                    const item = document.createElement('div');
+                    item.style.cssText = 'background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;';
+                    item.innerHTML = `
+                        <div style="font-weight: 700; color: #1e293b; font-size: 13px; margin-bottom: 6px;">${resp.field_label}</div>
+                        <div style="color: #475569; font-size: 14px;">${resp.response_text || '-'}</div>
+                    `;
+                    answersContainer.appendChild(item);
+                });
+            }
+
+            answersModal.classList.add('active');
+        }
+
+        function closeAnswersModal() {
+            answersModal.classList.remove('active');
+        }
+
         // Close on outside click
         window.onclick = function (event) {
             if (event.target == rejectModal) closeRejectModal();
             if (event.target == approveModal) closeApproveModal();
             if (event.target == messageModal) closeMessageModal();
+            if (event.target == answersModal) closeAnswersModal();
         }
 
         // Close on Escape
@@ -1003,6 +1071,7 @@
                 closeRejectModal();
                 closeApproveModal();
                 closeMessageModal();
+                closeAnswersModal();
             }
         });
     </script>
