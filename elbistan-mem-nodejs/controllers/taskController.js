@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const { uploads, deleteFile } = require('../utils/upload');
+const { sendPushNotification } = require('../utils/push');
 
 const taskController = {
     uploadMulter: uploads.task.single('task_file'),
@@ -72,6 +73,12 @@ const taskController = {
 
                 schoolIdsArray.forEach(schoolId => {
                     stmt.run(taskId, schoolId, 'pending');
+                    // Add push notification call
+                    sendPushNotification(schoolId, {
+                        title: 'Yeni Bir Görev Atandı',
+                        body: `"${title}" başlıklı yeni bir görev hesabınıza tanımlanmıştır. Lütfen giriş yapıp kontrol ediniz.`,
+                        url: '/okul/tasks'
+                    });
                 });
             }
 
@@ -296,6 +303,12 @@ const taskController = {
                 const insertStmt = db.prepare('INSERT INTO task_assignments (task_id, user_id, status) VALUES (?, ?, ?)');
                 toAdd.forEach(schoolId => {
                     insertStmt.run(id, schoolId, 'pending');
+                    // Push notification call for new schools added to existing task
+                    sendPushNotification(schoolId, {
+                        title: 'Yeni Bir Görev Atandı',
+                        body: `Daha önceden oluşturulmuş "${title}" başlıklı görev hesabınıza tanımlanmıştır.`,
+                        url: '/okul/tasks'
+                    });
                 });
             }
 
@@ -372,6 +385,16 @@ const taskController = {
             }
 
             db.prepare('INSERT INTO task_messages (assignment_id, sender_id, message) VALUES (?, ?, ?)').run(assignmentId, userId, message.trim());
+            
+            // Push Notification to the assigned school
+            const assignmentInfo = db.prepare('SELECT user_id FROM task_assignments WHERE id = ?').get(assignmentId);
+            if(assignmentInfo) {
+                sendPushNotification(assignmentInfo.user_id, {
+                    title: 'Yeni Mesaj: Yönetici',
+                    body: message.trim().length > 50 ? message.trim().substring(0, 50) + '...' : message.trim(),
+                    url: `/okul/tasks/${assignmentId}#messages`
+                });
+            }
 
             res.redirect(`/admin/tasks/${task_id}`);
         } catch (error) {
