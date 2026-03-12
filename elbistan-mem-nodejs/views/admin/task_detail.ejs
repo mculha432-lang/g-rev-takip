@@ -896,7 +896,7 @@
 
     <!-- Verileri Client Side'a Aktar -->
     <script>
-        const messagesMap = <% - messagesMap %>;
+        const messagesMap = <%- JSON.stringify(messagesMap || {}) %>;
         const currentUserId = "<%= currentUserId %>";
     </script>
 
