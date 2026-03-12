@@ -54,16 +54,21 @@
         if ('serviceWorker' in navigator && 'PushManager' in window) {
             navigator.serviceWorker.register('/service-worker.js')
                 .then(reg => {
-                    // Kullanıcı daha önce izin verdiyse hemen abone et
+                    // Sayfada herhangi bir yere ilk tıklandığında bildirim izni iste
+                    // (Tarayıcıların otomatik engellemesini aşmak için)
+                    document.body.addEventListener('click', () => {
+                        if (Notification.permission === 'default') {
+                            Notification.requestPermission().then(permission => {
+                                if (permission === 'granted') {
+                                    subscribeToPush(reg);
+                                }
+                            });
+                        }
+                    }, { once: true });
+
+                    // Kullanıcı daha önce izin verdiyse tıkla beklemeden hemen abone et
                     if (Notification.permission === 'granted') {
                         subscribeToPush(reg);
-                    } else if (Notification.permission === 'default') {
-                        // İlk girişte izin iste
-                        Notification.requestPermission().then(permission => {
-                            if (permission === 'granted') {
-                                subscribeToPush(reg);
-                            }
-                        });
                     }
                 });
         }
