@@ -85,9 +85,8 @@ const csrfProtection = csrf({ cookie: true });
 // CSRF korumasını tüm POST isteklerine uygula
 // Conditional CSRF Protection
 const conditionalCsrf = (req, res, next) => {
-    // Eğer istek multipart/form-data ise (dosya yükleme), global kontrolü atla
-    // Bu durumda kontrol route seviyesinde multer'dan sonra yapılacak
-    if (req.get('content-type')?.includes('multipart/form-data')) {
+    // Eğer istek multipart/form-data ise (dosya yükleme) veya /push altındaysa global kontrolü atla
+    if (req.get('content-type')?.includes('multipart/form-data') || req.path.startsWith('/push')) {
         return next();
     }
     csrfProtection(req, res, next);
@@ -139,6 +138,7 @@ app.use('/admin', adminRoutes);
 app.use('/admin/schools', schoolsRoutes);
 app.use('/admin/tasks', tasksRoutes);
 app.use('/okul', schoolPanelRoutes);
+app.use('/push', require('./routes/push'));
 
 // Ana sayfa yönlendirmesi
 app.get('/', (req, res) => {
