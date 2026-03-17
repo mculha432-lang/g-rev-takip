@@ -10,7 +10,78 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#E31E24">
+    <script>
+        // Push Bildirimlerine Abone Olma Fonksiyonu
+        async function subscribeToPush(registration) {
+            try {
+                const sub = await registration.pushManager.getSubscription();
+                if (sub) return; // Zaten abone
+
+                const response = await fetch('/push/vapidPublicKey');
+                const vapidData = await response.json();
+                
+                // base64 to Uint8Array
+                const padding = '='.repeat((4 - vapidData.publicKey.length % 4) % 4);
+                const base64 = (vapidData.publicKey + padding).replace(/\-/g, '+').replace(/_/g, '/');
+                const rawData = window.atob(base64);
+                const outputArray = new Uint8Array(rawData.length);
+                for (let i = 0; i < rawData.length; ++i) {
+                    outputArray[i] = rawData.charCodeAt(i);
+                }
+
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: outputArray
+                });
+
+                await fetch('/push/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(subscription)
+                });
+                console.log('Push bildirimlerine başarıyla abone olundu.');
+            } catch (err) {
+                console.error('Push abonelik hatası:', err);
+            }
+        }
+
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(reg => {
+                    // Sayfada herhangi bir yere ilk tıklandığında bildirim izni iste
+                    // (Tarayıcıların otomatik engellemesini aşmak için)
+                    document.body.addEventListener('click', () => {
+                        if (Notification.permission === 'default') {
+                            Notification.requestPermission().then(permission => {
+                                if (permission === 'granted') {
+                                    subscribeToPush(reg);
+                                }
+                            });
+                        }
+                    }, { once: true });
+
+                    // Kullanıcı daha önce izin verdiyse tıkla beklemeden hemen abone et
+                    if (Notification.permission === 'granted') {
+                        subscribeToPush(reg);
+                    }
+                });
+        }
+    </script>
+    
     <style>
+        /* View Transitions CSS for PWA smoothness */
+        ::view-transition-group(*),
+        ::view-transition-old(*),
+        ::view-transition-new(*) {
+            animation-duration: 0.25s;
+            animation-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+        }
         :root {
             --primary-color: #E31E24;
             --primary-hover: #C1181E;
@@ -264,14 +335,20 @@
             z-index: 999;
         }
 
+        @media (max-width: 1280px) {
+            .main-content {
+                padding: 25px;
+            }
+        }
+
         @media (max-width: 1024px) {
             .main-content {
-                margin-left: 220px;
-                padding: 25px;
+                margin-left: 240px;
+                padding: 20px;
             }
 
             .sidebar {
-                width: 220px;
+                width: 240px;
             }
         }
 
@@ -311,7 +388,7 @@
             }
         }
 
-        @media (max-width: 480px) {
+        @media (max-width: 640px) {
             .main-content {
                 padding: 70px 10px 15px 10px;
             }
@@ -611,36 +688,42 @@
                             <span>Genel Bakış</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="/admin/schools" class="nav-link <%= activePage === 'schools' ? 'active' : '' %>">
-                            <i class="fas fa-university"></i>
-                            <span>Okullar</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/admin/tasks" class="nav-link <%= activePage === 'tasks' ? 'active' : '' %>">
-                            <i class="fas fa-tasks"></i>
-                            <span>Görevler</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/admin/files" class="nav-link <%= activePage === 'files' ? 'active' : '' %>">
-                            <i class="fas fa-folder"></i>
-                            <span>Dosyalar</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/admin/reports" class="nav-link <%= activePage === 'reports' ? 'active' : '' %>">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Raporlar</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/admin/backups" class="nav-link <%= activePage === 'backups' ? 'active' : '' %>">
-                            <i class="fas fa-database"></i>
-                            <span>Yedekleme</span>
-                        </a>
-                    </li>
+                    <% if (!user || user.role==='admin' ) { %>
+                        <li class="nav-item">
+                            <a href="/admin/schools" class="nav-link <%= activePage === 'schools' ? 'active' : '' %>">
+                                <i class="fas fa-university"></i>
+                                <span>Okullar</span>
+                            </a>
+                        </li>
+                        <% } %>
+                            <li class="nav-item">
+                                <a href="/admin/tasks" class="nav-link <%= activePage === 'tasks' ? 'active' : '' %>">
+                                    <i class="fas fa-tasks"></i>
+                                    <span>Görevler</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/admin/files" class="nav-link <%= activePage === 'files' ? 'active' : '' %>">
+                                    <i class="fas fa-folder"></i>
+                                    <span>Dosyalar</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/admin/reports"
+                                    class="nav-link <%= activePage === 'reports' ? 'active' : '' %>">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <span>Raporlar</span>
+                                </a>
+                            </li>
+                            <% if (!user || user.role==='admin' ) { %>
+                                <li class="nav-item">
+                                    <a href="/admin/backups"
+                                        class="nav-link <%= activePage === 'backups' ? 'active' : '' %>">
+                                        <i class="fas fa-database"></i>
+                                        <span>Yedekleme</span>
+                                    </a>
+                                </li>
+                                <% } %>
                 </ul>
 
                 <div class="sidebar-footer">
@@ -653,8 +736,13 @@
                                 <h4>
                                     <%= user ? user.full_name : 'Admin' %>
                                 </h4>
-                                <span>Yönetici <i class="fas fa-cog"
-                                        style="font-size: 10px; margin-left: 3px;"></i></span>
+                                <% if (user && user.is_manager===1 && user.role !=='admin' ) { %>
+                                    <span style="color: #f59e0b;">Kurum Yöneticisi <i class="fas fa-shield-alt"
+                                            style="font-size: 10px; margin-left: 3px;"></i></span>
+                                    <% } else { %>
+                                        <span>Yönetici <i class="fas fa-cog"
+                                                style="font-size: 10px; margin-left: 3px;"></i></span>
+                                        <% } %>
                             </div>
                         </div>
                     </a>
