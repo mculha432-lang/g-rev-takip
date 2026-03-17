@@ -1,12 +1,43 @@
 {
   "name": "Elbistan İlçe MEM",
-  "short_name": "Görev Takip",
-  "start_url": "/",
+  "short_name": "E-GTS",
+  "start_url": "/https://elbmemgts.com.tr/",
   "display": "standalone",
-  "background_color": "#f8fafc",
+  "background_color": "#cc0000",
   "theme_color": "#E31E24",
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "id": "https://elbmemgts.com.tr/",
+  "dir": "ltr",
+  "description": "Elbistan İlçe Milli Eğitim Müdürlüğü Görev Takip Sistemi",
+  "scope": "/",
+  "lang": "tr",
+  "orientation": "portrait",
+  "display_override": [
+    "standalone",
+    "window-controls-overlay"
+  ],
+  "categories": [
+    "education",
+    "government",
+    "productivity",
+    "utilities"
+  ],
+  "shortcuts": [
+    {
+      "name": "Giriş Yap",
+      "url": "https://elbmemgts.com.tr/login",
+      "description": "Sisteme giriş sayfası"
+    }
   ]
 }
