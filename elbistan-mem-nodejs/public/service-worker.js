@@ -25,6 +25,12 @@ self.addEventListener('fetch', e => {
                 if (!response || response.status !== 200 || response.type !== 'basic') {
                     return response;
                 }
+                
+                // Yalnızca http/https şemalarını önbelleğe al, chrome-extension vb. dışarıda bırakılır
+                if (!e.request.url.startsWith('http')) {
+                    return response;
+                }
+
                 const responseToCache = response.clone();
                 caches.open(CACHE).then(cache => {
                     cache.put(e.request, responseToCache);
