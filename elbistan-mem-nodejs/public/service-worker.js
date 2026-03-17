@@ -1,4 +1,4 @@
-const CACHE = 'v1';
+const CACHE = 'v2';
 
 self.addEventListener('install', e => {
     self.skipWaiting();
@@ -11,23 +11,31 @@ self.addEventListener('install', e => {
 });
 
 self.addEventListener('activate', e => {
-    e.waitUntil(clients.claim());
+    e.waitUntil(
+        caches.keys().then(keys => {
+            return Promise.all(
+                keys.map(key => {
+                    if (key !== CACHE) {
+                        return caches.delete(key);
+                    }
+                })
+            );
+        }).then(() => clients.claim())
+    );
 });
 
 self.addEventListener('fetch', e => {
     // Sadece GET isteklerini önbellekle
     if (e.request.method !== 'GET') return;
     
+    // Yalnızca http/https şemalarını işleme al, chrome-extension vb. istekleri doğrudan tarayıcıya bırak
+    if (!e.request.url.startsWith('http')) return;
+    
     e.respondWith(
         fetch(e.request)
             .then(response => {
                 // Sadece geçerli yanıtları önbelleğe al
                 if (!response || response.status !== 200 || response.type !== 'basic') {
-                    return response;
-                }
-                
-                // Yalnızca http/https şemalarını önbelleğe al, chrome-extension vb. dışarıda bırakılır
-                if (!e.request.url.startsWith('http')) {
                     return response;
                 }
 
