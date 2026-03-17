@@ -1,7 +1,7 @@
 {
   "name": "Elbistan İlçe MEM",
   "short_name": "E-GTS",
-  "start_url": "/https://elbmemgts.com.tr/",
+  "start_url": "https://elbmemgts.com.tr/",
   "display": "standalone",
   "background_color": "#cc0000",
   "theme_color": "#E31E24",
