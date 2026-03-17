@@ -33,11 +33,32 @@
     "productivity",
     "utilities"
   ],
+  "screenshots": [
+    {
+      "src": "/images/logo.png",
+      "sizes": "1000x1000",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/images/logo.png",
+      "sizes": "1000x1000",
+      "type": "image/png"
+    }
+  ],
   "shortcuts": [
     {
       "name": "Giriş Yap",
-      "url": "https://elbmemgts.com.tr/login",
-      "description": "Sisteme giriş sayfası"
+      "url": "/login",
+      "description": "Sisteme giriş sayfası",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }
+
