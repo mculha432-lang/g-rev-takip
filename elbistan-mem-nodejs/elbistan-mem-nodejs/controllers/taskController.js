@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const { uploads, deleteFile } = require('../utils/upload');
+const { sendPushNotification } = require('../utils/push');
 
 const taskController = {
     uploadMulter: uploads.task.single('task_file'),
@@ -72,6 +73,13 @@ const taskController = {
 
                 schoolIdsArray.forEach(schoolId => {
                     stmt.run(taskId, schoolId, 'pending');
+                    // Add push notification call
+                    sendPushNotification(schoolId, {
+                        title: '📋 Yeni Bir Görev Atandı',
+                        body: `"${title}" başlıklı yeni bir görev hesabınıza tanımlanmıştır. Lütfen giriş yapıp kontrol ediniz.`,
+                        url: '/okul/dashboard',
+                        tag: 'task-new-' + taskId
+                    });
                 });
             }
 
@@ -211,9 +219,20 @@ const taskController = {
             // Tüm okulları getir
             const schools = db.prepare("SELECT * FROM users WHERE role = 'school' ORDER BY full_name ASC").all();
 
-            // Bu göreve atanmış okulların ID'lerini al
-            const assignedSchools = db.prepare('SELECT user_id FROM task_assignments WHERE task_id = ?').all(id);
+            // Bu göreve atanmış okulların ID'lerini ve detaylarını al
+            const assignedSchools = db.prepare(`
+                SELECT ta.user_id, u.full_name, u.username 
+                FROM task_assignments ta 
+                JOIN users u ON ta.user_id = u.id 
+                WHERE ta.task_id = ? 
+                ORDER BY u.full_name ASC
+            `).all(id);
             const assignedIds = assignedSchools.map(a => a.user_id);
+            const assignedSchoolDetails = assignedSchools.map(a => ({
+                id: a.user_id,
+                full_name: a.full_name,
+                username: a.username
+            }));
 
             res.render('admin/task_edit', {
                 title: 'Görev Düzenle',
@@ -221,6 +240,7 @@ const taskController = {
                 task,
                 schools,
                 assignedIds,
+                assignedSchoolDetails,
                 status: req.query.status || null
             });
         } catch (error) {
@@ -259,11 +279,21 @@ const taskController = {
                 WHERE id = ?
             `).run(title, description, deadline, filePath, requiresFile, id);
 
+            // Kaldırılacak okulları işle
+            const remove_school_ids = req.body.remove_school_ids;
+            if (remove_school_ids) {
+                const removeIdsArray = Array.isArray(remove_school_ids) ? remove_school_ids : [remove_school_ids];
+                const deleteStmt = db.prepare('DELETE FROM task_assignments WHERE task_id = ? AND user_id = ?');
+                removeIdsArray.forEach(schoolId => {
+                    deleteStmt.run(id, schoolId);
+                });
+            }
+
             // Yeni okul atamaları varsa işle
             if (school_ids) {
                 const schoolIdsArray = Array.isArray(school_ids) ? school_ids : [school_ids];
 
-                // Mevcut atamaları al
+                // Mevcut atamaları al (kaldırmalardan sonra)
                 const currentAssignments = db.prepare('SELECT user_id FROM task_assignments WHERE task_id = ?').all(id);
                 const currentIds = currentAssignments.map(a => a.user_id.toString());
 
@@ -274,6 +304,13 @@ const taskController = {
                 const insertStmt = db.prepare('INSERT INTO task_assignments (task_id, user_id, status) VALUES (?, ?, ?)');
                 toAdd.forEach(schoolId => {
                     insertStmt.run(id, schoolId, 'pending');
+                    // Push notification call for new schools added to existing task
+                    sendPushNotification(schoolId, {
+                        title: '📋 Yeni Bir Görev Atandı',
+                        body: `Daha önceden oluşturulmuş "${title}" başlıklı görev hesabınıza tanımlanmıştır.`,
+                        url: '/okul/dashboard',
+                        tag: 'task-assign-' + id + '-' + schoolId
+                    });
                 });
             }
 
@@ -304,6 +341,15 @@ const taskController = {
                 WHERE id = ?
             `).run(now, assignmentId);
 
+            // Okula onay bildirimi gönder
+            const task = db.prepare('SELECT title FROM tasks WHERE id = ?').get(taskId);
+            sendPushNotification(assignment.user_id, {
+                title: '✅ Göreviniz Onaylandı',
+                body: task ? `"${task.title}" başlıklı göreviniz yönetici tarafından onaylandı.` : 'Göreviniz onaylandı.',
+                url: `/okul/tasks/${assignmentId}`,
+                tag: 'approved-' + assignmentId
+            });
+
             res.redirect(`/admin/tasks/${taskId}?status=approved`);
         } catch (error) {
             console.error('Görev onaylama hatası:', error);
@@ -331,6 +377,15 @@ const taskController = {
                 WHERE id = ?
             `).run(rejection_note || 'Eksik veya hatalı gönderim.', assignmentId);
 
+            // Okula iade bildirimi gönder
+            const task = db.prepare('SELECT title FROM tasks WHERE id = ?').get(taskId);
+            sendPushNotification(assignment.user_id, {
+                title: '⚠️ Göreviniz İade Edildi',
+                body: task ? `"${task.title}" başlıklı göreviniz iade edildi. Not: ${rejection_note || 'Eksik veya hatalı gönderim.'}` : 'Göreviniz iade edildi.',
+                url: `/okul/tasks/${assignmentId}`,
+                tag: 'rejected-' + assignmentId
+            });
+
             res.redirect(`/admin/tasks/${taskId}?status=rejected`);
         } catch (error) {
             console.error('Görev iade hatası:', error);
@@ -350,6 +405,17 @@ const taskController = {
             }
 
             db.prepare('INSERT INTO task_messages (assignment_id, sender_id, message) VALUES (?, ?, ?)').run(assignmentId, userId, message.trim());
+            
+            // Push Notification to the assigned school
+            const assignmentInfo = db.prepare('SELECT user_id FROM task_assignments WHERE id = ?').get(assignmentId);
+            if(assignmentInfo) {
+                sendPushNotification(assignmentInfo.user_id, {
+                    title: '💬 Yeni Mesaj: Yönetici',
+                    body: message.trim().length > 50 ? message.trim().substring(0, 50) + '...' : message.trim(),
+                    url: `/okul/tasks/${assignmentId}#messages`,
+                    tag: 'message-' + assignmentId + '-' + Date.now()
+                });
+            }
 
             res.redirect(`/admin/tasks/${task_id}`);
         } catch (error) {
