@@ -924,7 +924,7 @@
 
     <!-- Verileri Client Side'a Aktar -->
     <script>
-        const messagesMap = <%- JSON.stringify(messagesMap || {}) %>;
+        const messagesMap = <%- messagesMap || '{}' %>;
         const assignmentsData = <%- JSON.stringify(assignments || []) %>;
         const responsesMap = {};
         assignmentsData.forEach(a => {
@@ -987,7 +987,7 @@
                 messagesContainer.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">Henüz mesaj yok.</div>';
             } else {
                 msgs.forEach(msg => {
-                    const isMe = msg.sender_id === currentUserId;
+                    const isMe = msg.sender_id == currentUserId;
                     const bubble = document.createElement('div');
                     bubble.style.cssText = `
                         max-width: 80%;

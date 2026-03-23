@@ -148,6 +148,11 @@
             align-items: start;
         }
 
+        .main-grid>div,
+        .stats-grid>div {
+            min-width: 0;
+        }
+
         @media (max-width: 900px) {
             .main-grid {
                 grid-template-columns: 1fr;
@@ -808,7 +813,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     <script>
@@ -1017,5 +1021,6 @@
             renderCalendar();
         })();
     </script>
+
 
     <%- include('../layouts/school_footer') %>
