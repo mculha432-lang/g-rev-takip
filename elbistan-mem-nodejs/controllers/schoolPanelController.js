@@ -195,9 +195,10 @@ const schoolPanelController = {
             const admins = db.prepare('SELECT id FROM users WHERE role = ?').all('admin');
             admins.forEach(admin => {
                 sendPushNotification(admin.id, {
-                    title: `Yeni Mesaj: ${senderName}`,
+                    title: '💬 Yeni Mesaj: ' + senderName,
                     body: message.trim().length > 50 ? message.trim().substring(0, 50) + '...' : message.trim(),
-                    url: `/admin/tasks/${req.params.id || id}#messages` // Note: task detail page for admin
+                    url: `/admin/tasks/${req.params.id || id}#messages`,
+                    tag: 'school-msg-' + id + '-' + Date.now()
                 });
             });
 
@@ -282,9 +283,10 @@ const schoolPanelController = {
                 const admins = db.prepare('SELECT id FROM users WHERE role = ?').all('admin');
                 admins.forEach(admin => {
                     sendPushNotification(admin.id, {
-                        title: 'Görev Onaya Gönderildi',
+                        title: '✅ Görev Onaya Gönderildi',
                         body: `${schoolName} bir görevi tamamlayıp onayınıza sundu.`,
-                        url: `/admin/tasks/${assignment.task_id}`
+                        url: `/admin/tasks/${assignment.task_id}`,
+                        tag: 'approval-' + assignment.task_id + '-' + id
                     });
                 });
             }
