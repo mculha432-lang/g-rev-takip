@@ -764,7 +764,7 @@
                             </td>
                             <td>
                                 <% if(assignment.fieldResponses && assignment.fieldResponses.length > 0) { %>
-                                    <button onclick="openAnswersModal('<%= assignment.id %>', '<%= assignment.full_name %>')" 
+                                    <button onclick="openAnswersModal('<%= assignment.id %>', '<%= assignment.full_name.replace(/'/g, "\\'") %>')" 
                                             class="btn-view-file" style="margin-bottom: 5px; background: #fef2f2; color: #dc2626; border-color: #fecaca; display: flex; width: max-content;">
                                             <i class="fas fa-list"></i> Form Cevapları
                                     </button>
@@ -789,7 +789,7 @@
                             <td>
                                 <div style="display: flex; gap: 5px;">
                                     <button
-                                        onclick="openMessageModal('<%= assignment.id %>', '<%= assignment.full_name %>')"
+                                        onclick="openMessageModal('<%= assignment.id %>', '<%= assignment.full_name.replace(/'/g, "\\'") %>')"
                                         class="btn-message"
                                         style="padding: 6px 10px; background: #eff6ff; color: #3b82f6; border: 1px solid #dbeafe; border-radius: 6px; cursor: pointer; font-weight: 600; position: relative;">
                                         <i class="fas fa-comment-dots"></i>
@@ -799,19 +799,19 @@
 
                                     <% if(assignment.status==='pending_approval' ) { %>
                                         <button
-                                            onclick="openApproveModal('<%= assignment.id %>', '<%= assignment.full_name %>')"
+                                            onclick="openApproveModal('<%= assignment.id %>', '<%= assignment.full_name.replace(/'/g, "\\'") %>')"
                                             class="btn-approve"
                                             style="padding: 6px 10px; background: #ecfdf5; color: #059669; border: 1px solid #d1fae5; border-radius: 6px; cursor: pointer; font-weight: 600;">
                                             <i class="fas fa-check"></i>
                                         </button>
                                         <button
-                                            onclick="openRejectModal('<%= assignment.id %>', '<%= assignment.full_name %>')"
+                                            onclick="openRejectModal('<%= assignment.id %>', '<%= assignment.full_name.replace(/'/g, "\\'") %>')"
                                             class="btn-reject" style="padding: 6px 10px;">
                                             <i class="fas fa-times"></i>
                                         </button>
                                         <% } else if(assignment.status==='completed' ) { %>
                                             <button
-                                                onclick="openRejectModal('<%= assignment.id %>', '<%= assignment.full_name %>')"
+                                                onclick="openRejectModal('<%= assignment.id %>', '<%= assignment.full_name.replace(/'/g, "\\'") %>')"
                                                 class="btn-reject" title="Tekrar Reddet/Düzeltme İste">
                                                 <i class="fas fa-undo"></i>
                                             </button>
@@ -923,9 +923,11 @@
     </div>
 
     <!-- Verileri Client Side'a Aktar -->
+    <script id="messagesMapData" type="application/json"><%- messagesMap || '{}' %></script>
+    <script id="assignmentsData" type="application/json"><%- JSON.stringify(assignments || []) %></script>
     <script>
-        const messagesMap = <%- messagesMap || '{}' %>;
-        const assignmentsData = <%- JSON.stringify(assignments || []) %>;
+        const messagesMap = JSON.parse(document.getElementById('messagesMapData').textContent || '{}');
+        const assignmentsData = JSON.parse(document.getElementById('assignmentsData').textContent || '[]');
         const responsesMap = {};
         assignmentsData.forEach(a => {
             if(a.fieldResponses && a.fieldResponses.length > 0) {
