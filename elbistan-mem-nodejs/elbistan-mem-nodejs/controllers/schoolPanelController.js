@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const { uploads } = require('../utils/upload');
+const { sendPushNotification } = require('../utils/push');
 
 const schoolPanelController = {
     uploadMulter: uploads.response.single('response_file'),
@@ -189,6 +190,18 @@ const schoolPanelController = {
 
             db.prepare('INSERT INTO task_messages (assignment_id, sender_id, message) VALUES (?, ?, ?)').run(id, userId, message.trim());
 
+            // Tüm yöneticilere mesaj bildirimi gönder
+            const senderName = req.session.user.full_name || 'Bir Okul';
+            const admins = db.prepare('SELECT id FROM users WHERE role = ?').all('admin');
+            admins.forEach(admin => {
+                sendPushNotification(admin.id, {
+                    title: '💬 Yeni Mesaj: ' + senderName,
+                    body: message.trim().length > 50 ? message.trim().substring(0, 50) + '...' : message.trim(),
+                    url: `/admin/tasks/${req.params.id || id}#messages`,
+                    tag: 'school-msg-' + id + '-' + Date.now()
+                });
+            });
+
             res.redirect(`/okul/tasks/${id}?success=message_sent#messages`);
         } catch (error) {
             console.error('Mesaj gönderme hatası:', error);
@@ -263,6 +276,20 @@ const schoolPanelController = {
                     }
                 }
             });
+
+            // Eğer görev onay bekliyor durumuna geçtiyse yöneticilere bildirim gönder
+            if (finalStatus === 'pending_approval') {
+                const schoolName = req.session.user.full_name || 'Bir Okul';
+                const admins = db.prepare('SELECT id FROM users WHERE role = ?').all('admin');
+                admins.forEach(admin => {
+                    sendPushNotification(admin.id, {
+                        title: '✅ Görev Onaya Gönderildi',
+                        body: `${schoolName} bir görevi tamamlayıp onayınıza sundu.`,
+                        url: `/admin/tasks/${assignment.task_id}`,
+                        tag: 'approval-' + assignment.task_id + '-' + id
+                    });
+                });
+            }
 
             res.redirect(`/okul/tasks/${id}?success=updated`);
         } catch (error) {
