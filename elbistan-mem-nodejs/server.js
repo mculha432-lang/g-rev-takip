@@ -60,6 +60,16 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
+
+// Service Worker dosyasını ASLA önbellekleme (push bildirimlerinin güncellenmesi için kritik)
+app.get('/service-worker.js', (req, res) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Content-Type', 'application/javascript');
+    res.sendFile(path.join(__dirname, 'public', 'service-worker.js'));
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // HTTP Request Logger
@@ -186,6 +196,7 @@ app.listen(PORT, () => {
     } catch (error) {
         logger.error('Yedekleme sistemi başlatılamadı:', error);
     }
+
 });
 
 module.exports = app;
