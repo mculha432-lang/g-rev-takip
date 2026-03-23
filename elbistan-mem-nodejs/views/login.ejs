@@ -13,7 +13,13 @@
     <meta name="theme-color" content="#E31E24">
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js');
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(reg => {
+                    // Her ziyarette güncelleme kontrolü yap
+                    reg.update();
+                    console.log('✅ Service Worker kayıtlı ve güncelleme kontrol edildi.');
+                })
+                .catch(err => console.error('SW hatası:', err));
         }
     </script>
     
