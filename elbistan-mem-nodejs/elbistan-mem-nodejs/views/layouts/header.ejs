@@ -18,10 +18,23 @@
         // Push Bildirimlerine Abone Olma Fonksiyonu
         async function subscribeToPush(registration) {
             try {
-                const sub = await registration.pushManager.getSubscription();
-                if (sub) return; // Zaten abone
+                // Mevcut aboneliği kontrol et
+                let sub = await registration.pushManager.getSubscription();
+                
+                if (sub) {
+                    // Mevcut aboneliği sunucuyla senkronize et (kullanıcı değişmiş olabilir)
+                    try {
+                        await fetch('/push/subscribe', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(sub)
+                        });
+                    } catch (e) { /* Sessizce devam et */ }
+                    return;
+                }
 
                 const response = await fetch('/push/vapidPublicKey');
+                if (!response.ok) return;
                 const vapidData = await response.json();
                 
                 // base64 to Uint8Array
@@ -40,12 +53,10 @@
 
                 await fetch('/push/subscribe', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(subscription)
                 });
-                console.log('Push bildirimlerine başarıyla abone olundu.');
+                console.log('✅ Push bildirimlerine başarıyla abone olundu.');
             } catch (err) {
                 console.error('Push abonelik hatası:', err);
             }
@@ -54,23 +65,23 @@
         if ('serviceWorker' in navigator && 'PushManager' in window) {
             navigator.serviceWorker.register('/service-worker.js')
                 .then(reg => {
-                    // Sayfada herhangi bir yere ilk tıklandığında bildirim izni iste
-                    // (Tarayıcıların otomatik engellemesini aşmak için)
-                    document.body.addEventListener('click', () => {
-                        if (Notification.permission === 'default') {
+                    console.log('✅ Service Worker kayıtlı.');
+                    
+                    // Kullanıcı daha önce izin verdiyse hemen abone et
+                    if (Notification.permission === 'granted') {
+                        subscribeToPush(reg);
+                    } else if (Notification.permission === 'default') {
+                        // İlk tıklamada bildirim izni iste
+                        document.body.addEventListener('click', () => {
                             Notification.requestPermission().then(permission => {
                                 if (permission === 'granted') {
                                     subscribeToPush(reg);
                                 }
                             });
-                        }
-                    }, { once: true });
-
-                    // Kullanıcı daha önce izin verdiyse tıkla beklemeden hemen abone et
-                    if (Notification.permission === 'granted') {
-                        subscribeToPush(reg);
+                        }, { once: true });
                     }
-                });
+                })
+                .catch(err => console.error('SW kayıt hatası:', err));
         }
     </script>
     
