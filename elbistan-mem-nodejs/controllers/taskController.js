@@ -75,9 +75,10 @@ const taskController = {
                     stmt.run(taskId, schoolId, 'pending');
                     // Add push notification call
                     sendPushNotification(schoolId, {
-                        title: 'Yeni Bir Görev Atandı',
+                        title: '📋 Yeni Bir Görev Atandı',
                         body: `"${title}" başlıklı yeni bir görev hesabınıza tanımlanmıştır. Lütfen giriş yapıp kontrol ediniz.`,
-                        url: '/okul/tasks'
+                        url: '/okul/dashboard',
+                        tag: 'task-new-' + taskId
                     });
                 });
             }
@@ -305,9 +306,10 @@ const taskController = {
                     insertStmt.run(id, schoolId, 'pending');
                     // Push notification call for new schools added to existing task
                     sendPushNotification(schoolId, {
-                        title: 'Yeni Bir Görev Atandı',
+                        title: '📋 Yeni Bir Görev Atandı',
                         body: `Daha önceden oluşturulmuş "${title}" başlıklı görev hesabınıza tanımlanmıştır.`,
-                        url: '/okul/tasks'
+                        url: '/okul/dashboard',
+                        tag: 'task-assign-' + id + '-' + schoolId
                     });
                 });
             }
@@ -339,6 +341,15 @@ const taskController = {
                 WHERE id = ?
             `).run(now, assignmentId);
 
+            // Okula onay bildirimi gönder
+            const task = db.prepare('SELECT title FROM tasks WHERE id = ?').get(taskId);
+            sendPushNotification(assignment.user_id, {
+                title: '✅ Göreviniz Onaylandı',
+                body: task ? `"${task.title}" başlıklı göreviniz yönetici tarafından onaylandı.` : 'Göreviniz onaylandı.',
+                url: `/okul/tasks/${assignmentId}`,
+                tag: 'approved-' + assignmentId
+            });
+
             res.redirect(`/admin/tasks/${taskId}?status=approved`);
         } catch (error) {
             console.error('Görev onaylama hatası:', error);
@@ -366,6 +377,15 @@ const taskController = {
                 WHERE id = ?
             `).run(rejection_note || 'Eksik veya hatalı gönderim.', assignmentId);
 
+            // Okula iade bildirimi gönder
+            const task = db.prepare('SELECT title FROM tasks WHERE id = ?').get(taskId);
+            sendPushNotification(assignment.user_id, {
+                title: '⚠️ Göreviniz İade Edildi',
+                body: task ? `"${task.title}" başlıklı göreviniz iade edildi. Not: ${rejection_note || 'Eksik veya hatalı gönderim.'}` : 'Göreviniz iade edildi.',
+                url: `/okul/tasks/${assignmentId}`,
+                tag: 'rejected-' + assignmentId
+            });
+
             res.redirect(`/admin/tasks/${taskId}?status=rejected`);
         } catch (error) {
             console.error('Görev iade hatası:', error);
@@ -390,9 +410,10 @@ const taskController = {
             const assignmentInfo = db.prepare('SELECT user_id FROM task_assignments WHERE id = ?').get(assignmentId);
             if(assignmentInfo) {
                 sendPushNotification(assignmentInfo.user_id, {
-                    title: 'Yeni Mesaj: Yönetici',
+                    title: '💬 Yeni Mesaj: Yönetici',
                     body: message.trim().length > 50 ? message.trim().substring(0, 50) + '...' : message.trim(),
-                    url: `/okul/tasks/${assignmentId}#messages`
+                    url: `/okul/tasks/${assignmentId}#messages`,
+                    tag: 'message-' + assignmentId + '-' + Date.now()
                 });
             }
 
