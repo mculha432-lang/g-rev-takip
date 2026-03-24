@@ -26,8 +26,6 @@ const taskController = {
 
     // Görev Ekle
     store: (req, res) => {
-        console.log('DEBUG: Task Store Request Body:', req.body);
-        console.log('DEBUG: Task Store File:', req.file);
         try {
             const { title, description, deadline, school_ids } = req.body;
             const requiresFile = req.body.requires_file ? 1 : 0;
