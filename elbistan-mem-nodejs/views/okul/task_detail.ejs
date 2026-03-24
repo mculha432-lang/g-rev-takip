@@ -143,19 +143,20 @@
     .option-item label { cursor: pointer; font-size: 14px; color: var(--gray-800); width: 100%; margin: 0; }
 
     /* Submit buttons */
-    .form-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+    .form-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 30px; justify-content: flex-end; }
     .btn-save {
-        padding: 12px 24px; background: #2563eb; color: white;
-        border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
+        padding: 14px 28px; background: #f8fafc; color: #475569;
+        border: 2px solid #cbd5e1; border-radius: 12px; font-size: 14px; font-weight: 700;
         cursor: pointer; transition: .2s; display: inline-flex; align-items: center; gap: 8px;
     }
-    .btn-save:hover { background: #1d4ed8; transform: translateY(-1px); }
+    .btn-save:hover { background: #e2e8f0; border-color: #94a3b8; color: #1e293b; transform: translateY(-2px); }
     .btn-submit {
-        padding: 12px 24px; background: var(--red); color: white;
-        border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
+        padding: 14px 28px; background: linear-gradient(135deg, #E31E24 0%, #b91c1c 100%); color: white;
+        border: none; border-radius: 12px; font-size: 14px; font-weight: 700;
         cursor: pointer; transition: .2s; display: inline-flex; align-items: center; gap: 8px;
+        box-shadow: 0 4px 15px rgba(227, 30, 36, 0.3);
     }
-    .btn-submit:hover { background: var(--red-dark); transform: translateY(-1px); }
+    .btn-submit:hover { background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(227, 30, 36, 0.4); }
 
     /* File upload area */
     .file-upload-area {
@@ -339,32 +340,21 @@
                         <% if (field.is_required) { %><span class="required">*</span><% } %>
                     </label>
 
-                    <% if (field.field_type === 'text') { %>
+                    <% if (field.field_type === 'short_text' || field.field_type === 'text') { %>
                         <input type="text" name="field_<%= field.id %>" class="form-control"
                             placeholder="Yanıtınızı yazın..."
                             value="<%= responsesMap[field.id] || '' %>"
                             <%= field.is_required ? 'required' : '' %>>
 
-                    <% } else if (field.field_type === 'textarea') { %>
+                    <% } else if (field.field_type === 'paragraph' || field.field_type === 'textarea') { %>
                         <textarea name="field_<%= field.id %>" class="form-control"
                             placeholder="Yanıtınızı yazın..."
                             <%= field.is_required ? 'required' : '' %>><%= responsesMap[field.id] || '' %></textarea>
 
-                    <% } else if (field.field_type === 'select') { %>
-                        <select name="field_<%= field.id %>" class="form-control" <%= field.is_required ? 'required' : '' %>>
-                            <option value="">-- Seçiniz --</option>
-                            <% if (field.field_options) { %>
-                                <% field.field_options.split('\n').forEach(opt => { %>
-                                    <% const optVal = opt.trim(); if(!optVal) return; %>
-                                    <option value="<%= optVal %>" <%= responsesMap[field.id] === optVal ? 'selected' : '' %>><%= optVal %></option>
-                                <% }) %>
-                            <% } %>
-                        </select>
-
-                    <% } else if (field.field_type === 'radio') { %>
+                    <% } else if (field.field_type === 'multiple_choice' || field.field_type === 'radio') { %>
                         <div class="options-group">
                             <% if (field.field_options) { %>
-                                <% field.field_options.split('\n').forEach(opt => { %>
+                                <% field.field_options.split(',').forEach(opt => { %>
                                     <% const optVal = opt.trim(); if(!optVal) return; %>
                                     <div class="option-item">
                                         <input type="radio" name="field_<%= field.id %>" id="r_<%= field.id %>_<%= optVal %>"
@@ -376,11 +366,22 @@
                             <% } %>
                         </div>
 
+                    <% } else if (field.field_type === 'select') { %>
+                        <select name="field_<%= field.id %>" class="form-control" <%= field.is_required ? 'required' : '' %>>
+                            <option value="">-- Seçiniz --</option>
+                            <% if (field.field_options) { %>
+                                <% field.field_options.split(',').forEach(opt => { %>
+                                    <% const optVal = opt.trim(); if(!optVal) return; %>
+                                    <option value="<%= optVal %>" <%= responsesMap[field.id] === optVal ? 'selected' : '' %>><%= optVal %></option>
+                                <% }) %>
+                            <% } %>
+                        </select>
+
                     <% } else if (field.field_type === 'checkbox') { %>
                         <div class="options-group">
                             <% if (field.field_options) { %>
                                 <% const checkedVals = (responsesMap[field.id] ? String(responsesMap[field.id]) : '').split(', '); %>
-                                <% field.field_options.split('\n').forEach(opt => { %>
+                                <% field.field_options.split(',').forEach(opt => { %>
                                     <% const optVal = opt.trim(); if(!optVal) return; %>
                                     <div class="option-item">
                                         <input type="checkbox" name="field_<%= field.id %>" id="c_<%= field.id %>_<%= optVal %>"
@@ -412,21 +413,23 @@
             </div>
 
             <!-- Dosya Yükleme -->
+            <% if (task.requires_file) { %>
             <div class="field-group">
                 <label class="field-label">
                     Yanıt Dosyası
-                    <% if (task.requires_file) { %><span class="required">* (Zorunlu)</span><% } else { %><span style="font-size:12px;color:var(--gray-400);font-weight:400;">(isteğe bağlı)</span><% } %>
+                    <span class="required">* (Zorunlu)</span>
                 </label>
                 <label class="file-upload-area" for="response_file_input">
                     <i class="fas fa-cloud-upload-alt"></i>
                     <p>Dosyayı buraya sürükleyin veya tıklayın</p>
                     <p style="font-size:12px; color:var(--gray-400); margin-top:6px;">PDF, Word, Excel, resim vb.</p>
                 </label>
-                <input type="file" id="response_file_input" name="response_file" style="display:none;" onchange="updateFileName(this)">
-                <div id="selected-file-name" style="margin-top:8px; font-size:13px; color:var(--gray-600); display:none;">
-                    <i class="fas fa-file"></i> <span></span>
+                <input type="file" id="response_file_input" name="response_file" style="display:none;" onchange="updateFileName(this)" required>
+                <div id="selected-file-name" style="margin-top:8px; font-size:13px; color:var(--gray-600); display:none; padding:10px; background:var(--gray-50); border:1px solid #cbd5e1; border-radius:8px;">
+                    <i class="fas fa-file" style="color:#2563eb; margin-right:6px;"></i> <span></span>
                 </div>
             </div>
+            <% } %>
 
             <div class="form-actions">
                 <button type="submit" name="status" value="in_progress" class="btn-save">
