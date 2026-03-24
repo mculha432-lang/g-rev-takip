@@ -232,13 +232,13 @@
     };
 %>
 
-<% if (success) { %>
+<% if (typeof success !== 'undefined' && success) { %>
     <div class="alert alert-success">
         <i class="fas fa-check-circle"></i>
         <%= success === 'updated' ? 'Yanıtınız başarıyla kaydedildi.' : success === 'message_sent' ? 'Mesajınız gönderildi.' : 'İşlem başarılı.' %>
     </div>
 <% } %>
-<% if (error) { %>
+<% if (typeof error !== 'undefined' && error) { %>
     <div class="alert alert-danger">
         <i class="fas fa-exclamation-circle"></i>
         <%= error === 'missing_file' ? 'Lütfen bir dosya yükleyin.' : error === 'empty_message' ? 'Mesaj boş olamaz.' : 'Bir hata oluştu, lütfen tekrar deneyin.' %>
@@ -376,7 +376,7 @@
                     <% } else if (field.field_type === 'checkbox') { %>
                         <div class="options-group">
                             <% if (field.field_options) { %>
-                                <% const checkedVals = (responsesMap[field.id] || '').split(', '); %>
+                                <% const checkedVals = (responsesMap[field.id] ? String(responsesMap[field.id]) : '').split(', '); %>
                                 <% field.field_options.split('\n').forEach(opt => { %>
                                     <% const optVal = opt.trim(); if(!optVal) return; %>
                                     <div class="option-item">
