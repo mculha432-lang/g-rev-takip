@@ -125,8 +125,7 @@
             padding: 20px;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            /* Ensure particles stay within bounds */
+            /* overflow iptal edildi, dropdown'un taşabilmesi için */
         }
 
         #sidebar-particles {
@@ -469,9 +468,8 @@
         .notification-dropdown {
             position: absolute;
             top: calc(100% + 10px);
-            left: 0;
-            right: 0;
-            width: 280px;
+            left: 0; /* Sol tarafa hizala */
+            width: 260px; /* Sidebar'ın dışına taşmaması ya da düzgün taşması için ölçü */
             background: #fff;
             border-radius: 12px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
