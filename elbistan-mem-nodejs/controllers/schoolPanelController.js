@@ -225,6 +225,11 @@ const schoolPanelController = {
                 return res.status(404).send('Görev bulunamadı');
             }
 
+            // Eğer görev zaten onay bekliyor veya tamamlanmış ise düzenlemeye izin verme
+            if (['pending_approval', 'completed'].includes(assignment.status)) {
+                return res.redirect(`/okul/tasks/${id}?error=already_submitted`);
+            }
+
             // Dosya yolu
             let filePath = assignment.response_file;
             if (req.file) {
