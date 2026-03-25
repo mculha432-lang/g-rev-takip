@@ -29,6 +29,7 @@ const taskController = {
         try {
             const { title, description, deadline, school_ids } = req.body;
             const requiresFile = req.body.requires_file ? 1 : 0;
+            const isFileMandatory = req.body.is_file_mandatory ? 1 : 0;
             const filePath = req.file ? req.file.filename : null;
 
             // Form alanlarını al
@@ -39,8 +40,8 @@ const taskController = {
 
             // Görevi ekle
             const result = db.prepare(
-                'INSERT INTO tasks (title, description, deadline, file_path, requires_file) VALUES (?, ?, ?, ?, ?)'
-            ).run(title, description, deadline, filePath, requiresFile);
+                'INSERT INTO tasks (title, description, deadline, file_path, requires_file, is_file_mandatory) VALUES (?, ?, ?, ?, ?, ?)'
+            ).run(title, description, deadline, filePath, requiresFile, isFileMandatory);
 
             const taskId = result.lastInsertRowid;
 
@@ -253,6 +254,7 @@ const taskController = {
             const { id } = req.params;
             const { title, description, deadline, school_ids } = req.body;
             const requiresFile = req.body.requires_file ? 1 : 0;
+            const isFileMandatory = req.body.is_file_mandatory ? 1 : 0;
 
             // Mevcut görevi kontrol et
             const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
@@ -273,9 +275,9 @@ const taskController = {
             // Görevi güncelle
             db.prepare(`
                 UPDATE tasks 
-                SET title = ?, description = ?, deadline = ?, file_path = ?, requires_file = ? 
+                SET title = ?, description = ?, deadline = ?, file_path = ?, requires_file = ?, is_file_mandatory = ? 
                 WHERE id = ?
-            `).run(title, description, deadline, filePath, requiresFile, id);
+            `).run(title, description, deadline, filePath, requiresFile, isFileMandatory, id);
 
             // Kaldırılacak okulları işle
             const remove_school_ids = req.body.remove_school_ids;
