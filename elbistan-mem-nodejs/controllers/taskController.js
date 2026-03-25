@@ -233,6 +233,11 @@ const taskController = {
                 username: a.username
             }));
 
+            // Form alanlarını getir
+            const taskFields = db.prepare(
+                'SELECT * FROM task_fields WHERE task_id = ? ORDER BY field_order ASC'
+            ).all(id);
+
             res.render('admin/task_edit', {
                 title: 'Görev Düzenle',
                 activePage: 'tasks',
@@ -240,6 +245,7 @@ const taskController = {
                 schools,
                 assignedIds,
                 assignedSchoolDetails,
+                taskFields,
                 status: req.query.status || null
             });
         } catch (error) {
@@ -312,6 +318,62 @@ const taskController = {
                         tag: 'task-assign-' + id + '-' + schoolId
                     });
                 });
+            }
+
+            // Form alanlarını işle
+            const fieldIds = req.body.field_ids || [];
+            const fieldTypes = req.body.field_types || [];
+            const fieldLabels = req.body.field_labels || [];
+            const fieldOptions = req.body.field_options || [];
+            const fieldRequired = req.body.field_required || [];
+
+            if (fieldTypes && fieldLabels) {
+                const idsArray = Array.isArray(fieldIds) ? fieldIds : [fieldIds];
+                const typesArray = Array.isArray(fieldTypes) ? fieldTypes : [fieldTypes];
+                const labelsArray = Array.isArray(fieldLabels) ? fieldLabels : [fieldLabels];
+                const optionsArray = Array.isArray(fieldOptions) ? fieldOptions : [fieldOptions];
+                const requiredArray = Array.isArray(fieldRequired) ? fieldRequired : [fieldRequired];
+
+                // Mevcut alanları al
+                const currentFields = db.prepare('SELECT id FROM task_fields WHERE task_id = ?').all(id);
+                const currentFieldIds = currentFields.map(f => f.id.toString());
+
+                // Silinen alanları bul ve sil
+                const incomingIds = idsArray.filter(id => id !== '').map(id => id.toString());
+                const toDelete = currentFieldIds.filter(cid => !incomingIds.includes(cid));
+                
+                if (toDelete.length > 0) {
+                    const deleteFieldStmt = db.prepare('DELETE FROM task_fields WHERE id = ?');
+                    toDelete.forEach(fid => deleteFieldStmt.run(fid));
+                }
+
+                // Ekle veya Güncelle
+                const insertStmt = db.prepare(
+                    'INSERT INTO task_fields (task_id, field_type, field_label, field_options, is_required, field_order) VALUES (?, ?, ?, ?, ?, ?)'
+                );
+                const updateStmt = db.prepare(
+                    'UPDATE task_fields SET field_type = ?, field_label = ?, field_options = ?, is_required = ?, field_order = ? WHERE id = ?'
+                );
+
+                typesArray.forEach((type, index) => {
+                    if (labelsArray[index] && labelsArray[index].trim()) {
+                        const options = optionsArray[index] || '';
+                        const isRequired = requiredArray.includes(index.toString()) ? 1 : 0;
+                        const fieldId = idsArray[index];
+
+                        if (fieldId) {
+                            // Güncelle
+                            updateStmt.run(type, labelsArray[index], options, isRequired, index, fieldId);
+                        } else {
+                            // Yeni ekle
+                            insertStmt.run(id, type, labelsArray[index], options, isRequired, index);
+                        }
+                    }
+                });
+            } else {
+                // Eğer hiç alan gelmediyse hepsini sil (veya requires_file'a göre karar ver?)
+                // Kullanıcı tüm alanları sildiyse hepsini siliyoruz
+                db.prepare('DELETE FROM task_fields WHERE task_id = ?').run(id);
             }
 
             res.redirect(`/admin/tasks/${id}?status=updated`);
