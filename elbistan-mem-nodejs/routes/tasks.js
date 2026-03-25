@@ -33,6 +33,9 @@ router.post('/:taskId/assignments/:assignmentId/reject', taskController.rejectAs
 // Görev Onayla (Approve)
 router.post('/:taskId/assignments/:assignmentId/approve', taskController.approveAssignment);
 
+// Görev Yanıt Dosyası İndir (Güzel İsimle)
+router.get('/assignments/:assignmentId/download', taskController.downloadResponseFile);
+
 // Admin Mesaj Gönder
 router.post('/assignments/:assignmentId/message', taskController.sendAdminMessage);
 
