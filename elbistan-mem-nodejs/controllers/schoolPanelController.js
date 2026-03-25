@@ -84,7 +84,7 @@ const schoolPanelController = {
 
             // Atamayı bul
             let assignment = db.prepare(`
-                SELECT ta.*, t.id as task_id, t.title, t.description, t.deadline, t.file_path as task_file, t.requires_file
+                SELECT ta.*, t.id as task_id, t.title, t.description, t.deadline, t.file_path as task_file, t.requires_file, t.is_file_mandatory
                 FROM task_assignments ta 
                 JOIN tasks t ON ta.task_id = t.id 
                 WHERE ta.id = ? AND ta.user_id = ?
@@ -218,7 +218,7 @@ const schoolPanelController = {
 
             // Mevcut atamayı kontrol et
             const assignment = db.prepare(
-                'SELECT ta.*, t.requires_file, t.id as task_id FROM task_assignments ta JOIN tasks t ON ta.task_id = t.id WHERE ta.id = ? AND ta.user_id = ?'
+                'SELECT ta.*, t.requires_file, t.is_file_mandatory, t.id as task_id FROM task_assignments ta JOIN tasks t ON ta.task_id = t.id WHERE ta.id = ? AND ta.user_id = ?'
             ).get(id, userId);
 
             if (!assignment) {
@@ -240,7 +240,7 @@ const schoolPanelController = {
                 finalStatus = 'pending_approval';
             }
 
-            if (finalStatus === 'pending_approval' && assignment.requires_file && !filePath) {
+            if (finalStatus === 'pending_approval' && assignment.requires_file && assignment.is_file_mandatory && !filePath) {
                 return res.redirect(`/okul/tasks/${id}?error=missing_file`);
             }
 
