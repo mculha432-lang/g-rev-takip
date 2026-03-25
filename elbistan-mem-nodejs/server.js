@@ -1,6 +1,9 @@
 // Environment variables yükle
 require('dotenv').config();
 
+// Timezone'u Türkiye'ye ayarla
+process.env.TZ = 'Europe/Istanbul';
+
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
