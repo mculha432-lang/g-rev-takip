@@ -172,7 +172,7 @@ const schoolPanelController = {
     },
 
     // Mesaj Gönder
-    sendMessage: (req, res) => {
+    sendMessage: async (req, res) => {
         try {
             const { id } = req.params; // assignment_id
             const { message } = req.body;
@@ -193,14 +193,14 @@ const schoolPanelController = {
             // Tüm yöneticilere (admin ve manager) mesaj bildirimi gönder
             const senderName = req.session.user.full_name || 'Bir Okul';
             const admins = db.prepare("SELECT id FROM users WHERE role = 'admin' OR is_manager = 1").all();
-            admins.forEach(admin => {
-                sendPushNotification(admin.id, {
+            for (const admin of admins) {
+                await sendPushNotification(admin.id, {
                     title: '💬 Yeni Mesaj: ' + senderName,
                     body: message.trim().length > 50 ? message.trim().substring(0, 50) + '...' : message.trim(),
                     url: `/admin/tasks/${req.params.id || id}`,
                     tag: 'school-msg-' + id + '-' + admin.id
                 });
-            });
+            }
 
             res.redirect(`/okul/tasks/${id}?success=message_sent#messages`);
         } catch (error) {
@@ -210,7 +210,7 @@ const schoolPanelController = {
     },
 
     // Yanıt Gönder
-    uploadResponse: (req, res) => {
+    uploadResponse: async (req, res) => {
         try {
             const { id } = req.params;
             const { response_note, status } = req.body;
@@ -286,14 +286,14 @@ const schoolPanelController = {
             if (finalStatus === 'pending_approval') {
                 const schoolName = req.session.user.full_name || 'Bir Okul';
                 const admins = db.prepare("SELECT id FROM users WHERE role = 'admin' OR is_manager = 1").all();
-                admins.forEach(admin => {
-                    sendPushNotification(admin.id, {
+                for (const admin of admins) {
+                    await sendPushNotification(admin.id, {
                         title: '✅ Görev Onaya Gönderildi',
                         body: `${schoolName} bir görevi tamamlayıp onayınıza sundu.`,
                         url: `/admin/tasks/${assignment.task_id}`,
                         tag: 'approval-' + assignment.task_id + '-' + id
                     });
-                });
+                }
             }
 
             res.redirect(`/okul/tasks/${id}?success=updated`);
