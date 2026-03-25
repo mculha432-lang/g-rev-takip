@@ -150,9 +150,9 @@ const schoolPanelController = {
                 UPDATE task_messages 
                 SET is_read = 1 
                 WHERE assignment_id = ?
-                AND sender_id IN (SELECT id FROM users WHERE role = 'admin')
+                AND sender_id != ?
                 AND is_read = 0
-            `).run(id);
+            `).run(id, userId);
 
             res.render('okul/task_detail', {
                 title: 'Görev Detayı',
@@ -190,15 +190,15 @@ const schoolPanelController = {
 
             db.prepare('INSERT INTO task_messages (assignment_id, sender_id, message) VALUES (?, ?, ?)').run(id, userId, message.trim());
 
-            // Tüm yöneticilere mesaj bildirimi gönder
+            // Tüm yöneticilere (admin ve manager) mesaj bildirimi gönder
             const senderName = req.session.user.full_name || 'Bir Okul';
-            const admins = db.prepare('SELECT id FROM users WHERE role = ?').all('admin');
+            const admins = db.prepare("SELECT id FROM users WHERE role = 'admin' OR is_manager = 1").all();
             admins.forEach(admin => {
                 sendPushNotification(admin.id, {
                     title: '💬 Yeni Mesaj: ' + senderName,
                     body: message.trim().length > 50 ? message.trim().substring(0, 50) + '...' : message.trim(),
-                    url: `/admin/tasks/${req.params.id || id}#messages`,
-                    tag: 'school-msg-' + id + '-' + Date.now()
+                    url: `/admin/tasks/${req.params.id || id}`,
+                    tag: 'school-msg-' + id + '-' + admin.id
                 });
             });
 
@@ -285,7 +285,7 @@ const schoolPanelController = {
             // Eğer görev onay bekliyor durumuna geçtiyse yöneticilere bildirim gönder
             if (finalStatus === 'pending_approval') {
                 const schoolName = req.session.user.full_name || 'Bir Okul';
-                const admins = db.prepare('SELECT id FROM users WHERE role = ?').all('admin');
+                const admins = db.prepare("SELECT id FROM users WHERE role = 'admin' OR is_manager = 1").all();
                 admins.forEach(admin => {
                     sendPushNotification(admin.id, {
                         title: '✅ Görev Onaya Gönderildi',
