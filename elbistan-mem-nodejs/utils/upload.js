@@ -147,6 +147,7 @@ function deleteFile(subDir, filename) {
 module.exports = {
     uploads,
     deleteFile,
+    sanitizeFilename,
     ALLOWED_EXTENSIONS,
     MAX_FILE_SIZE,
     ensureUploadDir
