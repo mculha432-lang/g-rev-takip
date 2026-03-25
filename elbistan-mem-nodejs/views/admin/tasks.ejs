@@ -1345,10 +1345,26 @@
                                 fieldDiv.style.opacity = '0';
                                 setTimeout(() => {
                                     fieldDiv.remove();
+                                    reindexFields();
                                     if (fieldsList.children.length === 0) {
                                         noFieldsMessage.style.display = 'block';
                                     }
                                 }, 300);
+                            });
+
+                            reindexFields();
+                        }
+
+                        function reindexFields() {
+                            const fields = fieldsList.querySelectorAll('.form-field-item');
+                            fields.forEach((field, idx) => {
+                                // Update field counter display
+                                const counterDisplay = field.querySelector('div[style*="width: 28px"]');
+                                if (counterDisplay) counterDisplay.textContent = idx + 1;
+                                
+                                // Update checkbox value to match current index
+                                const requiredCheckbox = field.querySelector('input[name="field_required"]');
+                                if (requiredCheckbox) requiredCheckbox.value = idx;
                             });
                         }
                     </script>
