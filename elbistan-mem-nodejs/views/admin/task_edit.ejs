@@ -819,6 +819,53 @@
                     }
                 </script>
 
+                <!-- Form Alanları (Google Forms Benzeri) -->
+                <div class="form-group"
+                    style="margin-top: 30px; padding-top: 25px; border-top: 2px dashed #e2e8f0;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span
+                                    style="background: linear-gradient(135deg, #1e3a5a 0%, #2d4a6f 100%); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 10px rgba(30, 58, 90, 0.2);">
+                                    <i class="fas fa-list-alt"
+                                        style="color: white; font-size: 18px;"></i>
+                                </span>
+                                <div>
+                                    <label
+                                        style="margin: 0; font-size: 16px; font-weight: 800; color: #1e3a5a; line-height: 1.2;">
+                                        FORM ALANLARI
+                                    </label>
+                                    <p style="margin: 2px 0 0 0; font-size: 13px; color: #64748b;">
+                                        Okullardan
+                                        veri toplamak için sorular ekleyin</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="addFieldBtn"
+                            style="background: linear-gradient(135deg, #1e3a5a 0%, #2d4a6f 100%); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(30, 58, 90, 0.3); transition: all 0.2s; white-space: nowrap;">
+                            <i class="fas fa-plus-circle"></i> Alan Ekle
+                        </button>
+                    </div>
+
+                    <div id="formFieldsContainer"
+                        style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 20px; min-height: 80px;">
+                        <div id="noFieldsMessage"
+                            style="text-align: center; color: #1e3a5a; font-size: 13px; padding: 30px 20px; <%= taskFields.length > 0 ? 'display: none;' : '' %>">
+                            <div
+                                style="background: white; width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                                <i class="fas fa-layer-group"
+                                    style="font-size: 24px; color: #1e3a5a; opacity: 0.6;"></i>
+                            </div>
+                            <strong style="display: block; margin-bottom: 5px; color: #334155;">Henüz
+                                form alanı eklenmedi</strong>
+                            <span style="font-size: 12px; color: #64748b;">"Alan Ekle" butonuna
+                                tıklayarak başlayın</span>
+                        </div>
+                        <div id="fieldsList"></div>
+                    </div>
+                </div>
+
                 <!-- ===== MODERN SCHOOL PICKER ===== -->
                 <div class="school-picker-section form-group">
                     <label>
@@ -1148,6 +1195,204 @@
                 });
                 updateHiddenInputs();
             });
+
+            // ===== FORM ALANLARI (Google Forms Benzeri) =====
+            const addFieldBtn = document.getElementById('addFieldBtn');
+            const fieldsList = document.getElementById('fieldsList');
+            const noFieldsMessage = document.getElementById('noFieldsMessage');
+            const taskFields = <%- JSON.stringify(taskFields) %>;
+            let fieldCounter = 0;
+
+            function addFormField(existingData = null) {
+                fieldCounter++;
+                noFieldsMessage.style.display = 'none';
+
+                const fieldDiv = document.createElement('div');
+                fieldDiv.className = 'form-field-item';
+                fieldDiv.dataset.index = fieldCounter - 1;
+                fieldDiv.style.cssText = 'background: white; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); transition: all 0.3s ease;';
+
+                const fieldId = existingData ? existingData.id : '';
+                const fieldType = existingData ? existingData.field_type : 'multiple_choice';
+                const fieldLabel = existingData ? existingData.field_label : '';
+                const fieldOptionsStr = existingData ? existingData.field_options : '';
+                const isRequired = existingData ? existingData.is_required === 1 : false;
+
+                fieldDiv.innerHTML = `
+                    <input type="hidden" name="field_ids" value="${fieldId}">
+                    <!-- Header Section -->
+                    <div style="background: linear-gradient(135deg, #1e3a5a 0%, #334155 100%); padding: 15px 24px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 28px; height: 28px; background: rgba(255,255,255,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 12px; border: 1px solid rgba(255,255,255,0.1);">${fieldCounter}</div>
+                            <span style="color: white; font-weight: 600; font-size: 14px; letter-spacing: 0.3px;">Form Alanı</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <label class="toggle-switch-wrapper" style="display: flex; align-items: center; gap: 8px; cursor: pointer; background: rgba(0,0,0,0.2); padding: 6px 12px; border-radius: 8px;">
+                                <input type="checkbox" name="field_required" value="${fieldCounter - 1}" ${isRequired ? 'checked' : ''} style="accent-color: #E31E24; width: 15px; height: 15px; cursor: pointer;">
+                                <span style="color: rgba(255,255,255,0.9); font-size: 12px; font-weight: 500;">Zorunlu</span>
+                            </label>
+                            <button type="button" class="remove-field-btn" style="width: 32px; height: 32px; border-radius: 8px; border: none; background: rgba(239, 68, 68, 0.2); color: #fca5a5; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Body Section -->
+                    <div style="padding: 24px;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: start;">
+                            <!-- Field Type Selection -->
+                            <div style="flex: 0 0 220px; min-width: 200px;">
+                                <label style="display: block; font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Alan Türü</label>
+                                <div style="position: relative;">
+                                    <select name="field_types" class="field-type-select" style="width: 100%; padding: 12px 14px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px; font-weight: 500; color: #334155; appearance: none; background: #f8fafc; cursor: pointer; outline: none; transition: all 0.2s;">
+                                        <option value="short_text" ${fieldType === 'short_text' ? 'selected' : ''}>📝 Kısa Yanıt</option>
+                                        <option value="paragraph" ${fieldType === 'paragraph' ? 'selected' : ''}>📄 Paragraf</option>
+                                        <option value="multiple_choice" ${fieldType === 'multiple_choice' ? 'selected' : ''}>🔘 Çoktan Seçmeli</option>
+                                        <option value="checkbox" ${fieldType === 'checkbox' ? 'selected' : ''}>☑️ Onay Kutuları</option>
+                                        <option value="date" ${fieldType === 'date' ? 'selected' : ''}>📅 Tarih</option>
+                                    </select>
+                                    <i class="fas fa-chevron-down" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; font-size: 12px;"></i>
+                                </div>
+                            </div>
+
+                            <!-- Question Text -->
+                            <div style="flex: 1; min-width: 250px;">
+                                <label style="display: block; font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Soru Metni</label>
+                                <input type="text" name="field_labels" value="${fieldLabel}" placeholder="Örn: Katılım durumunuzu belirtiniz..." style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px; color: #1e293b; outline: none; transition: all 0.2s; box-sizing: border-box;">
+                            </div>
+                        </div>
+
+                        <!-- OPTIONS CONTAINER -->
+                        <div class="field-options-container" style="margin-top: 24px;">
+                            <div style="border-top: 1px solid #f1f5f9; margin-bottom: 20px;"></div>
+                            
+                            <label style="display: block; font-size: 11px; font-weight: 800; color: #64748b; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fas fa-list-ul" style="margin-right: 4px;"></i> Seçenekler
+                            </label>
+
+                            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 6px;">
+                                <div class="options-list" style="display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 14px 4px 14px;"></div>
+
+                                <div style="display: flex; align-items: stretch; margin: 10px;">
+                                    <div style="position: relative; flex: 1;">
+                                        <input type="text" class="new-option-input" placeholder="Seçenek yazın..." 
+                                            style="width: 100%; height: 44px; padding: 0 16px; border: 2px solid #cbd5e1; border-right: none; border-radius: 10px 0 0 10px; font-size: 14px; outline: none; transition: all 0.2s; box-sizing: border-box;">
+                                    </div>
+                                    <button type="button" class="add-option-btn" 
+                                        style="height: 44px; padding: 0 24px; background: #e2e8f0; border: 2px solid #cbd5e1; border-radius: 0 10px 10px 0; color: #475569; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
+                                        <i class="fas fa-plus"></i> Ekle
+                                    </button>
+                                </div>
+
+                                <input type="hidden" name="field_options" class="real-options-input" value="${fieldOptionsStr}">
+                                
+                                <div style="padding: 0 14px 8px 14px; font-size: 12px; color: #94a3b8; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span>Eklemek için <strong>Enter</strong> tuşuna basın.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                fieldsList.appendChild(fieldDiv);
+
+                const typeSelect = fieldDiv.querySelector('.field-type-select');
+                const optionsContainer = fieldDiv.querySelector('.field-options-container');
+                const removeBtn = fieldDiv.querySelector('.remove-field-btn');
+                const newOptionInput = fieldDiv.querySelector('.new-option-input');
+                const addOptionBtn = fieldDiv.querySelector('.add-option-btn');
+                const optionsList = fieldDiv.querySelector('.options-list');
+                const realOptionsInput = fieldDiv.querySelector('.real-options-input');
+                
+                let options = fieldOptionsStr ? fieldOptionsStr.split(',').map(s => s.trim()).filter(s => s) : [];
+
+                function updateOptions() {
+                    optionsList.innerHTML = '';
+                    options.forEach((opt, idx) => {
+                        const tag = document.createElement('div');
+                        tag.style.cssText = 'display: inline-flex; align-items: center; background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px 12px; font-size: 13px; color: #334155; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.03); transition: all 0.2s; animation: fadeIn 0.2s ease-out;';
+                        tag.innerHTML = `
+                            ${opt}
+                            <span class="remove-opt" data-index="${idx}" style="margin-left: 10px; cursor: pointer; color: #ef4444; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #fee2e2; transition: 0.2s;">
+                                <i class="fas fa-times" style="font-size: 10px;"></i>
+                            </span>
+                        `;
+                        optionsList.appendChild(tag);
+                    });
+                    realOptionsInput.value = options.join(', ');
+                }
+
+                function addOption() {
+                    const val = newOptionInput.value.trim();
+                    if (val) {
+                        options.push(val);
+                        updateOptions();
+                        newOptionInput.value = '';
+                        newOptionInput.focus();
+                    }
+                }
+
+                addOptionBtn.addEventListener('click', addOption);
+                newOptionInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addOption();
+                    }
+                });
+
+                optionsList.addEventListener('click', (e) => {
+                    const rBtn = e.target.closest('.remove-opt');
+                    if (rBtn) {
+                        const index = parseInt(rBtn.dataset.index);
+                        options.splice(index, 1);
+                        updateOptions();
+                    }
+                });
+
+                function toggleOptions() {
+                    if (typeSelect.value === 'multiple_choice' || typeSelect.value === 'checkbox') {
+                        optionsContainer.style.display = 'block';
+                    } else {
+                        optionsContainer.style.display = 'none';
+                    }
+                }
+                typeSelect.addEventListener('change', toggleOptions);
+                toggleOptions();
+                updateOptions();
+
+                removeBtn.addEventListener('click', () => {
+                    fieldDiv.style.transform = 'scale(0.98)';
+                    fieldDiv.style.opacity = '0';
+                    setTimeout(() => {
+                        fieldDiv.remove();
+                        reindexFields();
+                        if (fieldsList.children.length === 0) noFieldsMessage.style.display = 'block';
+                    }, 300);
+                });
+
+                reindexFields();
+            }
+
+            function reindexFields() {
+                const fields = fieldsList.querySelectorAll('.form-field-item');
+                fields.forEach((field, idx) => {
+                    // Update field counter display
+                    const counterDisplay = field.querySelector('div[style*="width: 28px"]');
+                    if (counterDisplay) counterDisplay.textContent = idx + 1;
+                    
+                    // Update checkbox value to match current index
+                    const requiredCheckbox = field.querySelector('input[name="field_required"]');
+                    if (requiredCheckbox) requiredCheckbox.value = idx;
+                });
+            }
+
+            // Existing fields
+            if (taskFields && taskFields.length > 0) {
+                taskFields.forEach(f => addFormField(f));
+            }
+
+            addFieldBtn.addEventListener('click', () => addFormField());
         });
     </script>
 
