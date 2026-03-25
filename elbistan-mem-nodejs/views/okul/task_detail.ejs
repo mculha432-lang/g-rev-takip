@@ -417,14 +417,18 @@
             <div class="field-group">
                 <label class="field-label">
                     Yanıt Dosyası
-                    <span class="required">* (Zorunlu)</span>
+                    <% if (task.is_file_mandatory) { %>
+                        <span class="required">* (Zorunlu)</span>
+                    <% } else { %>
+                        <span style="font-size:12px; color:var(--gray-400); font-weight:400;">(İsteğe bağlı)</span>
+                    <% } %>
                 </label>
                 <label class="file-upload-area" for="response_file_input">
                     <i class="fas fa-cloud-upload-alt"></i>
                     <p>Dosyayı buraya sürükleyin veya tıklayın</p>
                     <p style="font-size:12px; color:var(--gray-400); margin-top:6px;">PDF, Word, Excel, resim vb.</p>
                 </label>
-                <input type="file" id="response_file_input" name="response_file" style="display:none;" onchange="updateFileName(this)" required>
+                <input type="file" id="response_file_input" name="response_file" style="display:none;" onchange="updateFileName(this)" <%= task.is_file_mandatory ? 'required' : '' %>>
                 <div id="selected-file-name" style="margin-top:8px; font-size:13px; color:var(--gray-600); display:none; padding:10px; background:var(--gray-50); border:1px solid #cbd5e1; border-radius:8px;">
                     <i class="fas fa-file" style="color:#2563eb; margin-right:6px;"></i> <span></span>
                 </div>
