@@ -25,7 +25,7 @@ const taskController = {
     },
 
     // Görev Ekle
-    store: (req, res) => {
+    store: async (req, res) => {
         try {
             const { title, description, deadline, school_ids } = req.body;
             const requiresFile = req.body.requires_file ? 1 : 0;
@@ -70,23 +70,21 @@ const taskController = {
                 const schoolIdsArray = Array.isArray(school_ids) ? school_ids : [school_ids];
                 const stmt = db.prepare('INSERT INTO task_assignments (task_id, user_id, status) VALUES (?, ?, ?)');
 
-                schoolIdsArray.forEach(schoolId => {
+                for (const schoolId of schoolIdsArray) {
                     stmt.run(taskId, schoolId, 'pending');
                     // Add push notification call
-                    sendPushNotification(schoolId, {
+                    await sendPushNotification(schoolId, {
                         title: '📋 Yeni Bir Görev Atandı',
                         body: `"${title}" başlıklı yeni bir görev hesabınıza tanımlanmıştır. Lütfen giriş yapıp kontrol ediniz.`,
                         url: '/okul/dashboard',
                         tag: 'task-new-' + taskId
                     });
-                });
+                }
             }
 
             res.redirect('/admin/tasks?status=success');
         } catch (error) {
             console.error('CRITICAL ERROR in taskController.store:', error);
-            // Hatanın detaylarını göster
-            if (error.code) console.error('Error Code:', error.code);
             res.status(500).render('404', { title: 'Hata', message: 'Görev eklenirken bir hata oluştu: ' + error.message });
         }
     },
@@ -255,7 +253,7 @@ const taskController = {
     },
 
     // Görev Güncelle
-    update: (req, res) => {
+    update: async (req, res) => {
         try {
             const { id } = req.params;
             const { title, description, deadline, school_ids } = req.body;
@@ -308,16 +306,16 @@ const taskController = {
 
                 // Ekle
                 const insertStmt = db.prepare('INSERT INTO task_assignments (task_id, user_id, status) VALUES (?, ?, ?)');
-                toAdd.forEach(schoolId => {
+                for (const schoolId of toAdd) {
                     insertStmt.run(id, schoolId, 'pending');
                     // Push notification call for new schools added to existing task
-                    sendPushNotification(schoolId, {
+                    await sendPushNotification(schoolId, {
                         title: '📋 Yeni Bir Görev Atandı',
                         body: `Daha önceden oluşturulmuş "${title}" başlıklı görev hesabınıza tanımlanmıştır.`,
                         url: '/okul/dashboard',
                         tag: 'task-assign-' + id + '-' + schoolId
                     });
-                });
+                }
             }
 
             // Form alanlarını işle
@@ -371,8 +369,7 @@ const taskController = {
                     }
                 });
             } else {
-                // Eğer hiç alan gelmediyse hepsini sil (veya requires_file'a göre karar ver?)
-                // Kullanıcı tüm alanları sildiyse hepsini siliyoruz
+                // Eğer hiç alan gelmediyse hepsini sil
                 db.prepare('DELETE FROM task_fields WHERE task_id = ?').run(id);
             }
 
@@ -384,7 +381,7 @@ const taskController = {
     },
 
     // Görev Onayla (Approve)
-    approveAssignment: (req, res) => {
+    approveAssignment: async (req, res) => {
         try {
             const { taskId, assignmentId } = req.params;
 
@@ -405,7 +402,8 @@ const taskController = {
 
             // Okula onay bildirimi gönder
             const task = db.prepare('SELECT title FROM tasks WHERE id = ?').get(taskId);
-            sendPushNotification(assignment.user_id, {
+            console.log(`Push sending for approval: School ${assignment.user_id}, Task ${taskId}`);
+            await sendPushNotification(assignment.user_id, {
                 title: '✅ Göreviniz Onaylandı',
                 body: task ? `"${task.title}" başlıklı göreviniz yönetici tarafından onaylandı.` : 'Göreviniz onaylandı.',
                 url: `/okul/tasks/${assignmentId}`,
@@ -420,7 +418,7 @@ const taskController = {
     },
 
     // Görev İade Et (Reject)
-    rejectAssignment: (req, res) => {
+    rejectAssignment: async (req, res) => {
         try {
             const { taskId, assignmentId } = req.params;
             const { rejection_note } = req.body;
@@ -441,7 +439,8 @@ const taskController = {
 
             // Okula iade bildirimi gönder
             const task = db.prepare('SELECT title FROM tasks WHERE id = ?').get(taskId);
-            sendPushNotification(assignment.user_id, {
+            console.log(`Push sending for rejection: School ${assignment.user_id}, Task ${taskId}`);
+            await sendPushNotification(assignment.user_id, {
                 title: '⚠️ Göreviniz İade Edildi',
                 body: task ? `"${task.title}" başlıklı göreviniz iade edildi. Not: ${rejection_note || 'Eksik veya hatalı gönderim.'}` : 'Göreviniz iade edildi.',
                 url: `/okul/tasks/${assignmentId}`,
@@ -456,7 +455,7 @@ const taskController = {
     },
 
     // Admin Mesaj Gönder
-    sendAdminMessage: (req, res) => {
+    sendAdminMessage: async (req, res) => {
         try {
             const { assignmentId } = req.params;
             const { message, task_id } = req.body; // task_id redirect için formdan gelecek
@@ -471,18 +470,20 @@ const taskController = {
             // Push Notification to the assigned school
             const assignmentInfo = db.prepare('SELECT user_id FROM task_assignments WHERE id = ?').get(assignmentId);
             if(assignmentInfo) {
-                sendPushNotification(assignmentInfo.user_id, {
+                console.log(`Push sending for message: User ${assignmentInfo.user_id}, Assignment ${assignmentId}`);
+                await sendPushNotification(assignmentInfo.user_id, {
                     title: '💬 Yeni Mesaj: Yönetici',
                     body: message.trim().length > 50 ? message.trim().substring(0, 50) + '...' : message.trim(),
-                    url: `/okul/tasks/${assignmentId}#messages`,
+                    url: `/okul/tasks/${assignmentId}`,
                     tag: 'message-' + assignmentId + '-' + Date.now()
                 });
+            } else {
+                console.warn(`Push failed: Assignment ${assignmentId} not found for message notification.`);
             }
 
             res.redirect(`/admin/tasks/${task_id}`);
         } catch (error) {
             console.error('Admin mesaj gönderme hatası:', error);
-            // Referer yoksa ana sayfaya at, varsa oraya
             res.redirect(req.headers.referer || '/admin/tasks');
         }
     },
