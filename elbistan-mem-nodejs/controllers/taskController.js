@@ -151,7 +151,7 @@ const taskController = {
                 UPDATE task_messages 
                 SET is_read = 1 
                 WHERE assignment_id IN (SELECT id FROM task_assignments WHERE task_id = ?)
-                AND sender_id IN (SELECT id FROM users WHERE role != 'admin')
+                AND sender_id IN (SELECT user_id FROM task_assignments WHERE id = task_messages.assignment_id)
                 AND is_read = 0
             `).run(id);
 
