@@ -485,6 +485,42 @@ const taskController = {
             // Referer yoksa ana sayfaya at, varsa oraya
             res.redirect(req.headers.referer || '/admin/tasks');
         }
+    },
+
+    // Görev Yanıt Dosyasını İndir (Okul-Gorev Adıyla)
+    downloadResponseFile: (req, res) => {
+        try {
+            const { assignmentId } = req.params;
+            const assignment = db.prepare(`
+                SELECT ta.response_file, u.full_name as school_name, t.title as task_title
+                FROM task_assignments ta
+                JOIN users u ON ta.user_id = u.id
+                JOIN tasks t ON ta.task_id = t.id
+                WHERE ta.id = ?
+            `).get(assignmentId);
+
+            if (!assignment || !assignment.response_file) {
+                return res.status(404).send('Dosya bulunamadı.');
+            }
+
+            const path = require('path');
+            const fs = require('fs');
+            const { sanitizeFilename } = require('../utils/upload');
+            
+            const filePath = path.join(__dirname, '..', 'public', 'uploads', 'responses', assignment.response_file);
+
+            if (!fs.existsSync(filePath)) {
+                return res.status(404).send('Dosya sunucuda bulunamadı.');
+            }
+
+            const ext = path.extname(assignment.response_file);
+            const downloadName = `${sanitizeFilename(assignment.school_name)}_${sanitizeFilename(assignment.task_title)}${ext}`;
+
+            res.download(filePath, downloadName);
+        } catch (error) {
+            console.error('Dosya indirme hatası:', error);
+            res.status(500).send('Dosya indirilirken bir hata oluştu.');
+        }
     }
 };
 
