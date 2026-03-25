@@ -42,9 +42,17 @@ function initDatabase() {
             deadline DATE,
             file_path TEXT,
             requires_file INTEGER DEFAULT 0,
+            is_file_mandatory INTEGER DEFAULT 1,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     `);
+
+    // Mevcut tabloya is_file_mandatory sütununu ekle (eğer yoksa)
+    try {
+        db.exec(`ALTER TABLE tasks ADD COLUMN is_file_mandatory INTEGER DEFAULT 1`);
+    } catch (e) {
+        // Sütun zaten var
+    }
 
     // Görev atamaları tablosu
     db.exec(`
