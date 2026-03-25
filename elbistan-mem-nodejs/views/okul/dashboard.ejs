@@ -179,6 +179,10 @@
             justify-content: space-between;
         }
 
+        .section-body {
+            padding: 20px;
+        }
+
         .section-title {
             font-weight: 700;
             font-size: 15px;
@@ -630,27 +634,36 @@
             <span class="header-date" id="headerDate"></span>
         </div>
 
-        <!-- İstatistikler -->
-        <div class="stats-grid">
-            <div class="stat-card blue">
-                <div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
-                <div class="stat-value"><%= totalTasks %></div>
-                <div class="stat-label">Toplam Görev</div>
+        <!-- Bilgi Kutuları Bölümü -->
+        <div class="section-card" style="margin-bottom: 25px;">
+            <div class="section-header">
+                <div class="section-title">
+                    <i class="fas fa-info-circle"></i> Bilgi Kutuları
+                </div>
             </div>
-            <div class="stat-card red">
-                <div class="stat-icon"><i class="fas fa-hourglass-start"></i></div>
-                <div class="stat-value"><%= pendingTasks %></div>
-                <div class="stat-label">Bekleyen (İşlemsiz)</div>
-            </div>
-            <div class="stat-card yellow">
-                <div class="stat-icon"><i class="fas fa-spinner"></i></div>
-                <div class="stat-value"><%= inProgressTasks %></div>
-                <div class="stat-label">İşlemde</div>
-            </div>
-            <div class="stat-card green">
-                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-                <div class="stat-value"><%= completedTasks %></div>
-                <div class="stat-label">Tamamlanan</div>
+            <div class="section-body" style="padding: 20px;">
+                <div class="stats-grid" style="margin-bottom: 0;">
+                    <div class="stat-card blue">
+                        <div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
+                        <div class="stat-value"><%= totalTasks %></div>
+                        <div class="stat-label">Toplam Görev</div>
+                    </div>
+                    <div class="stat-card red">
+                        <div class="stat-icon"><i class="fas fa-hourglass-start"></i></div>
+                        <div class="stat-value"><%= pendingTasks %></div>
+                        <div class="stat-label">Bekleyen (İşlemsiz)</div>
+                    </div>
+                    <div class="stat-card yellow">
+                        <div class="stat-icon"><i class="fas fa-spinner"></i></div>
+                        <div class="stat-value"><%= inProgressTasks %></div>
+                        <div class="stat-label">İşlemde</div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-value"><%= completedTasks %></div>
+                        <div class="stat-label">Tamamlanan</div>
+                    </div>
+                </div>
             </div>
         </div>
 
