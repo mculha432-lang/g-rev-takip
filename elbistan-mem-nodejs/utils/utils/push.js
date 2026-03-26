@@ -21,7 +21,7 @@ async function sendPushNotification(userId, payloadData) {
     try {
         const subscriptions = db.prepare('SELECT * FROM push_subscriptions WHERE user_id = ?').all(userId);
         if (!subscriptions || subscriptions.length === 0) {
-            logger.info(`Push: Kullanıcı ${userId} için aktif abonelik bulunamadı.`);
+            logger.info(`[PUSH-DEBUG] Kullanıcı ${userId} için aktif push aboneliği bulunamadı! Okul kullanıcısının bildirim izni vermesi ve uygulamayı en az bir kez açması gerekir.`);
             return;
         }
 
