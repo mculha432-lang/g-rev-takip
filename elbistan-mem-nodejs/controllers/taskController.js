@@ -339,7 +339,7 @@ const taskController = {
                 // Silinen alanları bul ve sil
                 const incomingIds = idsArray.filter(id => id !== '').map(id => id.toString());
                 const toDelete = currentFieldIds.filter(cid => !incomingIds.includes(cid));
-                
+
                 if (toDelete.length > 0) {
                     const deleteFieldStmt = db.prepare('DELETE FROM task_fields WHERE id = ?');
                     toDelete.forEach(fid => deleteFieldStmt.run(fid));
@@ -461,12 +461,15 @@ const taskController = {
             const { message, task_id } = req.body; // task_id redirect için formdan gelecek
             const userId = req.session.user.id; // Admin ID
 
+            console.log(`[MSG] Admin mesaj gönderme başladı: assignmentId=${assignmentId}, task_id=${task_id}, adminId=${userId}`);
+
             if (!message || !message.trim()) {
                 return res.redirect(`/admin/tasks/${task_id}?error=empty_message`);
             }
 
             db.prepare('INSERT INTO task_messages (assignment_id, sender_id, message) VALUES (?, ?, ?)').run(assignmentId, userId, message.trim());
-            
+            console.log(`[MSG] Mesaj DB'ye kaydedildi.`);
+
             // Push Notification to the assigned school
             const assignmentInfo = db.prepare(`
                 SELECT ta.user_id, t.title as task_title 
@@ -474,25 +477,35 @@ const taskController = {
                 JOIN tasks t ON ta.task_id = t.id 
                 WHERE ta.id = ?
             `).get(assignmentId);
-            if(assignmentInfo) {
+
+            if (assignmentInfo) {
                 // Push aboneliği var mı kontrol et
-                const subCount = db.prepare('SELECT COUNT(*) as count FROM push_subscriptions WHERE user_id = ?').get(assignmentInfo.user_id);
-                console.log(`[PUSH-DEBUG] Mesaj bildirimi: User=${assignmentInfo.user_id}, Assignment=${assignmentId}, Abonelik sayısı=${subCount.count}`);
-                
-                const msgPreview = message.trim().length > 50 ? message.trim().substring(0, 50) + '...' : message.trim();
-                await sendPushNotification(assignmentInfo.user_id, {
-                    title: `💬 Yeni Mesaj: ${assignmentInfo.task_title || 'Görev'}`,
-                    body: msgPreview,
-                    url: `/okul/tasks/${assignmentId}`,
-                    tag: 'message-' + assignmentId + '-' + Date.now()
-                });
+                const subscriptions = db.prepare('SELECT * FROM push_subscriptions WHERE user_id = ?').all(assignmentInfo.user_id);
+                console.log(`[MSG-PUSH] Hedef okul userId=${assignmentInfo.user_id}, görev="${assignmentInfo.task_title}", push abonelik sayısı=${subscriptions.length}`);
+
+                if (subscriptions.length > 0) {
+                    const msgPreview = message.trim().length > 50 ? message.trim().substring(0, 50) + '...' : message.trim();
+                    try {
+                        await sendPushNotification(assignmentInfo.user_id, {
+                            title: `💬 Yeni Mesaj: ${assignmentInfo.task_title || 'Görev'}`,
+                            body: msgPreview,
+                            url: `/okul/tasks/${assignmentId}`,
+                            tag: 'message-' + assignmentId + '-' + Date.now()
+                        });
+                        console.log(`[MSG-PUSH] ✅ Push bildirim gönderildi!`);
+                    } catch (pushErr) {
+                        console.error(`[MSG-PUSH] ❌ Push bildirim hatası:`, pushErr);
+                    }
+                } else {
+                    console.warn(`[MSG-PUSH] ⚠️ Okul kullanıcısının (userId=${assignmentInfo.user_id}) push aboneliği yok! Bildirim gönderilemedi.`);
+                }
             } else {
-                console.warn(`[PUSH-DEBUG] Push başarısız: Assignment ${assignmentId} bulunamadı.`);
+                console.warn(`[MSG-PUSH] ⚠️ Assignment ${assignmentId} veritabanında bulunamadı!`);
             }
 
             res.redirect(`/admin/tasks/${task_id}`);
         } catch (error) {
-            console.error('Admin mesaj gönderme hatası:', error);
+            console.error('[MSG] Admin mesaj gönderme hatası:', error);
             res.redirect(req.headers.referer || '/admin/tasks');
         }
     },
@@ -516,7 +529,7 @@ const taskController = {
             const path = require('path');
             const fs = require('fs');
             const { sanitizeFilename } = require('../utils/upload');
-            
+
             const filePath = path.join(__dirname, '..', 'public', 'uploads', 'responses', assignment.response_file);
 
             if (!fs.existsSync(filePath)) {
