@@ -43,6 +43,8 @@ function initDatabase() {
             file_path TEXT,
             requires_file INTEGER DEFAULT 0,
             is_file_mandatory INTEGER DEFAULT 1,
+            allowed_file_types TEXT,
+            max_file_count INTEGER DEFAULT 1,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     `);
@@ -50,9 +52,13 @@ function initDatabase() {
     // Mevcut tabloya is_file_mandatory sütununu ekle (eğer yoksa)
     try {
         db.exec(`ALTER TABLE tasks ADD COLUMN is_file_mandatory INTEGER DEFAULT 1`);
-    } catch (e) {
-        // Sütun zaten var
-    }
+    } catch (e) {}
+    try {
+        db.exec(`ALTER TABLE tasks ADD COLUMN allowed_file_types TEXT`);
+    } catch (e) {}
+    try {
+        db.exec(`ALTER TABLE tasks ADD COLUMN max_file_count INTEGER DEFAULT 1`);
+    } catch (e) {}
 
     // Görev atamaları tablosu
     db.exec(`
@@ -74,9 +80,20 @@ function initDatabase() {
     // Mevcut tabloya rejection_note sütununu ekle (eğer yoksa)
     try {
         db.exec(`ALTER TABLE task_assignments ADD COLUMN rejection_note TEXT`);
-    } catch (e) {
-        // Sütun zaten var, hata görmezden gel
-    }
+    } catch (e) {}
+
+    // Çoklu dosya desteği için yeni tablo
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS task_assignment_files (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            assignment_id INTEGER NOT NULL,
+            file_path TEXT NOT NULL,
+            original_name TEXT,
+            file_size INTEGER,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (assignment_id) REFERENCES task_assignments(id) ON DELETE CASCADE
+        )
+    `);
 
     // Kurum Yöneticisi özelliği - is_manager sütunu
     try {
