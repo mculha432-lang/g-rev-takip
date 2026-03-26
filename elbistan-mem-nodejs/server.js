@@ -200,6 +200,14 @@ app.listen(PORT, () => {
         logger.error('Yedekleme sistemi başlatılamadı:', error);
     }
 
+    // Görev hatırlatma sistemini başlat
+    try {
+        const deadlineReminder = require('./utils/deadlineReminder');
+        deadlineReminder.startDeadlineReminders();
+    } catch (error) {
+        logger.error('Görev hatırlatma sistemi başlatılamadı:', error);
+    }
+
 });
 
 module.exports = app;
