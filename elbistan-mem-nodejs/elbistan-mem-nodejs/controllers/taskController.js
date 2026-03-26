@@ -29,8 +29,9 @@ const taskController = {
         console.log('DEBUG: Task Store Request Body:', req.body);
         console.log('DEBUG: Task Store File:', req.file);
         try {
-            const { title, description, deadline, school_ids } = req.body;
+            const { title, description, deadline, school_ids, allowed_file_types } = req.body;
             const requiresFile = req.body.requires_file ? 1 : 0;
+            const maxFileCount = parseInt(req.body.max_file_count) || 1;
             const filePath = req.file ? req.file.filename : null;
 
             // Form alanlarını al
@@ -41,8 +42,8 @@ const taskController = {
 
             // Görevi ekle
             const result = db.prepare(
-                'INSERT INTO tasks (title, description, deadline, file_path, requires_file) VALUES (?, ?, ?, ?, ?)'
-            ).run(title, description, deadline, filePath, requiresFile);
+                'INSERT INTO tasks (title, description, deadline, file_path, requires_file, allowed_file_types, max_file_count) VALUES (?, ?, ?, ?, ?, ?, ?)'
+            ).run(title, description, deadline, filePath, requiresFile, allowed_file_types, maxFileCount);
 
             const taskId = result.lastInsertRowid;
 
@@ -135,7 +136,11 @@ const taskController = {
                 const responses = db.prepare(
                     'SELECT tfr.*, tf.field_label, tf.field_type FROM task_field_responses tfr JOIN task_fields tf ON tfr.field_id = tf.id WHERE tfr.assignment_id = ?'
                 ).all(assignment.id);
-                return { ...assignment, fieldResponses: responses };
+
+                // Atama dosyalarını getir
+                const files = db.prepare('SELECT * FROM task_assignment_files WHERE assignment_id = ?').all(assignment.id);
+
+                return { ...assignment, fieldResponses: responses, files };
             });
 
             // Mesajları getir ve assignment_id'ye göre grupla
@@ -253,8 +258,9 @@ const taskController = {
     update: (req, res) => {
         try {
             const { id } = req.params;
-            const { title, description, deadline, school_ids } = req.body;
+            const { title, description, deadline, school_ids, allowed_file_types } = req.body;
             const requiresFile = req.body.requires_file ? 1 : 0;
+            const maxFileCount = parseInt(req.body.max_file_count) || 1;
 
             // Mevcut görevi kontrol et
             const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
@@ -275,9 +281,9 @@ const taskController = {
             // Görevi güncelle
             db.prepare(`
                 UPDATE tasks 
-                SET title = ?, description = ?, deadline = ?, file_path = ?, requires_file = ? 
+                SET title = ?, description = ?, deadline = ?, file_path = ?, requires_file = ?, allowed_file_types = ?, max_file_count = ? 
                 WHERE id = ?
-            `).run(title, description, deadline, filePath, requiresFile, id);
+            `).run(title, description, deadline, filePath, requiresFile, allowed_file_types, maxFileCount, id);
 
             // Kaldırılacak okulları işle
             const remove_school_ids = req.body.remove_school_ids;
