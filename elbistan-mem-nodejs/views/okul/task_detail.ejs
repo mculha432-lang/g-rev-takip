@@ -418,24 +418,74 @@
             <% if (task.requires_file) { %>
             <div class="field-group">
                 <label class="field-label">
-                    Yanıt Dosyası
+                    Yanıt Dosyaları
                     <% if (task.is_file_mandatory) { %>
                         <span class="required">* (Zorunlu)</span>
                     <% } else { %>
                         <span style="font-size:12px; color:var(--gray-400); font-weight:400;">(İsteğe bağlı)</span>
                     <% } %>
+                    <span style="float: right; color: var(--red); font-weight: 700;">Max: <%= task.max_file_count || 1 %> Dosya</span>
                 </label>
+
+                <!-- Mevcut yanıt dosyaları listesi -->
+                <% if (task.files && task.files.length > 0) { %>
+                <div class="existing-files" style="margin-bottom: 15px;">
+                    <p style="font-size: 12px; color: var(--gray-600); margin-bottom: 8px; font-weight: 600;">Yüklü Dosyalar:</p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        <% task.files.forEach(file => { %>
+                        <div style="background: #f0f7ff; border: 1px solid #cce3ff; padding: 6px 12px; border-radius: 8px; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-file-alt" style="color: #2563eb;"></i>
+                            <a href="/uploads/responses/<%= file.file_path %>" target="_blank" style="text-decoration: none; color: #1e3a8a; font-weight: 600;">
+                                <%= file.original_name || 'Dosya' %>
+                            </a>
+                        </div>
+                        <% }) %>
+                    </div>
+                    <p style="font-size: 11px; color: #ef4444; margin-top: 8px;"><i class="fas fa-info-circle"></i> Yeni dosya yüklerseniz mevcut dosyaların tamamı değiştirilecektir.</p>
+                </div>
+                <% } %>
+
                 <label class="file-upload-area" for="response_file_input">
                     <i class="fas fa-cloud-upload-alt"></i>
-                    <p>Dosyayı buraya sürükleyin veya tıklayın</p>
-                    <p style="font-size:12px; color:var(--gray-400); margin-top:6px;">PDF, Word, Excel, resim vb.</p>
+                    <p>Dosyaları buraya sürükleyin veya tıklayın</p>
+                    <p style="font-size:12px; color:var(--gray-400); margin-top:6px;">Birden fazla dosya seçebilirsiniz (Maksimum <%= task.max_file_count || 1 %>)</p>
                 </label>
-                <input type="file" id="response_file_input" name="response_file" style="display:none;" onchange="updateFileName(this)" <%= task.is_file_mandatory ? 'required' : '' %>>
-                <div id="selected-file-name" style="margin-top:8px; font-size:13px; color:var(--gray-600); display:none; padding:10px; background:var(--gray-50); border:1px solid #cbd5e1; border-radius:8px;">
-                    <i class="fas fa-file" style="color:#2563eb; margin-right:6px;"></i> <span></span>
+                <input type="file" id="response_file_input" name="response_files" multiple style="display:none;" onchange="updateFileNames(this)" <%= (task.is_file_mandatory && (!task.files || task.files.length === 0)) ? 'required' : '' %>>
+                <div id="selected-files-list" style="margin-top:8px; display:none;">
+                    <div style="font-size: 12px; font-weight: 700; color: #1e3a5a; margin-bottom: 5px;">Seçilen Yeni Dosyalar:</div>
+                    <div id="file-items-container" style="display: flex; flex-direction: column; gap: 5px;"></div>
                 </div>
             </div>
             <% } %>
+
+            <script>
+                function updateFileNames(input) {
+                    const listDiv = document.getElementById('selected-files-list');
+                    const container = document.getElementById('file-items-container');
+                    const maxFiles = <%= task.max_file_count || 1 %>;
+                    
+                    container.innerHTML = '';
+                    
+                    if (input.files && input.files.length > 0) {
+                        if (input.files.length > maxFiles) {
+                            alert(`En fazla ${maxFiles} dosya yükleyebilirsiniz. Şu an ${input.files.length} dosya seçtiniz.`);
+                            input.value = '';
+                            listDiv.style.display = 'none';
+                            return;
+                        }
+
+                        listDiv.style.display = 'block';
+                        Array.from(input.files).forEach(file => {
+                            const item = document.createElement('div');
+                            item.style.cssText = 'padding: 8px 12px; background: white; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; color: #334155; display: flex; align-items: center; gap: 8px;';
+                            item.innerHTML = `<i class="fas fa-file-check" style="color: #10b981;"></i> ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+                            container.appendChild(item);
+                        });
+                    } else {
+                        listDiv.style.display = 'none';
+                    }
+                }
+            </script>
 
             <div class="form-actions">
                 <button type="submit" name="status" value="in_progress" class="btn-save">
