@@ -21,18 +21,20 @@
                 let sub = await registration.pushManager.getSubscription();
                 
                 if (sub) {
+                    // Mevcut aboneliği sunucuyla senkronize et (kullanıcı değişmiş olabilir)
                     try {
                         await fetch('/push/subscribe', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(sub)
                         });
-                    } catch (e) { /* Sessizce devam et */ }
+                        console.log('✅ Push aboneliği sunucuyla senkronize edildi.');
+                    } catch (e) { console.warn('Push senkronizasyon hatası:', e); }
                     return;
                 }
 
                 const response = await fetch('/push/vapidPublicKey');
-                if (!response.ok) return;
+                if (!response.ok) { console.warn('VAPID key alınamadı'); return; }
                 const vapidData = await response.json();
                 
                 // base64 to Uint8Array
@@ -55,8 +57,28 @@
                     body: JSON.stringify(subscription)
                 });
                 console.log('✅ Push bildirimlerine başarıyla abone olundu.');
+                // İzin uyarı butonunu gizle
+                const permBtn = document.getElementById('pushPermissionBtn');
+                if (permBtn) permBtn.style.display = 'none';
             } catch (err) {
                 console.error('Push abonelik hatası:', err);
+            }
+        }
+
+        let swRegistration = null;
+        
+        // Bildirim izni isteme fonksiyonu (butondan çağrılır)
+        async function requestNotificationPermission() {
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted' && swRegistration) {
+                    await subscribeToPush(swRegistration);
+                    // İzin uyarı butonunu gizle
+                    const permBtn = document.getElementById('pushPermissionBtn');
+                    if (permBtn) permBtn.style.display = 'none';
+                }
+            } catch (err) {
+                console.error('Bildirim izni hatası:', err);
             }
         }
 
@@ -64,17 +86,16 @@
             navigator.serviceWorker.register('/service-worker.js')
                 .then(reg => {
                     console.log('✅ Service Worker kayıtlı.');
+                    swRegistration = reg;
                     reg.update(); // Her ziyarette güncelleme kontrolü yap
                     if (Notification.permission === 'granted') {
                         subscribeToPush(reg);
                     } else if (Notification.permission === 'default') {
-                        document.body.addEventListener('click', () => {
-                            Notification.requestPermission().then(permission => {
-                                if (permission === 'granted') {
-                                    subscribeToPush(reg);
-                                }
-                            });
-                        }, { once: true });
+                        // İzin uyarı butonunu göster
+                        setTimeout(() => {
+                            const permBtn = document.getElementById('pushPermissionBtn');
+                            if (permBtn) permBtn.style.display = 'flex';
+                        }, 1000);
                     }
                 })
                 .catch(err => console.error('SW kayıt hatası:', err));
@@ -609,6 +630,12 @@
                 <span>Okul Paneli</span>
             </div>
         </div>
+
+        <!-- Push Bildirim İzni Butonu (izin verilmediyse görünür) -->
+        <button id="pushPermissionBtn" onclick="requestNotificationPermission()" style="display:none; width:100%; align-items:center; justify-content:center; gap:8px; padding:10px 15px; background:linear-gradient(135deg, rgba(251,191,36,0.2) 0%, rgba(251,191,36,0.1) 100%); border:1px solid rgba(251,191,36,0.4); border-radius:10px; color:#f59e0b; font-size:13px; font-weight:600; cursor:pointer; margin-bottom:15px; transition:all 0.3s; position:relative; z-index:1;">
+            <i class="fas fa-bell" style="animation:bellRing 2s infinite;"></i>
+            <span>Bildirimleri Aç</span>
+        </button>
 
         <!-- Bildirim Zili -->
         <% if (typeof unreadMessageCount !=='undefined' && unreadMessageCount> 0) { %>
