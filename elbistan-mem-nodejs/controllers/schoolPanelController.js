@@ -158,6 +158,20 @@ const schoolPanelController = {
                 AND is_read = 0
             `).run(id, userId);
 
+            // Süre doldu mu kontrol et? (Yönetici iade etmişse süreye bakma)
+            let isDeadlinePassed = false;
+            if (assignment.deadline) {
+                const deadlineDate = new Date(assignment.deadline);
+                // Eğer sadece tarih varsa (YYYY-MM-DD), gün sonuna kadar izin ver
+                if (assignment.deadline.length <= 10) {
+                    deadlineDate.setHours(23, 59, 59, 999);
+                }
+                
+                if (new Date() > deadlineDate && assignment.status !== 'rejected') {
+                    isDeadlinePassed = true;
+                }
+            }
+
             res.render('okul/task_detail', {
                 title: 'Görev Detayı',
                 activePage: 'tasks',
@@ -165,6 +179,7 @@ const schoolPanelController = {
                 taskFields,
                 responsesMap,
                 messages,
+                isDeadlinePassed,
                 currentUserId: userId,
                 success: req.query.success,
                 error: req.query.error
@@ -227,6 +242,19 @@ const schoolPanelController = {
 
             if (!assignment) {
                 return res.status(404).send('Görev bulunamadı');
+            }
+
+            // Süre doldu mu kontrol et?
+            if (assignment.deadline) {
+                const deadlineDate = new Date(assignment.deadline);
+                // Gün sonuna kadar izin ver
+                if (assignment.deadline.length <= 10) {
+                    deadlineDate.setHours(23, 59, 59, 999);
+                }
+                
+                if (new Date() > deadlineDate && assignment.status !== 'rejected') {
+                    return res.redirect(`/okul/tasks/${id}?error=deadline_passed`);
+                }
             }
 
             // Eğer görev zaten onay bekliyor veya tamamlanmış ise düzenlemeye izin verme
