@@ -800,22 +800,29 @@
                     <small style="color: #94a3b8; font-size: 12px;">Yeni dosya yüklerseniz mevcut dosya değiştirilir.</small>
                 </div>
 
-                <div class="form-check">
-                    <input type="checkbox" name="requires_file" id="requires_file" value="1"
-                        <%=task.requires_file ? 'checked' : '' %> onchange="toggleFileMandatory(this)">
-                    <label for="requires_file">Okullardan dosya yüklemesi istensin</label>
-                </div>
+                <div id="fileUploadDetails"
+                    style="<%= task.requires_file ? 'display: block;' : 'display: none;' %> margin-top: 15px; padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
 
-                <div class="form-check" id="file_mandatory_div" style="<%= task.requires_file ? 'display: flex;' : 'display: none;' %> margin-left: 20px; background: #fff1f2; border-color: #fecaca;">
-                    <input type="checkbox" name="is_file_mandatory" id="is_file_mandatory" value="1"
-                        <%=task.is_file_mandatory !== 0 ? 'checked' : '' %>>
-                    <label for="is_file_mandatory">Dosya yüklemek <strong>zorunlu</strong> olsun</label>
+                    <div class="form-check" id="file_mandatory_div"
+                        style="margin-bottom: 15px; background: #fff1f2; border-color: #fecaca;">
+                        <input type="checkbox" name="is_file_mandatory" id="is_file_mandatory" value="1"
+                            <%=task.is_file_mandatory !== 0 ? 'checked' : '' %>>
+                        <label for="is_file_mandatory">Dosya yüklemek <strong>zorunlu</strong>
+                            olsun</label>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 11px;">Maksimum Dosya Sayısı</label>
+                        <input type="number" name="max_file_count" class="form-control"
+                            value="<%= task.max_file_count || 1 %>" min="1" max="20">
+                    </div>
                 </div>
 
                 <script>
-                    function toggleFileMandatory(checkbox) {
-                        const div = document.getElementById('file_mandatory_div');
-                        div.style.display = checkbox.checked ? 'flex' : 'none';
+                    function toggleFileUploadDetails() {
+                        const details = document.getElementById('fileUploadDetails');
+                        const checkbox = document.getElementById('requires_file');
+                        details.style.display = checkbox.checked ? 'block' : 'none';
                     }
                 </script>
 
