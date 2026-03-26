@@ -4,12 +4,20 @@ const fs = require('fs');
 
 // İzin verilen dosya türleri
 const ALLOWED_EXTENSIONS = [
-    '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
-    '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg',
+    // Documents
+    '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.csv', '.json', '.xml', '.odt', '.ods', '.odp',
+    // Images
+    '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.tiff',
+    // Archives
     '.zip', '.rar', '.7z', '.tar', '.gz',
-    '.txt', '.csv', '.json', '.xml',
+    // Media
     '.mp4', '.mov', '.avi', '.mp3', '.wav',
-    '.py', '.js', '.css', '.html', '.php', '.sql'
+    // Code/Design
+    '.py', '.js', '.css', '.html', '.php', '.sql',
+    // Geographic/GIS (Requested: klm -> kml)
+    '.kml', '.kmz', '.gpx', '.geojson',
+    // Architecture/CAD
+    '.dwg', '.dxf', '.stp', '.step'
 ];
 
 // Maksimum dosya boyutu (10MB)
