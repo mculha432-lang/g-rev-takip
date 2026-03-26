@@ -38,10 +38,13 @@ const taskController = {
             const fieldOptions = req.body.field_options || [];
             const fieldRequired = req.body.field_required || [];
 
+            const allowedFileTypes = req.body.allowed_file_types || '';
+            const maxFileCount = req.body.max_file_count || 1;
+
             // Görevi ekle
             const result = db.prepare(
-                'INSERT INTO tasks (title, description, deadline, file_path, requires_file, is_file_mandatory) VALUES (?, ?, ?, ?, ?, ?)'
-            ).run(title, description, deadline, filePath, requiresFile, isFileMandatory);
+                'INSERT INTO tasks (title, description, deadline, file_path, requires_file, is_file_mandatory, allowed_file_types, max_file_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+            ).run(title, description, deadline, filePath, requiresFile, isFileMandatory, allowedFileTypes, maxFileCount);
 
             const taskId = result.lastInsertRowid;
 
@@ -127,12 +130,17 @@ const taskController = {
                 'SELECT * FROM task_fields WHERE task_id = ? ORDER BY field_order ASC'
             ).all(id);
 
-            // Her atama için form cevaplarını getir
+            // Her atama için form cevaplarını ve dosyalarını getir
             const assignmentsWithResponses = assignments.map(assignment => {
                 const responses = db.prepare(
                     'SELECT tfr.*, tf.field_label, tf.field_type FROM task_field_responses tfr JOIN task_fields tf ON tfr.field_id = tf.id WHERE tfr.assignment_id = ?'
                 ).all(assignment.id);
-                return { ...assignment, fieldResponses: responses };
+
+                const files = db.prepare(
+                    'SELECT * FROM task_assignment_files WHERE assignment_id = ?'
+                ).all(assignment.id);
+
+                return { ...assignment, fieldResponses: responses, files };
             });
 
             // Mesajları getir ve assignment_id'ye göre grupla
@@ -276,12 +284,15 @@ const taskController = {
                 filePath = req.file.filename;
             }
 
+            const allowedFileTypes = req.body.allowed_file_types || '';
+            const maxFileCount = req.body.max_file_count || 1;
+
             // Görevi güncelle
             db.prepare(`
                 UPDATE tasks 
-                SET title = ?, description = ?, deadline = ?, file_path = ?, requires_file = ?, is_file_mandatory = ? 
+                SET title = ?, description = ?, deadline = ?, file_path = ?, requires_file = ?, is_file_mandatory = ?, allowed_file_types = ?, max_file_count = ?
                 WHERE id = ?
-            `).run(title, description, deadline, filePath, requiresFile, isFileMandatory, id);
+            `).run(title, description, deadline, filePath, requiresFile, isFileMandatory, allowedFileTypes, maxFileCount, id);
 
             // Kaldırılacak okulları işle
             const remove_school_ids = req.body.remove_school_ids;
