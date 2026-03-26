@@ -468,17 +468,26 @@ const taskController = {
             db.prepare('INSERT INTO task_messages (assignment_id, sender_id, message) VALUES (?, ?, ?)').run(assignmentId, userId, message.trim());
             
             // Push Notification to the assigned school
-            const assignmentInfo = db.prepare('SELECT user_id FROM task_assignments WHERE id = ?').get(assignmentId);
+            const assignmentInfo = db.prepare(`
+                SELECT ta.user_id, t.title as task_title 
+                FROM task_assignments ta 
+                JOIN tasks t ON ta.task_id = t.id 
+                WHERE ta.id = ?
+            `).get(assignmentId);
             if(assignmentInfo) {
-                console.log(`Push sending for message: User ${assignmentInfo.user_id}, Assignment ${assignmentId}`);
+                // Push aboneliği var mı kontrol et
+                const subCount = db.prepare('SELECT COUNT(*) as count FROM push_subscriptions WHERE user_id = ?').get(assignmentInfo.user_id);
+                console.log(`[PUSH-DEBUG] Mesaj bildirimi: User=${assignmentInfo.user_id}, Assignment=${assignmentId}, Abonelik sayısı=${subCount.count}`);
+                
+                const msgPreview = message.trim().length > 50 ? message.trim().substring(0, 50) + '...' : message.trim();
                 await sendPushNotification(assignmentInfo.user_id, {
-                    title: '💬 Yeni Mesaj: Yönetici',
-                    body: message.trim().length > 50 ? message.trim().substring(0, 50) + '...' : message.trim(),
+                    title: `💬 Yeni Mesaj: ${assignmentInfo.task_title || 'Görev'}`,
+                    body: msgPreview,
                     url: `/okul/tasks/${assignmentId}`,
                     tag: 'message-' + assignmentId + '-' + Date.now()
                 });
             } else {
-                console.warn(`Push failed: Assignment ${assignmentId} not found for message notification.`);
+                console.warn(`[PUSH-DEBUG] Push başarısız: Assignment ${assignmentId} bulunamadı.`);
             }
 
             res.redirect(`/admin/tasks/${task_id}`);
