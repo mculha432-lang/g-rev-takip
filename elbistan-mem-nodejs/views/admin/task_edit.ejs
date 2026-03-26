@@ -800,6 +800,12 @@
                     <small style="color: #94a3b8; font-size: 12px;">Yeni dosya yüklerseniz mevcut dosya değiştirilir.</small>
                 </div>
 
+                <div class="form-check" style="margin-bottom: 20px;">
+                    <input type="checkbox" name="requires_file" id="requires_file" value="1"
+                        onchange="toggleFileUploadDetails()" <%= task.requires_file ? 'checked' : '' %>>
+                    <label for="requires_file">Okullardan dosya yüklemesi istensin</label>
+                </div>
+
                 <div id="fileUploadDetails"
                     style="<%= task.requires_file ? 'display: block;' : 'display: none;' %> margin-top: 15px; padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
 
