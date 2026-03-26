@@ -1,522 +1,669 @@
 <%- include('../layouts/school_header') %>
-
-<style>
-    :root {
-        --red: #dc2626;
-        --red-dark: #b91c1c;
-        --red-light: #fef2f2;
-        --white: #ffffff;
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
-        --gray-400: #9ca3af;
-        --gray-600: #4b5563;
-        --gray-800: #1f2937;
-        --gray-900: #111827;
-    }
-
-    .page-header {
-        margin-bottom: 24px;
-        padding: 20px 24px;
-        background: var(--white);
-        border-radius: 12px;
-        color: var(--gray-800);
-        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        border: 1px solid var(--gray-200);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .page-header-left { display: flex; align-items: center; gap: 16px; }
-    .page-header-icon {
-        width: 48px; height: 48px;
-        background: var(--red); border-radius: 12px;
-        display: flex; align-items: center; justify-content: center;
-        color: white; font-size: 20px;
-    }
-    .page-header h1 { font-size: 20px; font-weight: 700; color: var(--gray-900); margin: 0 0 4px 0; }
-    .page-header p  { color: var(--gray-600); font-size: 13px; margin: 0; }
-
-    .btn-back {
-        display: inline-flex; align-items: center; gap: 8px;
-        padding: 10px 18px; background: var(--gray-100); color: var(--gray-600);
-        text-decoration: none; border-radius: 10px; font-size: 13px; font-weight: 600;
-        transition: all .2s; border: 1px solid var(--gray-200);
-    }
-    .btn-back:hover { background: var(--gray-200); color: var(--gray-800); }
-
-    /* Alert banners */
-    .alert { padding: 14px 20px; border-radius: 10px; margin-bottom: 20px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-    .alert-success { background: #ecfdf5; color: #059669; border: 1px solid #d1fae5; }
-    .alert-danger  { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
-    .alert-warning { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
-
-    /* Task card */
-    .task-card {
-        background: var(--white); border-radius: 16px;
-        border: 1px solid var(--gray-200); padding: 28px;
-        margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    }
-    .task-title {
-        font-size: 22px; font-weight: 800; color: var(--gray-900);
-        margin: 0 0 12px 0;
-    }
-    .task-desc {
-        color: var(--gray-600); font-size: 15px; line-height: 1.7;
-        margin-bottom: 20px; padding: 18px;
-        background: var(--gray-50); border-radius: 12px;
-        border: 1px solid var(--gray-200);
-    }
-    .task-meta { display: flex; gap: 24px; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid var(--gray-200); }
-    .task-meta-item {
-        display: flex; align-items: center; gap: 10px;
-        font-size: 14px; color: var(--gray-800); font-weight: 600;
-    }
-    .task-meta-item i {
-        color: var(--red); font-size: 16px; background: var(--red-light);
-        width: 36px; height: 36px; border-radius: 10px;
-        display: flex; align-items: center; justify-content: center;
-    }
-
-    /* Status badge */
-    .badge {
-        display: inline-flex; align-items: center; gap: 6px;
-        padding: 8px 18px; border-radius: 20px;
-        font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
-    }
-    .badge-pending       { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
-    .badge-in_progress   { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
-    .badge-completed     { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
-    .badge-rejected      { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
-    .badge-pending_approval { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
-
-    /* Section cards */
-    .section-card {
-        background: var(--white); border-radius: 16px;
-        border: 1px solid var(--gray-200); margin-bottom: 24px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden;
-    }
-    .section-header {
-        padding: 18px 24px; border-bottom: 1px solid var(--gray-200);
-        font-weight: 700; font-size: 16px; color: var(--gray-800);
-        background: var(--gray-50); display: flex; align-items: center; gap: 10px;
-    }
-    .section-header i {
-        color: var(--red); background: var(--red-light);
-        width: 32px; height: 32px; border-radius: 8px;
-        display: flex; align-items: center; justify-content: center; font-size: 14px;
-    }
-    .section-body { padding: 24px; }
-
-    /* Rejection note */
-    .rejection-box {
-        background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px;
-        padding: 18px; margin-bottom: 20px;
-    }
-    .rejection-box h4 { color: #dc2626; font-size: 15px; margin: 0 0 8px 0; }
-    .rejection-box p  { color: #7f1d1d; font-size: 14px; margin: 0; }
-
-    /* Form fields */
-    .field-group { margin-bottom: 20px; }
-    .field-label { font-weight: 600; font-size: 14px; color: var(--gray-800); margin-bottom: 8px; display: block; }
-    .field-label .required { color: var(--red); margin-left: 4px; }
-    .form-control {
-        width: 100%; padding: 12px 16px;
-        border: 1px solid var(--gray-200); border-radius: 10px;
-        font-size: 14px; color: var(--gray-800); background: var(--gray-50);
-        transition: .2s; box-sizing: border-box; font-family: inherit;
-    }
-    .form-control:focus { outline: none; border-color: var(--red); background: white; box-shadow: 0 0 0 3px rgba(220,38,38,.1); }
-    textarea.form-control { min-height: 100px; resize: vertical; }
-    select.form-control { cursor: pointer; }
-
-    /* Checkbox / radio group */
-    .options-group { display: flex; flex-direction: column; gap: 10px; }
-    .option-item {
-        display: flex; align-items: center; gap: 10px;
-        padding: 10px 14px; border: 1px solid var(--gray-200);
-        border-radius: 8px; cursor: pointer; transition: .2s;
-    }
-    .option-item:hover { border-color: var(--red); background: var(--red-light); }
-    .option-item input { accent-color: var(--red); width: 16px; height: 16px; }
-    .option-item label { cursor: pointer; font-size: 14px; color: var(--gray-800); }
-
-    /* Submit buttons */
-    .form-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
-    .btn-save {
-        padding: 12px 24px; background: #2563eb; color: white;
-        border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
-        cursor: pointer; transition: .2s; display: inline-flex; align-items: center; gap: 8px;
-    }
-    .btn-save:hover { background: #1d4ed8; transform: translateY(-1px); }
-    .btn-submit {
-        padding: 12px 24px; background: var(--red); color: white;
-        border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
-        cursor: pointer; transition: .2s; display: inline-flex; align-items: center; gap: 8px;
-    }
-    .btn-submit:hover { background: var(--red-dark); transform: translateY(-1px); }
-
-    /* File upload area */
-    .file-upload-area {
-        border: 2px dashed var(--gray-200); border-radius: 12px;
-        padding: 30px; text-align: center; cursor: pointer;
-        transition: .2s; background: var(--gray-50);
-    }
-    .file-upload-area:hover { border-color: var(--red); background: var(--red-light); }
-    .file-upload-area i { font-size: 32px; color: var(--gray-400); margin-bottom: 10px; }
-    .file-upload-area p { color: var(--gray-600); font-size: 14px; margin: 0; }
-
-    /* Messages */
-    .messages-box {
-        background: var(--gray-50); border: 1px solid var(--gray-200);
-        border-radius: 12px; height: 350px; overflow-y: auto;
-        padding: 16px; display: flex; flex-direction: column; gap: 12px;
-    }
-    .msg-bubble {
-        max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 14px;
-    }
-    .msg-bubble.me { align-self: flex-end; background: #dbeafe; color: #1e3a8a; border: none; }
-    .msg-bubble.them { align-self: flex-start; background: white; color: #334155; border: 1px solid var(--gray-200); }
-    .msg-sender { font-weight: 700; font-size: 11px; opacity: .7; margin-bottom: 3px; }
-    .msg-time   { font-size: 10px; opacity: .5; margin-top: 4px; text-align: right; }
-
-    .msg-input-row { display: flex; gap: 10px; margin-top: 14px; }
-    .msg-input {
-        flex: 1; padding: 12px 16px; border: 1px solid var(--gray-200);
-        border-radius: 10px; font-size: 14px; font-family: inherit;
-    }
-    .msg-input:focus { outline: none; border-color: #3b82f6; }
-    .btn-send {
-        padding: 12px 18px; background: #3b82f6; color: white;
-        border: none; border-radius: 10px; cursor: pointer; font-weight: 700;
-        transition: .2s;
-    }
-    .btn-send:hover { background: #2563eb; }
-
-    /* Existing response display */
-    .response-display {
-        background: var(--gray-50); border: 1px solid var(--gray-200);
-        border-radius: 12px; padding: 20px;
-    }
-    .response-display p { margin: 0 0 10px 0; font-size: 14px; color: var(--gray-800); }
-    .response-display a {
-        display: inline-flex; align-items: center; gap: 8px;
-        padding: 10px 18px; background: #eff6ff; color: #2563eb;
-        border: 1px solid #bfdbfe; border-radius: 8px; text-decoration: none;
-        font-size: 13px; font-weight: 600; transition: .2s;
-    }
-    .response-display a:hover { background: #2563eb; color: white; }
-
-    @media (max-width: 768px) {
-        .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
-        .form-actions { flex-direction: column; }
-        .btn-save, .btn-submit { width: 100%; justify-content: center; }
-    }
-</style>
-
-<div class="page-header">
-    <div class="page-header-left">
-        <div class="page-header-icon"><i class="fas fa-tasks"></i></div>
-        <div>
-            <h1>Görev Detayı</h1>
-            <p>Görevi inceleyin ve yanıtınızı gönderin.</p>
-        </div>
-    </div>
-    <a href="/okul/dashboard" class="btn-back"><i class="fas fa-arrow-left"></i> Geri Dön</a>
-</div>
-
-<%
-    const statusMessages = {
-        'success'     : { updated: 'Yanıtınız başarıyla kaydedildi.', message_sent: 'Mesajınız gönderildi.' },
-        'error'       : { missing_file: 'Lütfen bir dosya yükleyin.', empty_message: 'Mesaj boş olamaz.', '1': 'Bir hata oluştu, lütfen tekrar deneyin.' }
-    };
-%>
-
-<% if (typeof success !== 'undefined' && success) { %>
-    <div class="alert alert-success">
-        <i class="fas fa-check-circle"></i>
-        <%= success === 'updated' ? 'Yanıtınız başarıyla kaydedildi.' : success === 'message_sent' ? 'Mesajınız gönderildi.' : 'İşlem başarılı.' %>
-    </div>
-<% } %>
-<% if (typeof error !== 'undefined' && error) { %>
-    <div class="alert alert-danger">
-        <i class="fas fa-exclamation-circle"></i>
-        <%= error === 'missing_file' ? 'Lütfen bir dosya yükleyin.' : error === 'empty_message' ? 'Mesaj boş olamaz.' : 'Bir hata oluştu, lütfen tekrar deneyin.' %>
-    </div>
-<% } %>
-
-<!-- Görev Bilgisi -->
-<div class="task-card">
-    <div class="task-title"><i class="fas fa-clipboard-list" style="color:var(--red); margin-right:10px;"></i><%= task.title %></div>
-
-    <% if (task.description) { %>
-        <div class="task-desc"><%= task.description %></div>
-    <% } %>
-
-    <div class="task-meta">
-        <div class="task-meta-item">
-            <i class="fas fa-info-circle"></i>
-            <div>
-                <span style="display:block;font-size:11px;color:var(--gray-600);font-weight:500;">Durum</span>
-                <% if (task.status === 'completed') { %>
-                    <span class="badge badge-completed"><i class="fas fa-check"></i> Tamamlandı</span>
-                <% } else if (task.status === 'pending_approval') { %>
-                    <span class="badge badge-pending_approval"><i class="fas fa-hourglass-half"></i> Onay Bekliyor</span>
-                <% } else if (task.status === 'in_progress') { %>
-                    <span class="badge badge-in_progress"><i class="fas fa-spinner fa-spin"></i> Devam Ediyor</span>
-                <% } else if (task.status === 'rejected') { %>
-                    <span class="badge badge-rejected"><i class="fas fa-times"></i> İade Edildi</span>
-                <% } else { %>
-                    <span class="badge badge-pending"><i class="fas fa-clock"></i> Bekliyor</span>
-                <% } %>
-            </div>
-        </div>
-
-        <% if (task.deadline) { %>
-        <div class="task-meta-item">
-            <i class="fas fa-calendar-alt"></i>
-            <div>
-                <span style="display:block;font-size:11px;color:var(--gray-600);font-weight:500;">Son Teslim</span>
-                <%= task.deadline %>
-            </div>
-        </div>
-        <% } %>
-
-        <% if (task.task_file) { %>
-        <div class="task-meta-item">
-            <i class="fas fa-file-alt"></i>
-            <div>
-                <span style="display:block;font-size:11px;color:var(--gray-600);font-weight:500;">Ekli Dosya</span>
-                <a href="/uploads/tasks/<%= task.task_file %>" target="_blank"
-                   style="color: var(--red); text-decoration:none; font-weight:600;">
-                    <i class="fas fa-download"></i> İndir
-                </a>
-            </div>
-        </div>
-        <% } %>
-    </div>
-</div>
-
-<!-- İade Notu (varsa) -->
-<% if (task.status === 'rejected' && task.rejection_note) { %>
-<div class="rejection-box">
-    <h4><i class="fas fa-exclamation-triangle"></i> İade Sebebi</h4>
-    <p><%= task.rejection_note %></p>
-</div>
-<% } %>
-
-<!-- Yanıt Formu (tamamlanmış değilse) -->
-<% if (task.status !== 'completed') { %>
-<div class="section-card">
-    <div class="section-header">
-        <i class="fas fa-paper-plane"></i>
-        <%= task.status === 'rejected' ? 'Tekrar Yanıt Gönder' : 'Yanıt Gönder' %>
-    </div>
-    <div class="section-body">
-
-        <!-- Mevcut yanıt dosyası var mı? -->
-        <% if (task.response_file) { %>
-        <div class="response-display" style="margin-bottom: 20px;">
-            <p><strong><i class="fas fa-paperclip"></i> Mevcut Yanıt Dosyası:</strong></p>
-            <a href="/uploads/responses/<%= task.response_file %>" target="_blank">
-                <i class="fas fa-file"></i> Dosyayı Görüntüle
-            </a>
-        </div>
-        <% } %>
-
-        <form action="/okul/tasks/<%= task.id %>/response" method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-
-            <!-- Form Alanları -->
-            <% if (taskFields && taskFields.length > 0) { %>
-                <% taskFields.forEach(field => { %>
-                <div class="field-group">
-                    <label class="field-label">
-                        <%= field.field_label %>
-                        <% if (field.is_required) { %><span class="required">*</span><% } %>
-                    </label>
-
-                    <% if (field.field_type === 'text') { %>
-                        <input type="text" name="field_<%= field.id %>" class="form-control"
-                            placeholder="Yanıtınızı yazın..."
-                            value="<%= responsesMap[field.id] || '' %>"
-                            <%= field.is_required ? 'required' : '' %>>
-
-                    <% } else if (field.field_type === 'textarea') { %>
-                        <textarea name="field_<%= field.id %>" class="form-control"
-                            placeholder="Yanıtınızı yazın..."
-                            <%= field.is_required ? 'required' : '' %>><%= responsesMap[field.id] || '' %></textarea>
-
-                    <% } else if (field.field_type === 'select') { %>
-                        <select name="field_<%= field.id %>" class="form-control" <%= field.is_required ? 'required' : '' %>>
-                            <option value="">-- Seçiniz --</option>
-                            <% if (field.field_options) { %>
-                                <% field.field_options.split('\n').forEach(opt => { %>
-                                    <% const optVal = opt.trim(); if(!optVal) return; %>
-                                    <option value="<%= optVal %>" <%= responsesMap[field.id] === optVal ? 'selected' : '' %>><%= optVal %></option>
-                                <% }) %>
-                            <% } %>
-                        </select>
-
-                    <% } else if (field.field_type === 'radio') { %>
-                        <div class="options-group">
-                            <% if (field.field_options) { %>
-                                <% field.field_options.split('\n').forEach(opt => { %>
-                                    <% const optVal = opt.trim(); if(!optVal) return; %>
-                                    <div class="option-item">
-                                        <input type="radio" name="field_<%= field.id %>" id="r_<%= field.id %>_<%= optVal %>"
-                                            value="<%= optVal %>" <%= responsesMap[field.id] === optVal ? 'checked' : '' %>
-                                            <%= field.is_required ? 'required' : '' %>>
-                                        <label for="r_<%= field.id %>_<%= optVal %>"><%= optVal %></label>
-                                    </div>
-                                <% }) %>
-                            <% } %>
-                        </div>
-
-                    <% } else if (field.field_type === 'checkbox') { %>
-                        <div class="options-group">
-                            <% if (field.field_options) { %>
-                                <% const checkedVals = (responsesMap[field.id] ? String(responsesMap[field.id]) : '').split(', '); %>
-                                <% field.field_options.split('\n').forEach(opt => { %>
-                                    <% const optVal = opt.trim(); if(!optVal) return; %>
-                                    <div class="option-item">
-                                        <input type="checkbox" name="field_<%= field.id %>" id="c_<%= field.id %>_<%= optVal %>"
-                                            value="<%= optVal %>" <%= checkedVals.includes(optVal) ? 'checked' : '' %>>
-                                        <label for="c_<%= field.id %>_<%= optVal %>"><%= optVal %></label>
-                                    </div>
-                                <% }) %>
-                            <% } %>
-                        </div>
-
-                    <% } else if (field.field_type === 'number') { %>
-                        <input type="number" name="field_<%= field.id %>" class="form-control"
-                            value="<%= responsesMap[field.id] || '' %>"
-                            <%= field.is_required ? 'required' : '' %>>
-
-                    <% } else if (field.field_type === 'date') { %>
-                        <input type="date" name="field_<%= field.id %>" class="form-control"
-                            value="<%= responsesMap[field.id] || '' %>"
-                            <%= field.is_required ? 'required' : '' %>>
-                    <% } %>
-                </div>
-                <% }) %>
-            <% } %>
-
-            <!-- Yanıt Notu -->
-            <div class="field-group">
-                <label class="field-label">Yanıt Notu <span style="font-size:12px; color:var(--gray-400); font-weight:400;">(isteğe bağlı)</span></label>
-                <textarea name="response_note" class="form-control" placeholder="Açıklamalarınızı buraya yazabilirsiniz..."><%= task.response_note || '' %></textarea>
-            </div>
-
-            <!-- Dosya Yükleme -->
-            <div class="field-group">
-                <label class="field-label">
-                    Yanıt Dosyası
-                    <% if (task.requires_file) { %><span class="required">* (Zorunlu)</span><% } else { %><span style="font-size:12px;color:var(--gray-400);font-weight:400;">(isteğe bağlı)</span><% } %>
-                </label>
-                <label class="file-upload-area" for="response_file_input">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <p>Dosyayı buraya sürükleyin veya tıklayın</p>
-                    <p style="font-size:12px; color:var(--gray-400); margin-top:6px;">PDF, Word, Excel, resim vb.</p>
-                </label>
-                <input type="file" id="response_file_input" name="response_file" style="display:none;" onchange="updateFileName(this)">
-                <div id="selected-file-name" style="margin-top:8px; font-size:13px; color:var(--gray-600); display:none;">
-                    <i class="fas fa-file"></i> <span></span>
-                </div>
-            </div>
-
-            <div class="form-actions">
-                <button type="submit" name="status" value="in_progress" class="btn-save">
-                    <i class="fas fa-save"></i> Kaydet (Devam Ediyor)
-                </button>
-                <button type="submit" name="status" value="completed" class="btn-submit">
-                    <i class="fas fa-check-circle"></i> Tamamlandı Olarak Gönder
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-<% } else { %>
-<!-- Görev tamamlandı - sadece mevcut yanıtı göster -->
-<div class="section-card">
-    <div class="section-header"><i class="fas fa-check-circle"></i> Tamamlanan Yanıt</div>
-    <div class="section-body">
-        <% if (task.response_note) { %>
-        <div class="response-display" style="margin-bottom:16px;">
-            <p><strong>Notunuz:</strong></p>
-            <p style="margin:0; font-size:14px; color:var(--gray-800);"><%= task.response_note %></p>
-        </div>
-        <% } %>
-        <% if (task.response_file) { %>
-        <div class="response-display">
-            <p><strong><i class="fas fa-paperclip"></i> Yüklediğiniz Dosya:</strong></p>
-            <a href="/uploads/responses/<%= task.response_file %>" target="_blank">
-                <i class="fas fa-file"></i> Dosyayı Görüntüle
-            </a>
-        </div>
-        <% } %>
-        <% if (taskFields && taskFields.length > 0) { %>
-        <div style="margin-top:20px;">
-            <strong style="font-size:14px; color:var(--gray-800);">Form Cevaplarınız:</strong>
-            <% taskFields.forEach(field => { %>
-            <div style="margin-top:12px; padding:14px; background:var(--gray-50); border:1px solid var(--gray-200); border-radius:10px;">
-                <div style="font-weight:600; font-size:13px; color:var(--gray-600); margin-bottom:4px;"><%= field.field_label %></div>
-                <div style="font-size:14px; color:var(--gray-800);"><%= responsesMap[field.id] || '-' %></div>
-            </div>
-            <% }) %>
-        </div>
-        <% } %>
-    </div>
-</div>
-<% } %>
-
-<!-- Mesajlaşma Bölümü -->
-<div class="section-card" id="messages">
-    <div class="section-header"><i class="fas fa-comments"></i> Mesajlar</div>
-    <div class="section-body">
-        <div class="messages-box" id="messagesBox">
-            <% if (messages && messages.length > 0) { %>
-                <% messages.forEach(msg => { %>
-                    <% const isMe = msg.sender_id === currentUserId; %>
-                    <div class="msg-bubble <%= isMe ? 'me' : 'them' %>">
-                        <div class="msg-sender"><%= isMe ? 'Siz' : (msg.full_name || 'Yönetici') %></div>
-                        <div><%= msg.message %></div>
-                        <div class="msg-time"><%= new Date(msg.created_at).toLocaleString('tr-TR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) %></div>
-                    </div>
-                <% }) %>
-            <% } else { %>
-                <div style="text-align:center; color:var(--gray-400); padding:40px 20px;">
-                    <i class="fas fa-comment-slash" style="font-size:32px; margin-bottom:10px; display:block;"></i>
-                    Henüz mesaj yok.
-                </div>
-            <% } %>
-        </div>
-
-        <form action="/okul/tasks/<%= task.id %>/message" method="POST" class="msg-input-row">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <input type="text" name="message" class="msg-input" placeholder="Bir mesaj yazın..." required>
-            <button type="submit" class="btn-send"><i class="fas fa-paper-plane"></i></button>
-        </form>
-    </div>
-</div>
-
-<script>
-    // Mesaj kutusunu en alta kaydır
-    const messagesBox = document.getElementById('messagesBox');
-    if (messagesBox) {
-        messagesBox.scrollTop = messagesBox.scrollHeight;
-    }
-
-    // Seçilen dosya adını göster
-    function updateFileName(input) {
-        const nameDiv = document.getElementById('selected-file-name');
-        if (input.files && input.files[0]) {
-            nameDiv.style.display = 'block';
-            nameDiv.querySelector('span').textContent = input.files[0].name;
-        } else {
-            nameDiv.style.display = 'none';
+    <style>
+        .page-container {
+            max-width: 800px;
+            margin: 0 auto
         }
-    }
-</script>
 
-<%- include('../layouts/school_footer') %>
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #f1f5f9;
+            color: #475569;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 25px
+        }
+
+        .task-card {
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            margin-bottom: 25px
+        }
+
+        .task-header {
+            background: linear-gradient(135deg, #E31E24 0%, #b91c1c 100%);
+            padding: 30px;
+            color: white
+        }
+
+        .task-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 22px;
+            font-weight: 800
+        }
+
+        .task-header-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            opacity: 0.9
+        }
+
+        .task-header-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .task-body {
+            padding: 30px
+        }
+
+        .task-desc {
+            color: #475569;
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 25px
+        }
+
+        .task-file {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 18px 20px;
+            background: #f8fafc;
+            border-radius: 14px;
+            margin-bottom: 25px
+        }
+
+        .task-file-icon {
+            width: 44px;
+            height: 44px;
+            background: #eff6ff;
+            color: #3b82f6;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px
+        }
+
+        .task-file-info {
+            flex: 1
+        }
+
+        .task-file-info h4 {
+            margin: 0 0 3px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b
+        }
+
+        .task-file-info p {
+            margin: 0;
+            font-size: 12px;
+            color: #94a3b8
+        }
+
+        .task-file a {
+            padding: 10px 18px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600
+        }
+
+        .response-section {
+            border-top: 1px solid #f1f5f9;
+            padding-top: 25px
+        }
+
+        .response-section h3 {
+            margin: 0 0 20px 0;
+            font-size: 16px;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .form-group {
+            margin-bottom: 20px
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 8px
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            box-sizing: border-box
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap
+        }
+
+        .radio-item {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px 20px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .radio-item input {
+            display: none
+        }
+
+        .radio-item:has(input:checked) {
+            border-color: #10b981;
+            background: #ecfdf5
+        }
+
+        .radio-content {
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b
+        }
+
+        .btn-submit {
+            padding: 16px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer
+        }
+
+        .alert {
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .alert-success {
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0
+        }
+
+        .alert-danger {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca
+        }
+
+        .current-response {
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 14px;
+            margin-bottom: 25px
+        }
+
+        .current-response h4 {
+            margin: 0 0 15px 0;
+            font-size: 14px;
+            color: #475569
+        }
+
+        .current-response p {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #1e293b
+        }
+
+        .current-response a {
+            color: #3b82f6;
+            font-weight: 600
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 15px
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #d97706
+        }
+
+        .status-in_progress {
+            background: #dbeafe;
+            color: #2563eb
+        }
+
+        .status-completed {
+            background: #dcfce7;
+            color: #16a34a
+        }
+
+        .messages-container {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px
+        }
+
+        .msg-wrap {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px
+        }
+
+        .msg-own {
+            align-items: flex-end
+        }
+
+        .msg-own .msg-bubble {
+            background: #dbeafe;
+            color: #1e3a8a
+        }
+
+        .msg-other {
+            align-items: flex-start
+        }
+
+        .msg-other .msg-bubble {
+            background: white;
+            border: 1px solid #e2e8f0;
+            color: #334155
+        }
+
+        .msg-bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px
+        }
+
+        .msg-sender {
+            font-weight: 700;
+            font-size: 12px;
+            margin-bottom: 4px;
+            opacity: 0.7
+        }
+
+        .msg-time {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 4px
+        }
+    </style>
+    <div class="page-container">
+        <a href="/okul/dashboard" class="btn-back"><i class="fas fa-arrow-left"></i> Geri Don</a>
+        <% if(success==='updated' ) { %>
+            <div class="alert alert-success"><i class="fas fa-check-circle"></i> Yanitiniz kaydedildi!</div>
+            <% } %>
+                <% if(error) { %>
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i> 
+                        <% if(error === 'max_file_limit') { %>
+                            En fazla <%= task.max_file_count %> dosya yükleyebilirsiniz.
+                        <% } else if(error === 'invalid_file_type') { %>
+                            İzin verilmeyen dosya türü! İzin verilenler: <%= task.allowed_file_types %>
+                        <% } else if(error === 'missing_file') { %>
+                            Lütfen gerekli dosyaları yükleyin.
+                        <% } else { %>
+                            Bir hata oluştu!
+                        <% } %>
+                    </div>
+                <% } %>
+                        <div class="task-card">
+                            <div class="task-header">
+                                <h1>
+                                    <%= task.title %>
+                                </h1>
+                                <div class="task-header-meta">
+                                    <span><i class="fas fa-calendar"></i> Son Teslim: <%= task.deadline
+                                            || 'Belirtilmemis' %></span>
+                                    <% if(task.requires_file) { %><span><i class="fas fa-upload"></i> Dosya
+                                            Zorunlu</span>
+                                        <% } %>
+                                </div>
+                            </div>
+                            <div class="task-body">
+                                <% if(task.description) { %>
+                                    <p class="task-desc">
+                                        <%= task.description %>
+                                    </p>
+                                    <% } %>
+                                        <% if(task.task_file) { %>
+                                            <div class="task-file">
+                                                <div class="task-file-icon"><i class="fas fa-file-alt"></i></div>
+                                                <div class="task-file-info">
+                                                    <h4>Gorev Eki</h4>
+                                                    <p>
+                                                        <%= task.task_file %>
+                                                    </p>
+                                                </div>
+                                                <a href="/uploads/tasks/<%= task.task_file %>" target="_blank"><i
+                                                        class="fas fa-download"></i> Indir</a>
+                                            </div>
+                                            <% } %>
+                                                <% if(task.response_note || task.response_file) { %>
+                                                    <div class="current-response">
+                                                        <h4>Mevcut Yanitiniz</h4>
+                                                        <% var st=task.status==='pending' ? 'Bekliyor' :
+                                                            (task.status==='in_progress' ? 'Islemde' : 'Tamamlandi' );
+                                                            %>
+                                                            <span class="status-badge status-<%= task.status %>">
+                                                                <%= st %>
+                                                            </span>
+                                                            <% if(task.response_note) { %>
+                                                                <p><strong>Not:</strong>
+                                                                    <%= task.response_note %>
+                                                                </p>
+                                                                <% } %>
+                                                            <% if(uploadedFiles && uploadedFiles.length > 0) { %>
+                                                                        <div style="margin-top: 10px;">
+                                                                            <strong>Yüklenen Dosyalar:</strong>
+                                                                            <ul style="list-style: none; padding: 0; margin: 10px 0 0 0;">
+                                                                                <% uploadedFiles.forEach(function(file) { %>
+                                                                                    <li style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 10px; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                                                                        <i class="fas fa-file-alt" style="color: #64748b;"></i>
+                                                                                        <span style="flex: 1; font-size: 13px; color: #1e293b;"><%= file.original_name || file.file_path %></span>
+                                                                                        <a href="/uploads/responses/<%= file.file_path %>" target="_blank" style="font-size: 12px; color: #3b82f6; font-weight: 700;">Görüntüle</a>
+                                                                                    </li>
+                                                                                <% }); %>
+                                                                            </ul>
+                                                                        </div>
+                                                                    <% } else if(task.response_file) { %>
+                                                                        <p><strong>Dosya:</strong> <a
+                                                                                href="/uploads/responses/<%= task.response_file %>"
+                                                                                target="_blank">
+                                                                                <%= task.response_file %>
+                                                                            </a></p>
+                                                                        <% } %>
+                                                    </div>
+                                                    <% } %>
+                                                        <div class="response-section">
+                                                            <h3><i class="fas fa-reply" style="color:#10b981"></i>
+                                                                Yanitinizi Gonderin</h3>
+                                                            <% if(task.status==='completed' ) { %>
+                                                                <div class="alert alert-success"><span>Gorev Tamamlandi!
+                                                                        Degisiklik yapilamaz.</span></div>
+                                                                <% } else if(task.status==='rejected' ) { %>
+                                                                    <div class="alert alert-danger"><span>Gorev Iade
+                                                                            Edildi! Duzeltme yapin.</span>
+                                                                        <% if(task.rejection_note) { %>
+                                                                            <br><strong>Sebep:</strong>
+                                                                            <%= task.rejection_note %>
+                                                                                <% } %>
+                                                                    </div>
+                                                                    <% } %>
+                                                                        <% if(task.status !=='completed' ) { %>
+                                                                            <form
+                                                                                action="/okul/tasks/<%= task.id %>/response"
+                                                                                method="POST"
+                                                                                enctype="multipart/form-data">
+                                                                                <input type="hidden" name="_csrf"
+                                                                                    value="<%= csrfToken %>">
+                                                                                <div class="form-group">
+                                                                                    <label>Durumu</label>
+                                                                                    <div class="radio-group">
+                                                                                        <label class="radio-item"><input
+                                                                                                type="radio"
+                                                                                                name="status"
+                                                                                                value="in_progress"
+                                                                                                <%=task.status==='in_progress'
+                                                                                                ? 'checked' : '' %>><div
+                                                                                                class="radio-content"><i
+                                                                                                    class="fas fa-spinner"></i>
+                                                                                                Islemde</div></label>
+                                                                                        <label class="radio-item"><input
+                                                                                                type="radio"
+                                                                                                name="status"
+                                                                                                value="completed"
+                                                                                                <%=task.status==='completed'
+                                                                                                ? 'checked' : '' %>><div
+                                                                                                class="radio-content"><i
+                                                                                                    class="fas fa-check"></i>
+                                                                                                Tamamlandi</div></label>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="form-group">
+                                                                                    <label>Not</label>
+                                                                                    <textarea name="response_note"
+                                                                                        class="form-control"><%= task.response_note || '' %></textarea>
+                                                                                </div>
+                                                                                <% if(typeof taskFields !=='undefined'
+                                                                                    && taskFields.length> 0) { %>
+                                                                                    <div
+                                                                                        style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:20px;margin-bottom:20px">
+                                                                                        <h4
+                                                                                            style="margin:0 0 15px 0;font-size:14px;color:#475569">
+                                                                                            <i class="fas fa-list-alt"
+                                                                                                style="color:#8b5cf6"></i>
+                                                                                            Form Alanlari</h4>
+                                                                                        <% for(var
+                                                                                            i=0;i<taskFields.length;i++){var
+                                                                                            f=taskFields[i]; %>
+                                                                                            <div class="form-group"
+                                                                                                style="margin-bottom:15px">
+                                                                                                <label>
+                                                                                                    <%= f.field_label %>
+                                                                                                        <%
+                                                                                                            if(f.is_required){%>
+                                                                                                            <span
+                                                                                                                style="color:#ef4444">*</span>
+                                                                                                            <%}%>
+                                                                                                </label>
+                                                                                                <% if(f.field_type==='short_text'
+                                                                                                    ){var sv=(typeof
+                                                                                                    responsesMap!=='undefined'
+                                                                                                    &&responsesMap[f.id])?responsesMap[f.id]:'';%>
+                                                                                                    <input type="text"
+                                                                                                        name="field_<%= f.id %>"
+                                                                                                        class="form-control"
+                                                                                                        value="<%= sv %>"
+                                                                                                        <%if(f.is_required){%>required
+                                                                                                    <%}%>>
+                                                                                                        <%}else
+                                                                                                            if(f.field_type==='paragraph'
+                                                                                                            ){var
+                                                                                                            pv=(typeof
+                                                                                                            responsesMap!=='undefined'
+                                                                                                            &&responsesMap[f.id])?responsesMap[f.id]:'';%>
+                                                                                                            <textarea
+                                                                                                                name="field_<%= f.id %>"
+                                                                                                                class="form-control"
+                                                                                                                style="min-height:80px"
+                                                                                                                <%if(f.is_required){%>required<%}%>><%= pv %></textarea>
+                                                                                                            <%}else
+                                                                                                                if(f.field_type==='multiple_choice'
+                                                                                                                ){var
+                                                                                                                mo=f.field_options?f.field_options.split(','):[];var
+                                                                                                                ms=(typeof
+                                                                                                                responsesMap!=='undefined'
+                                                                                                                &&responsesMap[f.id])?responsesMap[f.id]:'';%>
+                                                                                                                <div
+                                                                                                                    style="display:flex;flex-direction:column;gap:8px">
+                                                                                                                    <%for(var
+                                                                                                                        j=0;j<mo.length;j++){var
+                                                                                                                        o=mo[j].trim();%>
+                                                                                                                        <label
+                                                                                                                            style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:white;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;font-size:13px">
+                                                                                                                            <input
+                                                                                                                                type="radio"
+                                                                                                                                name="field_<%= f.id %>"
+                                                                                                                                value="<%= o %>"
+                                                                                                                                <%if(ms===o){%>checked
+                                                                                                                            <%}%>
+                                                                                                                                <%if(f.is_required){%>
+                                                                                                                                    required
+                                                                                                                                    <%}%>
+                                                                                                                                        >
+                                                                                                                                        <%= o
+                                                                                                                                            %>
+                                                                                                                        </label>
+                                                                                                                        <%}%>
+                                                                                                                </div>
+                                                                                                                <%}else
+                                                                                                                    if(f.field_type==='checkbox'
+                                                                                                                    ){var
+                                                                                                                    co=f.field_options?f.field_options.split(','):[];var
+                                                                                                                    cs=(typeof
+                                                                                                                    responsesMap!=='undefined'
+                                                                                                                    &&responsesMap[f.id])?responsesMap[f.id].split(', '):[];%>
+<div style="display:flex;flex-direction:column;gap:8px">
+<%for(var k=0;k<co.length;k++){var c=co[k].trim();%>
+<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:white;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;font-size:13px">
+<input type="checkbox" name="field_<%= f.id %>" value="<%= c %>" <%if(cs.indexOf(c)!==-1){%>checked<%}%>><%= c %>
+</label>
+<%}%>
+</div>
+<%}%>
+</div>
+<%}%>
+</div>
+<%}%>
+                                                                        <% if(task.requires_file) { %>
+                                                                            <div class="form-group" style="padding: 15px; background: #f0f9ff; border-radius: 14px; border: 1px solid #bae6fd; margin-top: 20px;">
+                                                                                <label style="color: #0369a1; font-weight: 700;"><i class="fas fa-file-upload"></i> Dosya Yükle</label>
+                                                                                <input type="file" name="response_files" id="responseFiles" class="form-control" 
+                                                                                       multiple 
+                                                                                       accept="<%= task.allowed_file_types ? task.allowed_file_types.split(',').map(t => t.trim()).join(',') : '' %>"
+                                                                                       onchange="validateFiles(this)">
+                                                                                
+                                                                                <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 4px;">
+                                                                                    <small style="color: #0c4a6e; font-size: 11px;">
+                                                                                        <i class="fas fa-info-circle"></i> 
+                                                                                        <strong>İzin verilen türler:</strong> <%= task.allowed_file_types || 'Tümü' %>
+                                                                                    </small>
+                                                                                    <small style="color: #0c4a6e; font-size: 11px;">
+                                                                                        <i class="fas fa-copy"></i> 
+                                                                                        <strong>Maksimum dosya sayısı:</strong> <%= task.max_file_count || 1 %>
+                                                                                    </small>
+                                                                                </div>
+                                                                                
+                                                                                <% if(uploadedFiles && uploadedFiles.length > 0) { %>
+                                                                                    <p style="font-size:12px;color:#ef4444;margin-top:12px;font-weight:600;">
+                                                                                        <i class="fas fa-exclamation-triangle"></i> Yeni dosya seçerseniz mevcut dosyalarınız silinecektir.
+                                                                                    </p>
+                                                                                <% } %>
+                                                                            </div>
+
+                                                                            <script>
+                                                                                function validateFiles(input) {
+                                                                                    const maxFiles = <%= task.max_file_count || 1 %>;
+                                                                                    const allowedStr = "<%= task.allowed_file_types || '' %>";
+                                                                                    const allowedTypes = allowedStr ? allowedStr.split(',').map(t => t.trim().toLowerCase()) : [];
+                                                                                    
+                                                                                    if (input.files.length > maxFiles) {
+                                                                                        alert(`En fazla ${maxFiles} dosya seçebilirsiniz.`);
+                                                                                        input.value = '';
+                                                                                        return;
+                                                                                    }
+                                                                                    
+                                                                                    if (allowedTypes.length > 0) {
+                                                                                        for (let i = 0; i < input.files.length; i++) {
+                                                                                            const extension = '.' + input.files[i].name.split('.').pop().toLowerCase();
+                                                                                            if (!allowedTypes.includes(extension)) {
+                                                                                                alert(`Geçersiz dosya türü: ${input.files[i].name}\nİzin verilenler: ${allowedStr}`);
+                                                                                                input.value = '';
+                                                                                                return;
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            </script>
+                                                                        <% } %>
+<button type="submit" class="btn-submit" style="width:auto;padding:0 25px;background:#3b82f6"><i class="fas fa-paper-plane"></i> Kaydet</button>
+</form>
+<% } %>
+<div class="response-section" id="messages">
+<h3><i class="fas fa-comments" style="color:#3b82f6"></i> Mesajlar</h3>
+<div class="messages-container">
+<% if(messages && messages.length > 0) { %>
+<% for(var m=0;m<messages.length;m++){var msg=messages[m];var own=msg.sender_id===currentUserId; %>
+<div class="msg-wrap <%= own ? ' msg-own' : 'msg-other' %>">
+                                                                                                                    <div
+                                                                                                                        class="msg-bubble">
+                                                                                                                        <div
+                                                                                                                            class="msg-sender">
+                                                                                                                            <%= own
+                                                                                                                                ? 'Siz'
+                                                                                                                                :
+                                                                                                                                msg.full_name
+                                                                                                                                %>
+                                                                                                                        </div>
+                                                                                                                        <%= msg.message
+                                                                                                                            %>
+                                                                                                                    </div>
+                                                                                                                    <div
+                                                                                                                        class="msg-time">
+                                                                                                                        <%= new
+                                                                                                                            Date(msg.created_at).toLocaleString('tr-TR')
+                                                                                                                            %>
+                                                                                                                    </div>
+                                                                                            </div>
+                                                                                            <% } %>
+                                                                                                <% } else { %>
+                                                                                                    <div
+                                                                                                        style="text-align:center;padding:30px;color:#94a3b8">
+                                                                                                        <i class="fas fa-comment-slash"
+                                                                                                            style="font-size:24px;margin-bottom:10px"></i>
+                                                                                                        <p>Henuz mesaj
+                                                                                                            yok.</p>
+                                                                                                    </div>
+                                                                                                    <% } %>
+                                                                                    </div>
+                                                                                    <form
+                                                                                        action="/okul/tasks/<%= task.id %>/message"
+                                                                                        method="POST"
+                                                                                        style="display:flex;gap:10px">
+                                                                                        <input type="hidden"
+                                                                                            name="_csrf"
+                                                                                            value="<%= csrfToken %>">
+                                                                                        <input type="text"
+                                                                                            name="message"
+                                                                                            class="form-control"
+                                                                                            placeholder="Mesaj yazin..."
+                                                                                            required style="flex:1">
+                                                                                        <button type="submit"
+                                                                                            class="btn-submit"
+                                                                                            style="width:auto;padding:0 25px;background:#3b82f6"><i
+                                                                                                class="fas fa-paper-plane"></i></button>
+                                                                                    </form>
+                                                        </div>
+                            </div>
+                        </div>
+    </div>
+    </div>
+    <%- include('../layouts/school_footer') %>
