@@ -228,7 +228,7 @@ const schoolPanelController = {
 
             // Dosya yolları
             const files = req.files || [];
-            
+
             // Atamaya ait mevcut dosyaları getir
             const currentFiles = db.prepare('SELECT * FROM task_assignment_files WHERE assignment_id = ?').all(id);
 
@@ -243,7 +243,7 @@ const schoolPanelController = {
                 // Tasarım kararı: Mevcutları silip yenileriyle değiştirelim (daha basit yönetim)
                 // Ama kullanıcı sadece not güncelliyor olabilir, bu durumda dosyalar kalmalı.
                 // Eğer yeni dosya varsa, eskileri silelim ve yenileri kaydedelim.
-                
+
                 // 1. Sayı kontrolü
                 if (files.length > maxFiles) {
                     return res.redirect(`/okul/tasks/${id}?error=max_file_limit`);
@@ -281,7 +281,7 @@ const schoolPanelController = {
             // Yeni dosyalar varsa eskileri sil ve yenileri ekle
             if (files.length > 0) {
                 const { deleteFile } = require('../utils/upload');
-                
+
                 // Eskileri sil
                 currentFiles.forEach(f => {
                     deleteFile('responses', f.file_path);
