@@ -3,7 +3,7 @@ const { uploads } = require('../utils/upload');
 const { sendPushNotification } = require('../utils/push');
 
 const schoolPanelController = {
-    uploadMulter: uploads.response.single('response_file'),
+    uploadMulter: uploads.response.array('response_files', 20),
 
     // Okul Dashboard
     dashboard: (req, res) => {
@@ -84,23 +84,23 @@ const schoolPanelController = {
 
             // Atamayı bul
             let assignment = db.prepare(`
-                SELECT ta.*, t.id as task_id, t.title, t.description, t.deadline, t.file_path as task_file, t.requires_file, t.is_file_mandatory
+                SELECT ta.*, t.id as task_id, t.title, t.description, t.deadline, t.file_path as task_file, t.requires_file, t.is_file_mandatory, t.max_file_count
                 FROM task_assignments ta 
                 JOIN tasks t ON ta.task_id = t.id 
                 WHERE ta.id = ? AND ta.user_id = ?
             `).get(id, userId);
 
+            // ... (keep the same checking logic) ...
+
             // Atama ID değil, task ID mi gelmiş kontrol et
             if (!assignment) {
                 const taskCheck = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
                 if (taskCheck) {
-                    // Bu görev için atama var mı?
                     let existingAssignment = db.prepare(
                         'SELECT * FROM task_assignments WHERE task_id = ? AND user_id = ?'
                     ).get(id, userId);
 
                     if (!existingAssignment) {
-                        // Atama oluştur
                         const result = db.prepare(
                             "INSERT INTO task_assignments (task_id, user_id, status) VALUES (?, ?, 'pending')"
                         ).run(id, userId);
@@ -114,6 +114,10 @@ const schoolPanelController = {
             if (!assignment) {
                 return res.status(404).send('Görev bulunamadı');
             }
+
+            // Atanan tüm dosyaları getir
+            const assignmentFiles = db.prepare('SELECT * FROM task_assignment_files WHERE assignment_id = ?').all(id);
+            assignment.files = assignmentFiles;
 
             // Okundu olarak işaretle
             if (!assignment.is_read) {
@@ -230,11 +234,40 @@ const schoolPanelController = {
                 return res.redirect(`/okul/tasks/${id}?error=already_submitted`);
             }
 
-            // Dosya yolu
-            let filePath = assignment.response_file;
-            if (req.file) {
-                filePath = req.file.filename;
+            // Çoklu dosya desteği
+            const files = req.files || [];
+            const maxFiles = assignment.max_file_count || 1;
+
+            if (files.length > maxFiles) {
+                return res.redirect(`/okul/tasks/${id}?error=too_many_files`);
             }
+
+            // Eğer yeni dosyalar geldiyse, mevcut dosyaları silebiliriz (veya üzerine ekleyebiliriz)
+            // Kullanıcı kolaylığı açısından "yeni yükleme eskilerini siler" mantığı daha güvenli.
+            if (files.length > 0) {
+                // Eski dosyaları DB'den ve diskten sil (opsiyonel ama temizlik iyidir)
+                const oldFiles = db.prepare('SELECT file_path FROM task_assignment_files WHERE assignment_id = ?').all(id);
+                const { deleteFile } = require('../utils/upload');
+                oldFiles.forEach(f => deleteFile('responses', f.file_path));
+                
+                db.prepare('DELETE FROM task_assignment_files WHERE assignment_id = ?').run(id);
+
+                // Yeni dosyaları ekle
+                const insertFileStmt = db.prepare(
+                    'INSERT INTO task_assignment_files (assignment_id, file_path, original_name, file_size) VALUES (?, ?, ?, ?)'
+                );
+                
+                files.forEach(file => {
+                    insertFileStmt.run(id, file.filename, file.originalname, file.size);
+                });
+
+                // Geriye dönük uyumluluk için response_file sütununa ilk dosyanın adını yaz
+                db.prepare('UPDATE task_assignments SET response_file = ? WHERE id = ?').run(files[0].filename, id);
+            }
+
+            // Dosya kontrolü için güncel filePath (en az bir dosya var mı?)
+            const currentFilesCount = db.prepare('SELECT COUNT(*) as count FROM task_assignment_files WHERE assignment_id = ?').get(id).count;
+            const hasFiles = currentFilesCount > 0;
 
             // Zorunlu dosya kontrolü
             const validStatus = ['in_progress', 'completed'].includes(status) ? status : 'in_progress';
@@ -245,14 +278,14 @@ const schoolPanelController = {
                 finalStatus = 'pending_approval';
             }
 
-            if (finalStatus === 'pending_approval' && assignment.requires_file && assignment.is_file_mandatory && !filePath) {
+            if (finalStatus === 'pending_approval' && assignment.requires_file && assignment.is_file_mandatory && !hasFiles) {
                 return res.redirect(`/okul/tasks/${id}?error=missing_file`);
             }
 
             // Güncelle
             db.prepare(
-                'UPDATE task_assignments SET status = ?, response_note = ?, response_file = ? WHERE id = ?'
-            ).run(finalStatus, response_note, filePath, id);
+                'UPDATE task_assignments SET status = ?, response_note = ? WHERE id = ?'
+            ).run(finalStatus, response_note, id);
 
             // Form alanı cevaplarını kaydet
             const taskFields = db.prepare('SELECT id FROM task_fields WHERE task_id = ?').all(assignment.task_id);
