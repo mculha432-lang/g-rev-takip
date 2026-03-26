@@ -777,14 +777,23 @@
                             </td>
 
                             <td>
-                                <% if(assignment.response_file) { %>
+                                <% if(assignment.files && assignment.files.length > 0) { %>
+                                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <% assignment.files.forEach(file => { %>
+                                            <a href="/uploads/responses/<%= file.file_path %>" target="_blank"
+                                                class="btn-view-file" style="font-size: 11px; padding: 4px 8px;">
+                                                <i class="fas fa-file-download"></i> <%= file.original_name ? (file.original_name.length > 15 ? file.original_name.substring(0, 12) + '...' : file.original_name) : 'Dosya' %>
+                                            </a>
+                                        <% }) %>
+                                    </div>
+                                <% } else if(assignment.response_file) { %>
                                     <a href="/admin/tasks/assignments/<%= assignment.id %>/download" target="_blank"
                                         class="btn-view-file">
                                         <i class="fas fa-paperclip"></i> İncele
                                     </a>
-                                    <% } else { %>
-                                        <span style="color: #cbd5e1;">-</span>
-                                        <% } %>
+                                <% } else { %>
+                                    <span style="color: #cbd5e1;">-</span>
+                                <% } %>
                             </td>
                             <td>
                                 <div style="display: flex; gap: 5px;">
