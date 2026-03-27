@@ -557,19 +557,24 @@
   'use strict';
 
   /* ── Veri ── */
-  const messagesMap    = JSON.parse(document.getElementById('messagesMapData').textContent);
-  const assignmentsArr = JSON.parse(document.getElementById('assignmentsData').textContent);
+  const messagesMapData = document.getElementById('messagesMapData');
+  const assignmentsData = document.getElementById('assignmentsData');
+  
+  const messagesMap    = messagesMapData ? JSON.parse(messagesMapData.textContent || '{}') : {};
+  const assignmentsArr = assignmentsData ? JSON.parse(assignmentsData.textContent || '[]') : [];
+  
   const responsesMap   = {};
   assignmentsArr.forEach(a => {
     if (a.fieldResponses && a.fieldResponses.length) responsesMap[a.id] = a.fieldResponses;
   });
-  const ME      = String('<%= currentUserId %>');
+  
+  const ME      = String('<%= typeof currentUserId !== "undefined" ? currentUserId : "" %>');
   const TASK_ID = '<%= task.id %>';
 
   /* ── Helpers ── */
   const $    = id => document.getElementById(id);
-  const show = id => $(id).classList.add('active');
-  const hide = id => $(id).classList.remove('active');
+  const show = id => { const el = $(id); if(el) el.classList.add('active'); };
+  const hide = id => { const el = $(id); if(el) el.classList.remove('active'); };
 
   /* ── Sıralama ── */
   const sortDir = { name: 1, status: 1 };
