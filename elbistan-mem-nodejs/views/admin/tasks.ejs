@@ -395,10 +395,18 @@ body { background: var(--bg); font-family: var(--font); color: var(--text-1); }
 }
 .school-search-row input::placeholder { color: #cbd5e1; }
 .search-count { font-size: 11px; color: var(--text-3); font-weight: 600; white-space: nowrap; }
+.btn-select-all {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; background: var(--navy); color: #fff;
+  border: none; border-radius: var(--r-md); font-size: 12px; font-weight: 700;
+  cursor: pointer; font-family: var(--font); white-space: nowrap;
+  transition: background .15s;
+}
+.btn-select-all:hover { background: var(--navy-deep); }
 
-/* School type filter buttons */
+/* School type filter + quick actions row */
 .filter-row {
-  display: flex; gap: 6px; padding: 8px 12px;
+  display: flex; align-items: center; gap: 6px; padding: 8px 12px;
   border-bottom: 1px solid var(--border-lt); background: #fafbfc;
   flex-wrap: wrap;
 }
@@ -410,16 +418,13 @@ body { background: var(--bg); font-family: var(--font); color: var(--text-1); }
 }
 .filter-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
 .filter-btn.active { background: var(--red); color: #fff; border-color: var(--red); }
-
-.list-actions {
-  display: flex; gap: 7px; padding: 7px 12px;
-  border-bottom: 1px solid var(--border-lt); background: #fafbfc;
-}
+.filter-row-divider { width: 1px; height: 18px; background: var(--border); margin: 0 2px; }
 .list-action-btn {
   font-size: 11px; padding: 4px 10px;
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--r-sm); cursor: pointer; font-weight: 600;
   font-family: var(--font); transition: all .12s; color: var(--text-2);
+  display: inline-flex; align-items: center; gap: 5px;
 }
 .list-action-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
 
@@ -739,15 +744,19 @@ body { background: var(--bg); font-family: var(--font); color: var(--text-1); }
             <span class="search-count" id="searchCount"></span>
           </div>
 
-          <!-- Okul tipi filtresi (her iki modda da var) -->
+          <!-- Okul tipi filtresi -->
           <div class="filter-row">
             <button type="button" class="filter-btn active" data-filter="all">Tümü</button>
+            <button type="button" class="filter-btn" data-filter="anaokulu">Anaokulu</button>
             <button type="button" class="filter-btn" data-filter="ilkokul">İlkokul</button>
             <button type="button" class="filter-btn" data-filter="ortaokul">Ortaokul</button>
             <button type="button" class="filter-btn" data-filter="lise">Lise</button>
-          </div>
-
-          <div class="list-actions">
+            <button type="button" class="filter-btn" data-filter="sürücü kursu">Sürücü Kursu</button>
+            <button type="button" class="filter-btn" data-filter="özel kurs">Özel Kurs</button>
+            <button type="button" class="filter-btn" data-filter="rehabilitasyon">Rehabilitasyon</button>
+            <button type="button" class="filter-btn" data-filter="özel yurt">Özel Yurt</button>
+            <button type="button" class="filter-btn" data-filter="diğer">Diğer</button>
+            <span class="filter-row-divider"></span>
             <button type="button" class="list-action-btn" id="selectAllVisibleBtn">
               <i class="fas fa-check-double"></i> Tümünü Seç
             </button>
@@ -1105,13 +1114,17 @@ body { background: var(--bg); font-family: var(--font); color: var(--text-1); }
   }
 
   /* ── Shared: search, filter, select all ── */
+  function normTR(s) {
+    return (s||'').toLowerCase().replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s').replace(/ı/g,'i').replace(/ö/g,'o').replace(/ç/g,'c');
+  }
+
   function applyFilters() {
-    const q    = document.getElementById('schoolSearchInput').value.toLowerCase().trim();
-    const type = document.querySelector('.filter-btn.active').dataset.filter;
+    const q    = normTR(document.getElementById('schoolSearchInput').value.trim());
+    const type = normTR(document.querySelector('.filter-btn.active').dataset.filter);
     let count  = 0;
     schoolListArea.querySelectorAll('.school-list-item').forEach(item => {
-      const matchText = !q || item.dataset.name.includes(q) || item.dataset.code.includes(q);
-      const matchType = type === 'all' || item.dataset.type === type;
+      const matchText = !q || normTR(item.dataset.name).includes(q) || normTR(item.dataset.code).includes(q);
+      const matchType = type === 'all' || normTR(item.dataset.type) === type;
       const show = matchText && matchType;
       item.classList.toggle('hidden', !show);
       if (show) count++;
