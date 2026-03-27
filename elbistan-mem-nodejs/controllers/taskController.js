@@ -179,7 +179,7 @@ const taskController = {
                 readCount,
                 completedCount,
                 pendingApprovalCount,
-                messagesMap: JSON.stringify(messagesMap),
+                messagesMap,
                 currentUserId: req.session.user.id
             });
         } catch (error) {
