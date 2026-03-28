@@ -787,7 +787,12 @@
               const isCompleted = assignment.status === 'completed';
               const isPendingApp = assignment.status === 'pending_approval';
               const isRejected = assignment.status === 'rejected';
-              const needsAction = isCompleted || isPendingApp;
+              
+              // Görev süresi dolmuş mu kontrol et (eğer son teslim tarihi varsa)
+              const hasDeadline = task.deadline && task.deadline.trim() !== '';
+              const isOverdue = hasDeadline && new Date(task.deadline) < new Date();
+              
+              const needsAction = isCompleted || isPendingApp || isOverdue;
               const showRejectBtn = !isRejected && needsAction;
               %>
               <tr data-name="<%= assignment.full_name %>" data-status="<%= assignment.status %>"
