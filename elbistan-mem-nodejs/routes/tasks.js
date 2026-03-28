@@ -9,22 +9,37 @@ const csrfProtection = csrf({ cookie: true });
 // Tüm görev yönetimi rotaları için admin veya kurum yöneticisi auth kontrolü
 router.use(isAdminOrManager);
 
-// Görev Listesi
+/* ─────────────────────────────────────────────────────────────
+   ÖNEMLİ: Statik rotalar dinamik /:id rotalarından ÖNCE gelmeli.
+   Aksi hâlde Express  /assignments/...  kısmını id=assignments
+   olarak eşleştirir ve 500 Internal Server Error üretir.
+───────────────────────────────────────────────────────────── */
+
+// ── Görev Listesi ────────────────────────────────────────────
 router.get('/', taskController.index);
 
-// Görev Ekle - Önce dosya yükle (uploadMulter), sonra CSRF kontrolü yap
+// ── Görev Ekle ───────────────────────────────────────────────
+// Önce dosya yükle (uploadMulter), sonra CSRF kontrolü
 router.post('/', taskController.uploadMulter, csrfProtection, taskController.store);
 
+// ── Statik alt rotalar (/:id rotasından ÖNCE tanımla) ────────
+// Görev yanıt dosyası indir
+router.get('/assignments/:assignmentId/download', taskController.downloadResponseFile);
+
+// Admin mesaj gönder
+router.post('/assignments/:assignmentId/message', taskController.sendAdminMessage);
+
+// ── Dinamik /:id rotaları ────────────────────────────────────
 // Görev Detay (Admin görünümü)
 router.get('/:id', taskController.detail);
 
-// Görev Düzenle - Form Getir
+// Görev Düzenle – Form getir
 router.get('/:id/edit', taskController.edit);
 
-// Görev Güncelle - Önce dosya yükle, sonra CSRF
+// Görev Güncelle – Önce dosya yükle, sonra CSRF
 router.post('/:id/update', taskController.uploadMulter, csrfProtection, taskController.update);
 
-// Görev Sil (POST olarak değiştirildi - güvenlik için)
+// Görev Sil
 router.post('/:id/delete', taskController.delete);
 
 // Görev İade Et (Reject)
@@ -32,11 +47,5 @@ router.post('/:taskId/assignments/:assignmentId/reject', taskController.rejectAs
 
 // Görev Onayla (Approve)
 router.post('/:taskId/assignments/:assignmentId/approve', taskController.approveAssignment);
-
-// Görev Yanıt Dosyası İndir (Güzel İsimle)
-router.get('/assignments/:assignmentId/download', taskController.downloadResponseFile);
-
-// Admin Mesaj Gönder
-router.post('/assignments/:assignmentId/message', taskController.sendAdminMessage);
 
 module.exports = router;
