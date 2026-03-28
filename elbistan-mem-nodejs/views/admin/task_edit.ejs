@@ -612,6 +612,33 @@
             .gf-required-label { font-size: 12px; font-weight: 700; color: var(--text-3); margin-right: 6px; }
             .gf-divider { width: 1px; height: 24px; background: var(--border); margin: 0 6px; }
 
+            /* ── Common Utilities ── */
+            .tp .btn-primary { background: var(--red); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: background .2s; }
+            .tp .btn-primary:hover { background: var(--red-dark); }
+            .tp .btn-secondary { background: #f1f5f9; color: var(--text-2); border: 1px solid var(--border); padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all .2s; }
+            .tp .btn-secondary:hover { background: var(--border); }
+
+            /* CKEditor Tweaks */
+            .ck-editor__editable {
+                min-height: 350px !important;
+                font-family: var(--font) !important;
+                font-size: 15px !important;
+                line-height: 1.7 !important;
+                color: var(--navy) !important;
+                padding: 24px 32px !important;
+                border-bottom-left-radius: var(--r-md) !important;
+                border-bottom-right-radius: var(--r-md) !important;
+                border-color: var(--border) !important;
+            }
+            .ck-editor__editable:focus { border-color: var(--blue) !important; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08) !important; }
+            .ck-toolbar {
+                border-top-left-radius: var(--r-md) !important;
+                border-top-right-radius: var(--r-md) !important;
+                background: #f8fafc !important;
+                border-color: var(--border) !important;
+                padding: 8px 12px !important;
+            }
+
             .gf-add-btn {
                 display: flex; align-items: center; justify-content: center; gap: 10px;
                 width: 100%; padding: 18px; background: #fff; border: 2px dashed #c5b8e8;
@@ -1073,7 +1100,19 @@
                 document.getElementById('btnSubmit').onclick = () => document.getElementById('editForm').submit();
 
                 /* ── CKEditor ── */
-                ClassicEditor.create(document.querySelector('#editor'), { language: 'tr' }).catch(err => console.error(err));
+                ClassicEditor.create(document.querySelector('#editor'), {
+                    language: 'tr',
+                    toolbar: {
+                        items: [
+                            'heading', '|',
+                            'bold', 'italic', 'link', '|',
+                            'bulletedList', 'numberedList', 'blockQuote', '|',
+                            'insertTable', 'mediaEmbed', '|',
+                            'undo', 'redo'
+                        ],
+                        shouldNotGroupWhenFull: true
+                    }
+                }).catch(err => console.error(err));
 
                 /* ── Flatpickr ── */
                 flatpickr('#deadlinePicker', { enableTime: true, dateFormat: 'Y-m-d H:i', locale: 'tr', time_24hr: true });
