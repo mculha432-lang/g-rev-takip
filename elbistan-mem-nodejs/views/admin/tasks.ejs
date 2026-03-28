@@ -6,489 +6,115 @@
 <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
 
 <%
-  /* ─────────────────────────────────────────
-     MOD TESPİTİ
-     CREATE : locals.task yok ya da null  →  Dashboard + Wizard birlikte
-     EDIT   : locals.task dolu obje       →  Sadece Wizard
-  ───────────────────────────────────────── */
   const isEdit      = typeof task !== 'undefined' && task !== null;
   const formAction  = isEdit ? `/admin/tasks/${task.id}/update` : '/admin/tasks';
-
-  /* Görev istatistikleri (CREATE modunda kullanılır) */
-  const totalTasks  = typeof tasks !== 'undefined' ? tasks.length : 0;
-  const activeTasks = typeof tasks !== 'undefined'
-    ? tasks.filter(t => new Date(t.deadline) >= new Date()).length : 0;
+  const safeTasks   = typeof tasks !== 'undefined' ? tasks : [];
+  const totalTasks  = safeTasks.length;
+  const activeTasks = safeTasks.filter(t => new Date(t.deadline) >= new Date()).length;
   const expiredTasks = totalTasks - activeTasks;
+  const safeAssignedIds = typeof assignedIds !== 'undefined' ? assignedIds : [];
 %>
 
 <style>
-/* ══════════════════════════════════════════
-   TOKENS
-══════════════════════════════════════════ */
 :root {
-  --red:       #dc2626;
-  --red-dark:  #b91c1c;
-  --red-lt:    #fef2f2;
-  --navy:      #1e293b;
-  --navy-deep: #0f172a;
-  --bg:        #f0f2f5;
-  --surface:   #ffffff;
-  --border:    #e2e8f0;
-  --border-lt: #f1f5f9;
-  --text-1:    #1e293b;
-  --text-2:    #475569;
-  --text-3:    #94a3b8;
-  --green:     #059669;
-  --green-lt:  #f0fdf4;
-  --amber:     #d97706;
-  --amber-lt:  #fffbeb;
-  --blue:      #2563eb;
-  --blue-lt:   #eff6ff;
-  --r-sm:  6px;
-  --r-md:  10px;
-  --r-lg:  14px;
-  --r-xl:  18px;
-  --r-2xl: 22px;
+  --red: #dc2626; --red-dark: #b91c1c; --red-lt: #fef2f2;
+  --navy: #1e293b; --navy-deep: #0f172a;
+  --surface: #ffffff; --border: #e2e8f0; --border-lt: #f1f5f9;
+  --text-1: #1e293b; --text-2: #475569; --text-3: #94a3b8;
+  --green: #059669; --green-lt: #f0fdf4;
+  --r-md: 10px; --r-lg: 14px; --r-xl: 18px; --r-2xl: 22px;
   --font: 'Plus Jakarta Sans', sans-serif;
   --sidebar-w: 420px;
-  --dash-trans: .32s cubic-bezier(.4,0,.2,1);
 }
+.page-root { margin-top: 18px; font-family: var(--font); }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); font-family: var(--font); color: var(--text-1); }
+#dashboardView { animation: fadeUp .32s ease; }
+.dash-topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; flex-wrap:wrap; gap:12px; }
+.dash-topbar-left { display:flex; align-items:center; gap:12px; }
+.dash-topbar-icon { width:46px; height:46px; background:linear-gradient(135deg,var(--navy),var(--navy-deep)); border-radius:var(--r-md); display:grid; place-items:center; color:#fff; font-size:18px; box-shadow:0 5px 14px rgba(15,23,42,.22); }
+.dash-topbar h1 { font-size:20px; font-weight:800; color:var(--text-1); margin:0; }
+.dash-topbar p  { font-size:12px; color:var(--text-2); margin-top:2px; }
 
-/* ══════════════════════════════════════════
-   OUTER WRAPPER  –  sadece CREATE'te ikili görünüm
-══════════════════════════════════════════ */
-.page-root { margin-top: 18px; }
+.dash-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+.stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:18px 20px; display:flex; align-items:center; gap:14px; box-shadow:0 2px 10px rgba(0,0,0,.04); transition:all .2s; }
+.stat-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.08); }
+.stat-icon { width:44px; height:44px; border-radius:var(--r-md); display:grid; place-items:center; font-size:18px; flex-shrink:0; }
+.stat-icon.navy  { background:#e8edf4;        color:var(--navy);  }
+.stat-icon.green { background:var(--green-lt); color:var(--green); }
+.stat-icon.red   { background:var(--red-lt);   color:var(--red);   }
+.stat-num   { font-size:26px; font-weight:800; color:var(--text-1); line-height:1; }
+.stat-label { font-size:11px; color:var(--text-2); margin-top:3px; font-weight:600; }
 
-/* ══════════════════════════════════════════
-   DASHBOARD VIEW
-══════════════════════════════════════════ */
-#dashboardView {
-  animation: fadeUp .3s ease;
-}
+.task-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+.task-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-xl); overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,.05); transition:all .2s; display:flex; flex-direction:column; }
+.task-card:hover { transform:translateY(-3px); box-shadow:0 8px 28px rgba(0,0,0,.1); }
+.card-top { padding:18px 20px 14px; flex:1; }
+.card-status-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.card-badge { font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; text-transform:uppercase; letter-spacing:.4px; }
+.card-badge.active  { background:#dcfce7; color:#166534; }
+.card-badge.expired { background:#fee2e2; color:#991b1b; }
+.card-deadline { font-size:11px; color:var(--text-3); font-weight:600; display:flex; align-items:center; gap:4px; }
+.card-title { font-size:14px; font-weight:700; color:var(--text-1); line-height:1.5; margin-bottom:14px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.progress-label    { display:flex; justify-content:space-between; font-size:11px; font-weight:600; color:var(--text-2); margin-bottom:6px; }
+.progress-bar-wrap { height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden; }
+.progress-bar-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--green),#34d399); transition:width .6s ease; }
+.card-footer { padding:12px 16px; display:flex; gap:7px; background:#fafbfc; border-top:1px solid var(--border-lt); }
 
-/* Üst bar */
-.dash-topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 22px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.dash-topbar-left { display: flex; align-items: center; gap: 12px; }
-.dash-topbar-icon {
-  width: 46px; height: 46px;
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%);
-  border-radius: var(--r-md);
-  display: grid; place-items: center;
-  color: #fff; font-size: 18px;
-  box-shadow: 0 5px 14px rgba(15,23,42,.22);
-}
-.dash-topbar h1 { font-size: 20px; font-weight: 800; color: var(--text-1); }
-.dash-topbar p  { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+#wizardView { animation:fadeUp .32s ease; }
+.page-wrap { display:grid; grid-template-columns:1fr var(--sidebar-w); gap:22px; min-height:80vh; }
+.panel { background:var(--surface); border-radius:var(--r-2xl); border:1px solid var(--border); box-shadow:0 8px 32px rgba(0,0,0,.06); display:flex; flex-direction:column; overflow:hidden; }
+.panel-header { padding:20px 28px; border-bottom:1px solid var(--border-lt); display:flex; justify-content:space-between; align-items:center; }
+.panel-header h1 { font-size:17px; font-weight:800; color:var(--text-1); margin:0; }
+.step-nav { display:flex; padding:0 28px; background:#f8fafc; gap:28px; border-bottom:1px solid var(--border); overflow-x:auto; }
+.step-item { display:flex; align-items:center; gap:7px; color:var(--text-3); font-weight:700; font-size:12px; cursor:pointer; padding:13px 2px; border-bottom:3px solid transparent; transition:all .2s; white-space:nowrap; }
+.step-item.active { color:var(--red); border-bottom-color:var(--red); }
+.step-num { width:21px; height:21px; background:#e2e8f0; border-radius:50%; display:grid; place-items:center; font-size:10px; font-weight:700; }
+.step-item.active .step-num { background:var(--red); color:#fff; }
+.panel-content { flex:1; padding:26px 28px; }
+.step-pane { display:none; }
+.step-pane.active { display:block; }
+.panel-footer { padding:18px 28px; background:#f8fafc; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
 
-/* İstatistik kartları */
-.dash-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 14px;
-  margin-bottom: 24px;
-}
-.stat-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  padding: 18px 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  box-shadow: 0 2px 10px rgba(0,0,0,.04);
-  transition: box-shadow .18s, transform .18s;
-}
-.stat-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.08); transform: translateY(-2px); }
-.stat-icon {
-  width: 44px; height: 44px; border-radius: var(--r-md);
-  display: grid; place-items: center; font-size: 18px; flex-shrink: 0;
-}
-.stat-icon.navy   { background: #e8edf4; color: var(--navy); }
-.stat-icon.green  { background: var(--green-lt); color: var(--green); }
-.stat-icon.amber  { background: var(--amber-lt); color: var(--amber); }
-.stat-icon.red    { background: var(--red-lt);   color: var(--red); }
-.stat-num  { font-size: 26px; font-weight: 800; color: var(--text-1); line-height: 1; }
-.stat-label{ font-size: 11px; color: var(--text-2); margin-top: 3px; font-weight: 600; }
+.btn { display:inline-flex; align-items:center; gap:7px; padding:10px 20px; border-radius:var(--r-md); font-size:13px; font-weight:700; cursor:pointer; transition:all .18s; border:none; font-family:inherit; text-decoration:none; }
+.btn-sm    { padding:6px 13px; font-size:12px; }
+.btn-ghost { background:var(--surface); color:var(--text-2); border:1px solid #cbd5e1; }
+.btn-ghost:hover { background:#f1f5f9; color:var(--text-1); }
+.btn-red   { background:var(--red);  color:#fff; box-shadow:0 3px 12px rgba(220,38,38,.28); }
+.btn-red:hover   { background:var(--red-dark); }
+.btn-navy  { background:var(--navy); color:#fff; }
+.btn-navy:hover  { background:var(--navy-deep); }
 
-/* Görev grid */
-.task-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-}
+.ebys-preview { background:#c8cdd5; border-radius:var(--r-2xl); padding:24px; border:1px solid #94a3b8; }
+.ebys-page { width:100%; max-width:540px; min-height:760px; background:#fff; box-shadow:0 10px 36px rgba(0,0,0,.2); padding:52px 46px; display:flex; flex-direction:column; font-family:'Times New Roman',serif; font-size:11pt; line-height:1.6; position:relative; margin:0 auto; }
+.ebys-header { display:flex; flex-direction:column; align-items:center; text-align:center; margin-bottom:32px; }
+.ebys-logo { width:72px; height:72px; object-fit:contain; margin-bottom:10px; display:block; }
+.ebys-header-text { font-size:12pt; font-weight:bold; text-transform:uppercase; }
+.ebys-meta { margin-bottom:24px; }
+.ebys-body { flex:1; text-align:justify; }
+.ebys-footer { margin-top:44px; text-align:right; }
 
-.task-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-xl);
-  overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0,0,0,.05);
-  transition: box-shadow .18s, transform .18s;
-  display: flex; flex-direction: column;
-}
-.task-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,.1); transform: translateY(-3px); }
+.form-group { margin-bottom:20px; }
+.form-label { display:block; font-size:11px; font-weight:700; color:var(--text-1); margin-bottom:7px; text-transform:uppercase; letter-spacing:.5px; }
+.form-control { width:100%; padding:12px 15px; border:2px solid var(--border); border-radius:var(--r-md); font-size:13px; background:#f8fafc; }
 
-.card-top {
-  padding: 18px 20px 14px;
-  border-bottom: 1px solid var(--border-lt);
-  flex: 1;
-}
-.card-status-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-.card-badge {
-  font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
-  text-transform: uppercase; letter-spacing: .4px;
-}
-.card-badge.active  { background: #dcfce7; color: #166534; }
-.card-badge.expired { background: #fee2e2; color: #991b1b; }
-.card-badge.soon    { background: #fef3c7; color: #92400e; }
+.school-list-area { display:flex; flex-direction:column; gap:6px; max-height:400px; overflow-y:auto; }
+.school-list-item { display:flex; align-items:center; gap:10px; padding:10px 14px; border:1px solid var(--border); border-radius:var(--r-md); cursor:pointer; font-size:13px; font-weight:600; color:var(--text-2); transition:all .15s; user-select:none; }
+.school-list-item:hover    { background:var(--red-lt); border-color:var(--red); color:var(--red); }
+.school-list-item.selected { background:var(--red-lt); border-color:var(--red); color:var(--red); }
+.school-list-item input[type=checkbox] { accent-color:var(--red); width:15px; height:15px; flex-shrink:0; }
 
-.card-deadline {
-  font-size: 11px; color: var(--text-3); font-weight: 600;
-  display: flex; align-items: center; gap: 4px;
-}
-
-.card-title {
-  font-size: 14px; font-weight: 700; color: var(--text-1); line-height: 1.4;
-  margin-bottom: 14px;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* İlerleme çubuğu */
-.card-progress { margin-top: auto; }
-.progress-label {
-  display: flex; justify-content: space-between; align-items: center;
-  font-size: 11px; font-weight: 600; color: var(--text-2); margin-bottom: 6px;
-}
-.progress-bar-wrap {
-  height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;
-}
-.progress-bar-fill {
-  height: 100%; border-radius: 3px;
-  background: linear-gradient(90deg, var(--green) 0%, #34d399 100%);
-  transition: width .6s ease;
-}
-
-/* Kart footer */
-.card-footer {
-  padding: 12px 16px;
-  display: flex;
-  gap: 7px;
-  align-items: center;
-  background: #fafbfc;
-  border-top: 1px solid var(--border-lt);
-}
-
-/* Boş durum */
-.empty-state {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 60px 20px;
-  background: var(--surface);
-  border: 2px dashed var(--border);
-  border-radius: var(--r-xl);
-}
-.empty-state-icon {
-  width: 64px; height: 64px; margin: 0 auto 16px;
-  background: var(--border-lt); border-radius: var(--r-lg);
-  display: grid; place-items: center; font-size: 26px; color: var(--text-3);
-}
-.empty-state h3 { font-size: 16px; font-weight: 700; color: var(--text-2); margin-bottom: 6px; }
-.empty-state p  { font-size: 13px; color: var(--text-3); }
-
-/* ══════════════════════════════════════════
-   WIZARD VIEW
-══════════════════════════════════════════ */
-#wizardView {
-  animation: fadeUp .3s ease;
-}
-
-/* Wizard içinde iki kolon (form + önizleme) */
-.page-wrap {
-  display: grid;
-  grid-template-columns: 1fr var(--sidebar-w);
-  gap: 22px;
-  height: calc(100vh - 110px);
-}
-
-.panel {
-  background: var(--surface);
-  border-radius: var(--r-2xl);
-  border: 1px solid var(--border);
-  box-shadow: 0 8px 32px rgba(0,0,0,.06);
-  display: flex; flex-direction: column;
-  overflow: hidden;
-}
-
-.panel-header {
-  padding: 20px 28px;
-  border-bottom: 1px solid var(--border-lt);
-  display: flex; justify-content: space-between; align-items: center;
-  flex-shrink: 0;
-}
-.panel-header-left { display: flex; align-items: center; gap: 13px; }
-.header-icon {
-  width: 44px; height: 44px;
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%);
-  border-radius: var(--r-md);
-  display: grid; place-items: center; color: #fff; font-size: 17px;
-  box-shadow: 0 5px 14px rgba(15,23,42,.22); flex-shrink: 0;
-}
-.panel-header h1 { font-size: 17px; font-weight: 800; color: var(--text-1); }
-.panel-header p  { font-size: 12px; color: var(--text-2); margin-top: 2px; }
-
-/* Step nav */
-.step-nav {
-  display: flex; padding: 0 28px; background: #f8fafc;
-  gap: 28px; border-bottom: 1px solid var(--border);
-  flex-shrink: 0; overflow-x: auto;
-}
-.step-item {
-  display: flex; align-items: center; gap: 7px;
-  color: var(--text-3); font-weight: 700; font-size: 12px;
-  cursor: pointer; padding: 13px 2px;
-  border-bottom: 3px solid transparent;
-  transition: color .2s, border-color .2s; user-select: none; white-space: nowrap;
-}
-.step-item.active { color: var(--red); border-bottom-color: var(--red); }
-.step-num {
-  width: 21px; height: 21px; background: #e2e8f0; border-radius: 50%;
-  display: grid; place-items: center; font-size: 10px; font-weight: 700;
-  transition: background .2s, color .2s;
-}
-.step-item.active .step-num { background: var(--red); color: #fff; }
-
-/* Form content */
-.panel-content { flex: 1; overflow-y: auto; padding: 26px 28px; }
-.step-pane { display: none; animation: fadeUp .28s ease; }
-.step-pane.active { display: block; }
-
-/* Footer */
-.panel-footer {
-  padding: 18px 28px; background: #f8fafc;
-  border-top: 1px solid var(--border);
-  display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
-}
-
-/* ══════════════════════════════════════════
-   SHARED BUTTONS
-══════════════════════════════════════════ */
-.btn {
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 10px 20px; border-radius: var(--r-md);
-  font-size: 13px; font-weight: 700; cursor: pointer;
-  font-family: var(--font); transition: all .18s;
-  text-decoration: none; white-space: nowrap; border: none;
-}
-.btn-sm { padding: 6px 13px; font-size: 12px; }
-.btn-ghost { background: var(--surface); color: var(--text-2); border: 1px solid #cbd5e1; }
-.btn-ghost:hover { background: #f1f5f9; color: var(--text-1); }
-.btn-red   { background: var(--red);   color: #fff; box-shadow: 0 3px 12px rgba(220,38,38,.28); }
-.btn-red:hover   { background: var(--red-dark); }
-.btn-navy  { background: var(--navy);  color: #fff; box-shadow: 0 3px 12px rgba(30,41,59,.22); }
-.btn-navy:hover  { background: var(--navy-deep); }
-.btn-dark  { background: #0f172a; color: #fff; }
-.btn-dark:hover  { background: #1e293b; }
-.btn-danger{ background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; }
-.btn-danger:hover{ background: #fecaca; }
-
-/* ══════════════════════════════════════════
-   FORM ELEMENTS
-══════════════════════════════════════════ */
-.form-group { margin-bottom: 20px; }
-.form-label {
-  display: block; font-size: 11px; font-weight: 700; color: var(--text-1);
-  margin-bottom: 7px; text-transform: uppercase; letter-spacing: .5px;
-}
-.form-control {
-  width: 100%; padding: 12px 15px; border: 2px solid var(--border); border-radius: var(--r-md);
-  font-size: 13px; font-family: var(--font); background: #f8fafc; color: var(--text-1);
-  transition: border-color .2s, background .2s;
-}
-.form-control:focus {
-  outline: none; border-color: var(--red);
-  box-shadow: 0 0 0 3px rgba(220,38,38,.1); background: var(--surface);
-}
-.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-
-.ck-editor__editable { min-height: 280px; border-radius: 0 0 var(--r-md) var(--r-md) !important; border: 2px solid var(--border) !important; }
-.ck-toolbar { border-radius: var(--r-md) var(--r-md) 0 0 !important; border: 2px solid var(--border) !important; border-bottom: none !important; }
-
-/* ── FILE OPTS ── */
-.file-current {
-  display: flex; align-items: center; gap: 10px;
-  padding: 11px 14px; background: #e0e7ff;
-  border-radius: var(--r-md); margin-bottom: 10px; border: 1px solid #c7d2fe;
-}
-.file-current i { color: #4338ca; font-size: 15px; }
-.file-current span { font-size: 13px; font-weight: 600; color: var(--navy); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.file-current a { color: #4338ca; font-size: 11px; font-weight: 800; text-decoration: none; padding: 4px 9px; background: #fff; border-radius: var(--r-sm); transition: all .15s; white-space: nowrap; }
-.file-current a:hover { background: #4338ca; color: #fff; }
-
-.file-opts-box { background: #f8fafc; border: 1px solid var(--border); border-radius: var(--r-lg); padding: 18px; }
-.check-row {
-  display: flex; align-items: center; gap: 9px; padding: 11px 13px;
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
-  margin-bottom: 12px; cursor: pointer; transition: border-color .15s;
-}
-.check-row:hover { border-color: #94a3b8; }
-.check-row input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--red); cursor: pointer; flex-shrink: 0; }
-.check-row label { font-size: 13px; font-weight: 600; color: var(--text-2); cursor: pointer; }
-
-/* ── DYNAMIC FORM FIELDS ── */
-.fields-wrapper { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: var(--r-lg); padding: 16px; min-height: 72px; }
-.fields-empty { text-align: center; color: var(--text-2); font-size: 13px; padding: 24px 20px; }
-.fields-empty-icon { background: var(--surface); width: 50px; height: 50px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; box-shadow: 0 3px 10px rgba(0,0,0,.05); }
-
-.field-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.04); transition: box-shadow .18s, opacity .25s, transform .25s; }
-.field-item-header { background: linear-gradient(135deg, var(--navy) 0%, #334155 100%); padding: 11px 18px; display: flex; justify-content: space-between; align-items: center; }
-.field-item-header-left { display: flex; align-items: center; gap: 9px; }
-.field-num { width: 24px; height: 24px; border-radius: var(--r-sm); background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.1); display: grid; place-items: center; color: #fff; font-size: 11px; font-weight: 700; }
-.field-item-header-left > span { color: rgba(255,255,255,.88); font-size: 12px; font-weight: 600; }
-.field-item-header-right { display: flex; align-items: center; gap: 9px; }
-.field-required-label { display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,.18); padding: 4px 9px; border-radius: var(--r-sm); font-size: 11px; color: rgba(255,255,255,.82); cursor: pointer; }
-.field-required-label input { width: 13px; height: 13px; accent-color: var(--red); cursor: pointer; }
-.field-remove-btn { width: 28px; height: 28px; border-radius: var(--r-sm); background: rgba(239,68,68,.18); color: #fca5a5; border: none; cursor: pointer; display: grid; place-items: center; font-size: 12px; transition: all .15s; }
-.field-remove-btn:hover { background: #ef4444; color: #fff; }
-.field-item-body { padding: 18px; }
-.field-body-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
-.field-type-wrap { flex: 0 0 200px; min-width: 170px; }
-.field-label-wrap { flex: 1; min-width: 200px; }
-.field-sub-label { display: block; font-size: 10px; font-weight: 700; color: var(--text-2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .4px; }
-.field-select, .field-text-input { width: 100%; padding: 10px 12px; border: 2px solid var(--border); border-radius: var(--r-md); font-size: 13px; font-weight: 500; color: var(--text-1); background: #f8fafc; font-family: var(--font); outline: none; transition: border-color .15s; appearance: none; }
-.field-select:focus, .field-text-input:focus { border-color: var(--navy); }
-.field-options-section { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-lt); }
-.options-list-wrap { background: #f8fafc; border: 1px solid var(--border); border-radius: var(--r-md); padding: 5px; }
-.options-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 10px 3px; }
-.option-tag { display: inline-flex; align-items: center; background: var(--surface); border: 1px solid #cbd5e1; border-radius: var(--r-sm); padding: 4px 9px; font-size: 11px; color: var(--text-1); font-weight: 600; animation: fadeUp .18s ease-out; }
-.opt-remove { margin-left: 7px; cursor: pointer; color: #ef4444; width: 14px; height: 14px; border-radius: 50%; background: #fee2e2; display: grid; place-items: center; font-size: 8px; transition: all .12s; }
-.opt-remove:hover { background: #ef4444; color: #fff; }
-.option-add-row { display: flex; margin: 6px; }
-.option-add-row input { flex: 1; height: 38px; padding: 0 12px; border: 2px solid #cbd5e1; border-right: none; border-radius: var(--r-sm) 0 0 var(--r-sm); font-size: 12px; font-family: var(--font); outline: none; transition: border-color .15s; background: var(--surface); }
-.option-add-row input:focus { border-color: var(--navy); }
-.option-add-btn { height: 38px; padding: 0 15px; background: #e2e8f0; border: 2px solid #cbd5e1; border-radius: 0 var(--r-sm) var(--r-sm) 0; font-size: 12px; font-weight: 700; font-family: var(--font); color: var(--text-2); cursor: pointer; transition: all .12s; display: flex; align-items: center; gap: 5px; }
-.option-add-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
-.option-hint { padding: 3px 12px 8px; font-size: 11px; color: var(--text-3); display: flex; align-items: center; gap: 4px; }
-
-/* ── SCHOOL PICKER ── */
-.picker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.picker-title { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 700; color: var(--text-1); text-transform: uppercase; letter-spacing: .5px; }
-.count-badge { background: var(--red); color: #fff; font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 700; }
-
-.assigned-box { background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: var(--r-lg); padding: 14px; margin-bottom: 12px; }
-.assigned-box-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.assigned-box-header h4 { font-size: 11px; font-weight: 700; color: #166534; display: flex; align-items: center; gap: 5px; }
-.btn-remove-all { font-size: 11px; padding: 3px 9px; background: var(--surface); color: var(--red); border: 1px solid #fecaca; border-radius: var(--r-sm); cursor: pointer; font-weight: 600; transition: all .12s; font-family: var(--font); }
-.btn-remove-all:hover { background: #fef2f2; border-color: #f87171; }
-.chips-area { display: flex; flex-wrap: wrap; gap: 6px; max-height: 170px; overflow-y: auto; }
-.chips-area::-webkit-scrollbar { width: 4px; }
-.chips-area::-webkit-scrollbar-thumb { background: #a7f3d0; border-radius: 3px; }
-.school-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px 4px 10px; background: var(--surface); border: 1.5px solid #86efac; border-radius: var(--r-sm); font-size: 11px; font-weight: 500; color: var(--text-1); animation: fadeUp .18s ease-out; }
-.school-chip.removing { opacity: 0; transform: scale(.9); transition: all .2s; }
-.chip-code { font-size: 10px; color: var(--text-3); font-weight: 600; }
-.chip-remove { width: 16px; height: 16px; border-radius: 4px; background: #fee2e2; color: var(--red); border: none; cursor: pointer; font-size: 10px; font-weight: 700; display: grid; place-items: center; transition: all .12s; line-height: 1; }
-.chip-remove:hover { background: var(--red); color: #fff; transform: scale(1.1); }
-.no-school-msg { font-size: 12px; color: var(--text-3); font-style: italic; }
-
-.removed-box { background: #fef2f2; border: 1.5px solid #fecaca; border-radius: var(--r-lg); padding: 12px; margin-bottom: 12px; }
-.removed-box h4 { font-size: 11px; font-weight: 700; color: #991b1b; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
-.removed-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.removed-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px 4px 10px; background: var(--surface); border: 1.5px solid #fca5a5; border-radius: var(--r-sm); font-size: 11px; color: #991b1b; text-decoration: line-through; animation: fadeUp .18s ease-out; }
-.chip-undo { width: 16px; height: 16px; border-radius: 4px; background: #dbeafe; color: var(--blue); border: none; cursor: pointer; font-size: 9px; display: grid; place-items: center; transition: all .12s; }
-.chip-undo:hover { background: var(--blue); color: #fff; }
-
-.available-box { background: #f8fafc; border: 1.5px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
-.school-search-row { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--surface); }
-.school-search-row i { color: var(--text-3); font-size: 13px; }
-.school-search-row input { flex: 1; border: none; outline: none; font-size: 13px; font-family: var(--font); color: var(--text-1); background: transparent; }
-.school-search-row input::placeholder { color: #cbd5e1; }
-.search-count { font-size: 11px; color: var(--text-3); font-weight: 600; white-space: nowrap; }
-
-.filter-row { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--border-lt); background: #fafbfc; flex-wrap: wrap; }
-.filter-btn { font-size: 11px; padding: 4px 11px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; cursor: pointer; font-weight: 600; font-family: var(--font); transition: all .12s; color: var(--text-2); }
-.filter-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
-.filter-btn.active { background: var(--red); color: #fff; border-color: var(--red); }
-.filter-row-divider { width: 1px; height: 18px; background: var(--border); margin: 0 2px; flex-shrink: 0; }
-.list-action-btn { font-size: 11px; padding: 4px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); cursor: pointer; font-weight: 600; font-family: var(--font); transition: all .12s; color: var(--text-2); display: inline-flex; align-items: center; gap: 5px; }
-.list-action-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
-
-.school-list-area { max-height: 240px; overflow-y: auto; padding: 4px; }
-.school-list-area::-webkit-scrollbar { width: 4px; }
-.school-list-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-.school-list-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--r-sm); cursor: pointer; transition: background .1s; margin: 2px 0; }
-.school-list-item:hover { background: #eff6ff; }
-.school-list-item.selected { background: #dbeafe; border: 1px solid #93c5fd; }
-.school-list-item.hidden { display: none; }
-.school-list-item input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--navy); cursor: pointer; flex-shrink: 0; }
-.si-name { font-size: 12px; font-weight: 600; color: var(--text-1); }
-.si-code { font-size: 10px; color: var(--text-3); }
-.badge-assigned { font-size: 9px; padding: 2px 6px; border-radius: 4px; background: #dcfce7; color: #16a34a; font-weight: 700; text-transform: uppercase; margin-left: auto; white-space: nowrap; }
-
-/* ── EBYS PREVIEW ── */
-.ebys-preview { background: #c8cdd5; border-radius: var(--r-2xl); padding: 24px; display: flex; justify-content: center; overflow-y: auto; border: 1px solid #94a3b8; position: sticky; top: 18px; }
-.ebys-page { width: 100%; max-width: 540px; min-height: 760px; background: #fff; box-shadow: 0 10px 36px rgba(0,0,0,.2); padding: 52px 46px; display: flex; flex-direction: column; font-family: 'Times New Roman', serif; font-size: 11pt; line-height: 1.6; position: relative; }
-.ebys-header { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 32px; }
-.ebys-logo   { width: 52px; margin-bottom: 8px; }
-.ebys-header-text { font-size: 12pt; font-weight: bold; text-transform: uppercase; line-height: 1.4; }
-.ebys-meta { margin-bottom: 24px; }
-.ebys-meta-row { display: flex; gap: 4px; margin-bottom: 4px; }
-.ebys-date-abs { position: absolute; right: 46px; top: 138px; }
-.ebys-subject { text-align: center; font-weight: bold; text-transform: uppercase; font-size: 11pt; margin: 24px 0; }
-.ebys-body { flex: 1; text-align: justify; }
-.ebys-footer { margin-top: 44px; text-align: right; }
-.ebys-sig-title { font-weight: bold; }
-
-/* ── ANİMASYON ── */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(7px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-/* ── RESPONSIVE ── */
-@media (max-width: 1100px) {
-  .page-wrap { grid-template-columns: 1fr; height: auto; }
-  .ebys-preview { display: none; }
-  .task-grid { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 640px) {
-  .task-grid { grid-template-columns: 1fr; }
-  .dash-stats { grid-template-columns: 1fr 1fr; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+@media (max-width:1100px) {
+  .page-wrap { grid-template-columns:1fr; }
+  .ebys-preview { display:none; }
+  .dash-stats { grid-template-columns:1fr; }
 }
 </style>
 
-<!-- ═══════════════════════════════════════════
-     PAGE ROOT
-════════════════════════════════════════════ -->
 <div class="page-root">
 
 <% if (!isEdit) { %>
-<!-- ═══════════════════════════════════════════
-     DASHBOARD VIEW  (sadece CREATE modunda)
-════════════════════════════════════════════ -->
 <div id="dashboardView">
-
-  <!-- Üst bar -->
   <div class="dash-topbar">
     <div class="dash-topbar-left">
       <div class="dash-topbar-icon"><i class="fas fa-tasks"></i></div>
@@ -502,842 +128,161 @@ body { background: var(--bg); font-family: var(--font); color: var(--text-1); }
     </button>
   </div>
 
-  <!-- İstatistik kutuları -->
   <div class="dash-stats">
     <div class="stat-card">
       <div class="stat-icon navy"><i class="fas fa-layer-group"></i></div>
-      <div>
-        <div class="stat-num"><%= totalTasks %></div>
-        <div class="stat-label">Toplam Görev</div>
-      </div>
+      <div><div class="stat-num"><%= totalTasks %></div><div class="stat-label">Toplam Görev</div></div>
     </div>
     <div class="stat-card">
       <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
-      <div>
-        <div class="stat-num"><%= activeTasks %></div>
-        <div class="stat-label">Aktif Görev</div>
-      </div>
+      <div><div class="stat-num"><%= activeTasks %></div><div class="stat-label">Aktif Görev</div></div>
     </div>
     <div class="stat-card">
       <div class="stat-icon red"><i class="fas fa-clock"></i></div>
-      <div>
-        <div class="stat-num"><%= expiredTasks %></div>
-        <div class="stat-label">Süresi Dolmuş</div>
-      </div>
+      <div><div class="stat-num"><%= expiredTasks %></div><div class="stat-label">Süresi Dolmuş</div></div>
     </div>
   </div>
 
-  <!-- Görev kartları -->
   <div class="task-grid">
-    <% if (tasks.length === 0) { %>
-      <div class="empty-state">
-        <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
-        <h3>Henüz görev yok</h3>
-        <p>Yukarıdaki "Yeni Görev Oluştur" butonuna tıklayarak başlayın.</p>
-      </div>
+    <% if (safeTasks.length === 0) { %>
+      <div class="stat-card" style="grid-column:1/-1;justify-content:center;padding:40px;">Henüz görev yok.</div>
     <% } %>
-
-    <% tasks.forEach(function(t) {
+    <% safeTasks.forEach(function(t) {
       const deadlineDate = new Date(t.deadline);
-      const today        = new Date();
-      const diffDays     = Math.ceil((deadlineDate - today) / (1000*60*60*24));
-      let badgeClass = 'active',  badgeLabel = 'Aktif';
-      if (diffDays < 0)       { badgeClass = 'expired'; badgeLabel = 'Süresi Doldu'; }
-      else if (diffDays <= 3) { badgeClass = 'soon';    badgeLabel = diffDays + ' Gün Kaldı'; }
-
-      const completion = typeof t.completion_rate !== 'undefined' ? t.completion_rate : 0;
+      const isExpired    = deadlineDate < new Date();
+      const completion   = t.completion_rate || 0;
     %>
       <div class="task-card">
         <div class="card-top">
           <div class="card-status-row">
-            <span class="card-badge <%= badgeClass %>"><%= badgeLabel %></span>
-            <span class="card-deadline">
-              <i class="fas fa-calendar-alt"></i>
-              <%= deadlineDate.toLocaleDateString('tr-TR') %>
-            </span>
+            <span class="card-badge <%= isExpired ? 'expired' : 'active' %>"><%= isExpired ? 'Süresi Doldu' : 'Aktif' %></span>
+            <span class="card-deadline"><i class="fas fa-calendar"></i> <%= deadlineDate.toLocaleDateString('tr-TR') %></span>
           </div>
           <div class="card-title"><%= t.title %></div>
-          <div class="card-progress">
-            <div class="progress-label">
-              <span>Okul Tamamlama</span>
-              <span><%= completion %>%</span>
-            </div>
-            <div class="progress-bar-wrap">
-              <div class="progress-bar-fill" style="width:<%= completion %>%"></div>
-            </div>
-          </div>
+          <div class="progress-label"><span>Tamamlanma</span><span>%<%= completion %></span></div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:<%= completion %>%"></div></div>
         </div>
         <div class="card-footer">
-          <a href="/admin/tasks/<%= t.id %>" class="btn btn-ghost btn-sm">
-            <i class="fas fa-eye"></i> Detay
-          </a>
-          <a href="/admin/tasks/<%= t.id %>/edit" class="btn btn-navy btn-sm">
-            <i class="fas fa-edit"></i> Düzenle
-          </a>
-          <form action="/admin/tasks/<%= t.id %>/delete" method="POST"
-                onsubmit="return confirm('Bu görevi silmek istediğine emin misin?')"
-                style="margin:0; margin-left:auto;">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <button type="submit" class="btn btn-danger btn-sm">
-              <i class="fas fa-trash"></i>
-            </button>
-          </form>
+          <a href="/admin/tasks/<%= t.id %>"      class="btn btn-ghost btn-sm">Detay</a>
+          <a href="/admin/tasks/<%= t.id %>/edit" class="btn btn-navy  btn-sm">Düzenle</a>
         </div>
       </div>
     <% }); %>
   </div>
+</div>
+<% } %>
 
-</div><!-- /#dashboardView -->
-
-<!-- ═══════════════════════════════════════════
-     WIZARD VIEW  (CREATE modunda, başta gizli)
-════════════════════════════════════════════ -->
-<div id="wizardView" style="display:none; margin-top:18px;">
-<% } /* /if !isEdit */ %>
-
-<!-- Wizard her iki modda da render edilir;
-     CREATE'te #wizardView içinde gizli başlar,
-     EDIT'te direkt görünür. -->
-
-<div class="page-wrap">
-
-  <!-- ══ LEFT: WIZARD FORM ══ -->
-  <div class="panel">
-
-    <div class="panel-header">
-      <div class="panel-header-left">
-        <div class="header-icon">
-          <i class="fas fa-<%= isEdit ? 'edit' : 'file-signature' %>"></i>
-        </div>
-        <div>
-          <h1><%= isEdit ? 'Görevi Düzenle' : 'Yeni Görev Hazırla' %></h1>
-          <p><%= isEdit ? 'İçeriği ve atamaları güncelleyin.' : 'EBYS standartlarında görev evrakı oluşturun.' %></p>
-        </div>
-      </div>
-      <% if (isEdit) { %>
-        <a href="/admin/tasks/<%= task.id %>" class="btn btn-ghost">
-          <i class="fas fa-arrow-left"></i> Geri Dön
-        </a>
-      <% } else { %>
-        <button type="button" class="btn btn-ghost" onclick="showDashboard()">
-          <i class="fas fa-arrow-left"></i> Görev Listesi
-        </button>
-      <% } %>
-    </div>
-
-    <div class="step-nav">
-      <div class="step-item active" data-step="1"><span class="step-num">1</span> Bilgiler</div>
-      <div class="step-item"        data-step="2"><span class="step-num">2</span> Evrak Editörü</div>
-      <div class="step-item"        data-step="3"><span class="step-num">3</span> Form & Ekler</div>
-      <div class="step-item"        data-step="4"><span class="step-num">4</span> Dağıtım</div>
-    </div>
-
-    <form id="mainForm" action="<%= formAction %>" method="POST"
-          enctype="multipart/form-data" class="panel-content">
-
-      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <div id="removedSchoolInputs"></div>
-      <div id="addedSchoolInputs"></div>
-
-      <!-- STEP 1 -->
-      <div class="step-pane active" id="step1">
-        <div class="form-group">
-          <label class="form-label">Görev Başlığı / Konu</label>
-          <input type="text" name="title" id="inpTitle" class="form-control"
-                 value="<%= isEdit ? task.title : '' %>"
-                 placeholder="Örn: 2024-2025 Eğitim Dönemi İstatistik Bilgi Girişi" required>
-        </div>
-        <div class="form-grid-2">
-          <div class="form-group">
-            <label class="form-label">Sayı</label>
-            <input type="text" id="inpSayi" class="form-control" placeholder="E-91368608-...">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Evrak Tarihi</label>
-            <input type="text" id="inpEvrakTarih" class="form-control">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Son Teslim Tarihi</label>
-          <input type="text" name="deadline" id="taskDeadline" class="form-control"
-                 value="<%= isEdit ? (task.deadline || '') : '' %>"
-                 placeholder="Tarih seçiniz..." required>
-        </div>
-      </div>
-
-      <!-- STEP 2 -->
-      <div class="step-pane" id="step2">
-        <div class="form-group">
-          <label class="form-label">Resmi Metin İçeriği</label>
-          <textarea name="description" id="richEditor"><%= isEdit ? (task.description || '') : '' %></textarea>
-        </div>
-      </div>
-
-      <!-- STEP 3 -->
-      <div class="step-pane" id="step3">
-        <% if (isEdit && task.file_path) { %>
-          <div class="form-group">
-            <label class="form-label">Mevcut Ek Dosya</label>
-            <div class="file-current">
-              <i class="fas fa-file-pdf"></i>
-              <span><%= task.file_path %></span>
-              <a href="/uploads/tasks/<%= task.file_path %>" target="_blank">GÖRÜNTÜLE</a>
-            </div>
-            <small style="font-size:11px;color:var(--text-3);">Yeni dosya yüklerseniz mevcut dosya değiştirilir.</small>
-          </div>
+<div id="wizardView" style="<%= isEdit ? '' : 'display:none;' %>">
+  <div class="page-wrap">
+    <div class="panel">
+      <div class="panel-header">
+        <h1><%= isEdit ? 'Görevi Düzenle' : 'Yeni Görev Yaz' %></h1>
+        <% if (!isEdit) { %>
+          <button type="button" class="btn btn-ghost" onclick="showDashboard()">Geri Dön</button>
         <% } %>
-        <div class="form-group">
-          <label class="form-label">Metne Ek Dosya Yükle</label>
+      </div>
+      <div class="step-nav">
+        <div class="step-item active" data-step="1">1. Bilgiler</div>
+        <div class="step-item"        data-step="2">2. Yazı</div>
+        <div class="step-item"        data-step="3">3. Form</div>
+        <div class="step-item"        data-step="4">4. Dağıtım</div>
+      </div>
+      <form id="mainForm" action="<%= formAction %>" method="POST" enctype="multipart/form-data" class="panel-content">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="step-pane active" id="step1">
+          <div class="form-group"><label class="form-label">Başlık</label><input type="text" name="title" id="inpTitle" class="form-control" value="<%= isEdit ? task.title : '' %>"></div>
+          <div class="form-group"><label class="form-label">Sayı</label><input type="text" id="inpSayi" class="form-control"></div>
+          <div class="form-group"><label class="form-label">Deadline</label><input type="text" name="deadline" id="taskDeadline" class="form-control" value="<%= isEdit ? task.deadline : '' %>"></div>
+        </div>
+        <div class="step-pane" id="step2">
+          <textarea name="description" id="richEditor"><%= isEdit ? task.description : '' %></textarea>
+        </div>
+        <div class="step-pane" id="step3">
           <input type="file" name="task_file" class="form-control">
+          <div id="fieldsList" style="margin-top:15px"></div>
+          <button type="button" class="btn btn-navy btn-sm" onclick="addFormField()" style="margin-top:10px">+ Soru Ekle</button>
         </div>
-        <div class="form-group">
-          <div class="file-opts-box">
-            <div class="check-row">
-              <input type="checkbox" name="requires_file" id="requires_file" value="1"
-                     <%= (isEdit && task.requires_file) ? 'checked' : '' %>>
-              <label for="requires_file">Okullardan dosya yüklemesi istensin</label>
-            </div>
-            <div id="fileOptions" style="<%= (isEdit && task.requires_file) ? '' : 'display:none;' %> padding-left:26px;">
-              <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
-                <div>
-                  <label class="form-label" style="margin-bottom:5px;">Maks. Dosya</label>
-                  <input type="number" name="max_file_count" class="form-control"
-                         value="<%= isEdit ? (task.max_file_count || 1) : 1 %>" min="1" max="20"
-                         style="width:76px;padding:8px;">
-                </div>
-                <div class="check-row" style="margin:0;flex:1;min-width:170px;background:#fff1f2;border-color:#fecaca;">
-                  <input type="checkbox" name="is_file_mandatory" id="is_file_mandatory" value="1"
-                         <%= (!isEdit || task.is_file_mandatory !== 0) ? 'checked' : '' %>>
-                  <label for="is_file_mandatory">Dosya yüklemek <strong>zorunlu</strong> olsun</label>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--navy),#334155);border-radius:var(--r-md);display:grid;place-items:center;box-shadow:0 3px 9px rgba(30,41,59,.18);">
-                <i class="fas fa-list-alt" style="color:#fff;font-size:15px;"></i>
-              </div>
-              <div>
-                <div style="font-size:13px;font-weight:800;color:var(--navy);">FORM ALANLARI</div>
-                <div style="font-size:11px;color:var(--text-2);">Okullardan veri toplamak için sorular ekleyin</div>
-              </div>
-            </div>
-            <button type="button" id="addFieldBtn" class="btn btn-navy" style="font-size:12px;padding:9px 16px;">
-              <i class="fas fa-plus-circle"></i> Alan Ekle
-            </button>
-          </div>
-          <div class="fields-wrapper">
-            <div id="fieldsEmpty" class="fields-empty">
-              <div class="fields-empty-icon">
-                <i class="fas fa-layer-group" style="font-size:20px;color:var(--navy);opacity:.45;"></i>
-              </div>
-              <strong style="display:block;margin-bottom:3px;">Henüz form alanı eklenmedi</strong>
-              <span style="font-size:12px;color:var(--text-2);">"Alan Ekle" butonuna tıklayarak başlayın</span>
-            </div>
-            <div id="fieldsList"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- STEP 4 -->
-      <div class="step-pane" id="step4">
-        <div class="picker-header">
-          <div class="picker-title">
-            <i class="fas fa-school"></i> Kurum Atamaları
-            <span class="count-badge" id="totalAssignedCount">
-              <%= isEdit ? assignedIds.length : 0 %>
-            </span>
-          </div>
-        </div>
-
-        <div class="assigned-box">
-          <div class="assigned-box-header">
-            <h4><i class="fas fa-check-circle" style="color:var(--green);"></i> Atanmış Kurumlar</h4>
-            <button type="button" class="btn-remove-all" id="removeAllBtn"
-              style="<%= (!isEdit || (typeof assignedSchoolDetails !== 'undefined' && assignedSchoolDetails.length === 0)) ? 'display:none;' : '' %>">
-              <i class="fas fa-times"></i> Tümünü Kaldır
-            </button>
-          </div>
-          <div class="chips-area" id="assignedChips">
-            <% if (isEdit) { %>
-              <% if (assignedSchoolDetails.length === 0) { %>
-                <div class="no-school-msg">Henüz atanmış kurum bulunmuyor.</div>
-              <% } %>
-              <% assignedSchoolDetails.forEach(function(school) { %>
-                <div class="school-chip"
-                     data-id="<%= school.id %>"
-                     data-name="<%= school.full_name %>"
-                     data-code="<%= school.username %>">
-                  <span><%= school.full_name %></span>
-                  <span class="chip-code">(<%= school.username %>)</span>
-                  <button type="button" class="chip-remove" title="Kaldır">×</button>
-                </div>
-              <% }); %>
-            <% } else { %>
-              <div class="no-school-msg" id="createNoSchool">Aşağıdan okul seçin.</div>
-            <% } %>
-          </div>
-        </div>
-
-        <% if (isEdit) { %>
-          <div class="removed-box" id="removedBox" style="display:none;">
-            <h4><i class="fas fa-trash-alt"></i> Kaldırılacak Kurumlar</h4>
-            <div class="removed-chips" id="removedChips"></div>
-          </div>
-        <% } %>
-
-        <div class="available-box">
-          <div class="school-search-row">
-            <i class="fas fa-search"></i>
-            <input type="text" id="schoolSearchInput" placeholder="Kurum adı veya kodu ile ara...">
-            <span class="search-count" id="searchCount"></span>
-          </div>
-          <div class="filter-row">
-            <button type="button" class="filter-btn active" data-filter="all">Tümü</button>
-            <button type="button" class="filter-btn" data-filter="anaokulu">Anaokulu</button>
-            <button type="button" class="filter-btn" data-filter="ilkokul">İlkokul</button>
-            <button type="button" class="filter-btn" data-filter="ortaokul">Ortaokul</button>
-            <button type="button" class="filter-btn" data-filter="lise">Lise</button>
-            <button type="button" class="filter-btn" data-filter="sürücü kursu">Sürücü Kursu</button>
-            <button type="button" class="filter-btn" data-filter="özel kurs">Özel Kurs</button>
-            <button type="button" class="filter-btn" data-filter="rehabilitasyon">Rehabilitasyon</button>
-            <button type="button" class="filter-btn" data-filter="özel yurt">Özel Yurt</button>
-            <button type="button" class="filter-btn" data-filter="diğer">Diğer</button>
-            <span class="filter-row-divider"></span>
-            <button type="button" class="list-action-btn" id="selectAllVisibleBtn">
-              <i class="fas fa-check-double"></i> Tümünü Seç
-            </button>
-            <button type="button" class="list-action-btn" id="clearSelectionBtn">
-              <i class="fas fa-eraser"></i> Seçimi Temizle
-            </button>
-          </div>
-          <div class="school-list-area" id="schoolListArea">
-            <% schools.forEach(function(school) {
-              const isAssigned = isEdit && assignedIds.includes(school.id);
-              const schoolType = (school.school_type || 'diger').toLowerCase();
+        <div class="step-pane" id="step4">
+          <div class="school-list-area">
+            <% schools.forEach(function(s) {
+              const checked = isEdit && safeAssignedIds.includes(s.id);
             %>
-              <label class="school-list-item <%= isAssigned ? 'selected' : '' %>"
-                     data-id="<%= school.id %>"
-                     data-name="<%= school.full_name.toLowerCase() %>"
-                     data-code="<%= school.username.toLowerCase() %>"
-                     data-type="<%= schoolType %>"
-                     data-assigned="<%= isAssigned %>">
-                <input type="checkbox"
-                       name="<%= isEdit ? '' : 'school_ids' %>"
-                       value="<%= school.id %>"
-                       <%= isAssigned ? 'checked disabled' : '' %>>
-                <div style="flex:1;min-width:0;">
-                  <div class="si-name"><%= school.full_name %></div>
-                  <div class="si-code"><%= school.username %></div>
-                </div>
-                <% if (isAssigned) { %>
-                  <span class="badge-assigned">Atandı</span>
-                <% } %>
+              <label class="school-list-item <%= checked ? 'selected' : '' %>">
+                <input type="checkbox" name="school_ids" value="<%= s.id %>" <%= checked ? 'checked' : '' %>>
+                <%= s.full_name %>
               </label>
             <% }); %>
           </div>
         </div>
-      </div><!-- /step4 -->
-
-    </form>
-
-    <div class="panel-footer">
-      <button type="button" id="btnPrev" class="btn btn-ghost" style="visibility:hidden;">
-        <i class="fas fa-chevron-left"></i> Geri
-      </button>
-      <div style="display:flex;gap:9px;">
-        <button type="button" id="btnNext" class="btn btn-red">
-          Sonraki Adım <i class="fas fa-chevron-right"></i>
-        </button>
-        <button type="button" id="btnSubmit" class="btn btn-navy" style="display:none;">
-          <i class="fas fa-<%= isEdit ? 'save' : 'paper-plane' %>"></i>
-          <%= isEdit ? 'Değişiklikleri Kaydet' : 'Görevi Yayınla' %>
-        </button>
+      </form>
+      <div class="panel-footer">
+        <button type="button" id="btnPrev"   class="btn btn-ghost" style="visibility:hidden">Geri</button>
+        <button type="button" id="btnNext"   class="btn btn-red">Sonraki</button>
+        <button type="button" id="btnSubmit" class="btn btn-navy" style="display:none">Gönder</button>
       </div>
     </div>
-  </div><!-- /panel -->
 
-  <!-- ══ RIGHT: EBYS PREVIEW ══ -->
-  <div class="ebys-preview">
-    <div class="ebys-page">
-      <div class="ebys-header">
-        <img src="/img/meb-logo.png" class="ebys-logo" alt="MEB"
-             onerror="this.src='https://upload.wikimedia.org/wikipedia/tr/b/ae/Mill%C3%AE_E%C4%9Fitim_Bakanl%C4%B1%C4%9F%C4%B1_logo.png'">
-        <div class="ebys-header-text">T.C.<br>ELBİSTAN KAYMAKAMLIĞI<br>İlçe Millî Eğitim Müdürlüğü</div>
-      </div>
-      <div class="ebys-meta">
-        <div class="ebys-meta-row"><strong>Sayı :</strong>&nbsp;<span id="preSayi">E-91368608-...</span></div>
-        <div class="ebys-meta-row"><strong>Konu :</strong>&nbsp;<span id="preKonu"><%= isEdit ? task.title : 'Evrak Konusu' %></span></div>
-      </div>
-      <div class="ebys-date-abs"><strong>Tarih :</strong>&nbsp;<span id="preTarih"></span></div>
-      <div class="ebys-subject">DAĞITIM YERLERİNE</div>
-      <div class="ebys-body" id="preBody">
-        <%- isEdit ? (task.description || '<p>Evrak içeriği bekleniyor...</p>') : '<p>Evrak içeriği burada görüntülenecektir...</p>' %>
-      </div>
-      <div class="ebys-footer">
-        <div class="ebys-sig-title">İlçe Millî Eğitim Müdürü</div>
-        <div>İmza</div>
+    <div class="ebys-preview">
+      <div class="ebys-page">
+        <div class="ebys-header">
+          <!-- DÜZELTME: Wikipedia URL kaldırıldı → /icons/mem-logo.jpg kullan -->
+          <img src="/icons/mem-logo.jpg" class="ebys-logo" alt="MEM Logo" onerror="this.style.display='none'">
+          <div class="ebys-header-text">ELBİSTAN İLÇE MEM</div>
+        </div>
+        <div class="ebys-meta">
+          <div>Sayı: <span id="preSayi">...</span></div>
+          <div>Konu: <span id="preKonu">...</span></div>
+        </div>
+        <div id="preBody" class="ebys-body">...</div>
       </div>
     </div>
   </div>
+</div>
 
-</div><!-- /page-wrap -->
+</div>
 
-<% if (!isEdit) { %>
-</div><!-- /#wizardView -->
-<% } %>
-
-</div><!-- /page-root -->
-
-<!-- ═══════════════════════════════════════════
-     JAVASCRIPT
-════════════════════════════════════════════ -->
 <script>
 (function () {
-  'use strict';
+  let step = 1;
 
-  const IS_EDIT = <%= isEdit ? 'true' : 'false' %>;
+  window.showWizard    = () => { document.getElementById('dashboardView').style.display = 'none';  document.getElementById('wizardView').style.display = 'block'; };
+  window.showDashboard = () => { document.getElementById('dashboardView').style.display = 'block'; document.getElementById('wizardView').style.display = 'none';  };
 
-  /* ────────────────────────────────
-     DASHBOARD ↔ WIZARD GEÇİŞİ
-  ──────────────────────────────── */
-  function showWizard() {
-    document.getElementById('dashboardView').style.display = 'none';
-    const wv = document.getElementById('wizardView');
-    wv.style.display = 'block';
-    wv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-  function showDashboard() {
-    document.getElementById('wizardView').style.display = 'none';
-    document.getElementById('dashboardView').style.display = 'block';
-  }
-  // Global erişim için (onclick attribute olmadan)
-  window.showWizard    = showWizard;
-  window.showDashboard = showDashboard;
-
-  /* ────────────────────────────────
-     STEP NAVIGATION
-  ──────────────────────────────── */
-  let currentStep = 1;
-  const TOTAL     = 4;
-  const btnPrev   = document.getElementById('btnPrev');
-  const btnNext   = document.getElementById('btnNext');
-  const btnSubmit = document.getElementById('btnSubmit');
-
-  function gotoStep(n) {
-    currentStep = n;
-    document.querySelectorAll('.step-pane').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.step-item').forEach(i => {
-      i.classList.toggle('active', +i.dataset.step === n);
-    });
-    document.getElementById('step' + n).classList.add('active');
-    btnPrev.style.visibility = n === 1      ? 'hidden'      : 'visible';
-    btnNext.style.display    = n === TOTAL  ? 'none'        : 'inline-flex';
-    btnSubmit.style.display  = n === TOTAL  ? 'inline-flex' : 'none';
-  }
-
-  document.querySelectorAll('.step-item').forEach(item => {
-    item.addEventListener('click', () => gotoStep(+item.dataset.step));
-  });
-  btnPrev.addEventListener('click', () => { if (currentStep > 1) gotoStep(currentStep - 1); });
-  btnNext.addEventListener('click', () => {
-    if (currentStep === 1 && !document.getElementById('inpTitle').value.trim()) {
-      alert('Lütfen görev başlığını girin.');
-      return;
-    }
-    if (currentStep < TOTAL) gotoStep(currentStep + 1);
-  });
-
-  /* ────────────────────────────────
-     FORM SUBMIT
-  ──────────────────────────────── */
-  btnSubmit.addEventListener('click', () => {
-    if (IS_EDIT) {
-      const addedCont   = document.getElementById('addedSchoolInputs');
-      const removedCont = document.getElementById('removedSchoolInputs');
-      addedCont.innerHTML   = '';
-      removedCont.innerHTML = '';
-      addedSchoolIds.forEach(id => {
-        const inp = document.createElement('input');
-        inp.type = 'hidden'; inp.name = 'school_ids'; inp.value = id;
-        addedCont.appendChild(inp);
-      });
-      removedSchoolIds.forEach(id => {
-        const inp = document.createElement('input');
-        inp.type = 'hidden'; inp.name = 'remove_school_ids'; inp.value = id;
-        removedCont.appendChild(inp);
-      });
-    } else {
-      const checked = document.querySelectorAll('input[name="school_ids"]:checked').length;
-      if (checked === 0) { alert('Lütfen en az bir okul seçin!'); return; }
-    }
-    document.getElementById('mainForm').submit();
-  });
-
-  /* ────────────────────────────────
-     FLATPICKR
-  ──────────────────────────────── */
-  const TR_LOCALE = {
-    weekdays: {
-      shorthand: ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'],
-      longhand:  ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi']
-    },
-    months: {
-      shorthand: ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'],
-      longhand:  ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık']
-    },
-    firstDayOfWeek: 1, ordinal: () => '.', time_24hr: true,
+  const gotoStep = n => {
+    step = n;
+    document.querySelectorAll('.step-pane').forEach((p, i) => p.classList.toggle('active', i + 1 === n));
+    document.querySelectorAll('.step-item').forEach((it, i) => it.classList.toggle('active', i + 1 === n));
+    document.getElementById('btnPrev').style.visibility = n === 1 ? 'hidden' : 'visible';
+    document.getElementById('btnNext').style.display    = n === 4 ? 'none' : 'inline-flex';
+    document.getElementById('btnSubmit').style.display  = n === 4 ? 'inline-flex' : 'none';
   };
-  flatpickr('#taskDeadline', {
-    locale: TR_LOCALE, dateFormat: 'Y-m-d',
-    altInput: true, altFormat: 'j F Y, l',
-    defaultDate: document.getElementById('taskDeadline').value || null,
-    minDate: 'today',
-  });
-  flatpickr('#inpEvrakTarih', {
-    locale: TR_LOCALE, dateFormat: 'd.m.Y', defaultDate: 'today',
-    onChange: (_, str) => { document.getElementById('preTarih').textContent = str; },
-  });
-  document.getElementById('preTarih').textContent = new Date().toLocaleDateString('tr-TR');
 
-  /* ────────────────────────────────
-     LIVE PREVIEW
-  ──────────────────────────────── */
-  document.getElementById('inpTitle').addEventListener('input', e => {
-    document.getElementById('preKonu').textContent = e.target.value || 'Evrak Konusu';
-  });
-  document.getElementById('inpSayi').addEventListener('input', e => {
-    document.getElementById('preSayi').textContent = e.target.value || 'E-91368608-...';
-  });
+  document.getElementById('btnNext').onclick   = () => step < 4 && gotoStep(step + 1);
+  document.getElementById('btnPrev').onclick   = () => step > 1 && gotoStep(step - 1);
+  document.getElementById('btnSubmit').onclick = () => document.getElementById('mainForm').submit();
 
-  /* ────────────────────────────────
-     CKEDITOR
-  ──────────────────────────────── */
-  ClassicEditor.create(document.querySelector('#richEditor'), {
-    language: 'tr',
-    toolbar: ['heading','|','bold','italic','link','bulletedList','numberedList','blockQuote','insertTable','undo','redo'],
-  }).then(editor => {
-    editor.model.document.on('change:data', () => {
-      document.getElementById('preBody').innerHTML =
-        editor.getData() || '<p>Evrak içeriği bekleniyor...</p>';
-    });
-  }).catch(console.error);
+  ClassicEditor.create(document.querySelector('#richEditor'))
+    .then(ed => ed.model.document.on('change:data', () => {
+      document.getElementById('preBody').innerHTML = ed.getData();
+    }))
+    .catch(err => console.log('CKEditor Error:', err));
 
-  /* ────────────────────────────────
-     FILE OPTIONS TOGGLE
-  ──────────────────────────────── */
-  document.getElementById('requires_file').addEventListener('change', e => {
-    document.getElementById('fileOptions').style.display = e.target.checked ? 'block' : 'none';
-  });
+  flatpickr('#taskDeadline', { locale: 'tr' });
 
-  /* ────────────────────────────────
-     SCHOOL PICKER
-  ──────────────────────────────── */
-  const removedSchoolIds    = new Set();
-  const addedSchoolIds      = new Set();
-  const assignedIdsOriginal = new Set(IS_EDIT ? <%- isEdit ? JSON.stringify(assignedIds) : '[]' %> : []);
+  document.getElementById('inpTitle').oninput = e => document.getElementById('preKonu').textContent = e.target.value;
+  document.getElementById('inpSayi').oninput  = e => document.getElementById('preSayi').textContent = e.target.value;
 
-  const assignedChipsEl = document.getElementById('assignedChips');
-  const totalCountEl    = document.getElementById('totalAssignedCount');
-  const schoolListArea  = document.getElementById('schoolListArea');
-
-  function updateCount() {
-    if (IS_EDIT) {
-      totalCountEl.textContent = assignedIdsOriginal.size - removedSchoolIds.size + addedSchoolIds.size;
-    } else {
-      const cnt = document.querySelectorAll('input[name="school_ids"]:checked').length;
-      totalCountEl.textContent = cnt;
-      const noMsg = document.getElementById('createNoSchool');
-      if (noMsg) noMsg.style.display = cnt > 0 ? 'none' : '';
-    }
-  }
-
-  if (IS_EDIT) {
-    const removedChipsEl = document.getElementById('removedChips');
-    const removedBox     = document.getElementById('removedBox');
-
-    function updateRemovedBox() {
-      if (removedBox) removedBox.style.display = removedSchoolIds.size > 0 ? 'block' : 'none';
-    }
-
-    function removeSchool(id, name, code) {
-      removedSchoolIds.add(String(id));
-      const chip = assignedChipsEl.querySelector(`.school-chip[data-id="${id}"]`);
-      if (chip) { chip.classList.add('removing'); setTimeout(() => chip.remove(), 220); }
-
-      const rc = document.createElement('div');
-      rc.className = 'removed-chip'; rc.dataset.id = id;
-      rc.innerHTML = `<span>${name}</span>
-        <span style="font-size:10px;color:#b91c1c;">(${code})</span>
-        <button type="button" class="chip-undo" title="Geri al"><i class="fas fa-undo"></i></button>`;
-      rc.querySelector('.chip-undo').addEventListener('click', () => undoRemove(id, name, code));
-      removedChipsEl.appendChild(rc);
-
-      const item = schoolListArea.querySelector(`.school-list-item[data-id="${id}"]`);
-      if (item) {
-        const cb = item.querySelector('input');
-        cb.checked = false; cb.disabled = false;
-        item.classList.remove('selected');
-        item.dataset.assigned = 'false';
-        item.querySelector('.badge-assigned')?.remove();
-      }
-      updateRemovedBox(); updateCount();
-    }
-
-    function undoRemove(id, name, code) {
-      removedSchoolIds.delete(String(id));
-      removedChipsEl.querySelector(`.removed-chip[data-id="${id}"]`)?.remove();
-
-      const newChip = document.createElement('div');
-      newChip.className = 'school-chip';
-      newChip.dataset.id = id; newChip.dataset.name = name; newChip.dataset.code = code;
-      newChip.innerHTML = `<span>${name}</span>
-        <span class="chip-code">(${code})</span>
-        <button type="button" class="chip-remove" title="Kaldır">×</button>`;
-      newChip.querySelector('.chip-remove').addEventListener('click', () => removeSchool(id, name, code));
-      assignedChipsEl.appendChild(newChip);
-
-      const item = schoolListArea.querySelector(`.school-list-item[data-id="${id}"]`);
-      if (item) {
-        const cb = item.querySelector('input');
-        cb.checked = true; cb.disabled = true;
-        item.classList.add('selected'); item.dataset.assigned = 'true';
-        if (!item.querySelector('.badge-assigned')) {
-          const badge = document.createElement('span');
-          badge.className = 'badge-assigned'; badge.textContent = 'Atandı';
-          item.appendChild(badge);
-        }
-      }
-      updateRemovedBox(); updateCount();
-    }
-
-    assignedChipsEl.querySelectorAll('.chip-remove').forEach(btn => {
-      const chip = btn.closest('.school-chip');
-      btn.addEventListener('click', () => removeSchool(chip.dataset.id, chip.dataset.name, chip.dataset.code));
-    });
-
-    document.getElementById('removeAllBtn')?.addEventListener('click', () => {
-      if (!confirm('Tüm atanmış kurumları kaldırmak istediğinizden emin misiniz?')) return;
-      Array.from(assignedChipsEl.querySelectorAll('.school-chip')).forEach(chip => {
-        removeSchool(chip.dataset.id, chip.dataset.name, chip.dataset.code);
-      });
-    });
-
-    schoolListArea.querySelectorAll('.school-list-item[data-assigned="false"]').forEach(item => {
-      const cb = item.querySelector('input');
-      cb.addEventListener('change', () => {
-        if (cb.checked) { addedSchoolIds.add(item.dataset.id); item.classList.add('selected'); }
-        else            { addedSchoolIds.delete(item.dataset.id); item.classList.remove('selected'); }
-        updateCount();
-      });
-    });
-  }
-
-  if (!IS_EDIT) {
-    schoolListArea.addEventListener('change', updateCount);
-  }
-
-  /* ── Arama + Filtre ── */
-  function normTR(s) {
-    return (s||'').toLowerCase()
-      .replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s')
-      .replace(/ı/g,'i').replace(/ö/g,'o').replace(/ç/g,'c');
-  }
-
-  function applyFilters() {
-    const q    = normTR(document.getElementById('schoolSearchInput').value.trim());
-    const type = normTR(document.querySelector('.filter-btn.active').dataset.filter);
-    let count  = 0;
-    schoolListArea.querySelectorAll('.school-list-item').forEach(item => {
-      const matchText = !q || normTR(item.dataset.name).includes(q) || normTR(item.dataset.code).includes(q);
-      const matchType = type === 'all' || normTR(item.dataset.type) === type;
-      const show = matchText && matchType;
-      item.classList.toggle('hidden', !show);
-      if (show) count++;
-    });
-    document.getElementById('searchCount').textContent = (q || type !== 'all') ? `${count} sonuç` : '';
-  }
-
-  document.getElementById('schoolSearchInput').addEventListener('input', applyFilters);
-
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      applyFilters();
+  document.querySelectorAll('.school-list-item').forEach(label => {
+    label.addEventListener('change', () => {
+      label.classList.toggle('selected', label.querySelector('input[type=checkbox]').checked);
     });
   });
 
-  document.getElementById('selectAllVisibleBtn').addEventListener('click', () => {
-    schoolListArea.querySelectorAll('.school-list-item:not(.hidden)').forEach(item => {
-      if (item.dataset.assigned === 'true') return;
-      const cb = item.querySelector('input');
-      if (!cb.checked) {
-        cb.checked = true;
-        if (IS_EDIT) addedSchoolIds.add(item.dataset.id);
-        item.classList.add('selected');
-      }
-    });
-    updateCount();
-  });
-
-  document.getElementById('clearSelectionBtn').addEventListener('click', () => {
-    schoolListArea.querySelectorAll('.school-list-item').forEach(item => {
-      if (item.dataset.assigned === 'true') return;
-      const cb = item.querySelector('input');
-      if (cb.checked) {
-        cb.checked = false;
-        if (IS_EDIT) addedSchoolIds.delete(item.dataset.id);
-        item.classList.remove('selected');
-      }
-    });
-    updateCount();
-  });
-
-  /* ────────────────────────────────
-     DYNAMIC FORM FIELDS
-  ──────────────────────────────── */
-  const fieldsList  = document.getElementById('fieldsList');
-  const fieldsEmpty = document.getElementById('fieldsEmpty');
-  let fieldCounter  = 0;
-
-  function addFormField(data) {
-    data = data || null;
-    fieldCounter++;
-    fieldsEmpty.style.display = 'none';
-
-    const fType    = data && data.field_type    ? data.field_type    : 'multiple_choice';
-    const fLabel   = data && data.field_label   ? data.field_label   : '';
-    const fOptions = data && data.field_options ? data.field_options : '';
-    const fReq     = data ? data.is_required === 1 : false;
-    const fId      = data && data.id ? data.id : '';
-
+  window.addFormField = (data = null) => {
     const div = document.createElement('div');
-    div.className = 'field-item';
-    div.innerHTML = `
-      <input type="hidden" name="field_ids" value="${fId}">
-      <div class="field-item-header">
-        <div class="field-item-header-left">
-          <div class="field-num">${fieldCounter}</div>
-          <span>Form Alanı #${fieldCounter}</span>
-        </div>
-        <div class="field-item-header-right">
-          <label class="field-required-label">
-            <input type="checkbox" name="field_required" value="${fieldCounter-1}" ${fReq?'checked':''}>
-            Zorunlu
-          </label>
-          <button type="button" class="field-remove-btn" title="Kaldır">
-            <i class="fas fa-trash-alt"></i>
-          </button>
-        </div>
-      </div>
-      <div class="field-item-body">
-        <div class="field-body-row">
-          <div class="field-type-wrap">
-            <span class="field-sub-label">Alan Türü</span>
-            <select name="field_types" class="field-select">
-              <option value="short_text"      ${fType==='short_text'      ?'selected':''}>Kısa Yanıt</option>
-              <option value="paragraph"       ${fType==='paragraph'       ?'selected':''}>Paragraf</option>
-              <option value="multiple_choice" ${fType==='multiple_choice' ?'selected':''}>Çoktan Seçmeli</option>
-              <option value="checkbox"        ${fType==='checkbox'        ?'selected':''}>Onay Kutuları</option>
-              <option value="date"            ${fType==='date'            ?'selected':''}>Tarih</option>
-            </select>
-          </div>
-          <div class="field-label-wrap">
-            <span class="field-sub-label">Soru Metni</span>
-            <input type="text" name="field_labels" class="field-text-input"
-                   value="${fLabel.replace(/"/g,'&quot;')}"
-                   placeholder="Örn: Katılım durumunuzu belirtiniz...">
-          </div>
-        </div>
-        <div class="field-options-section">
-          <span class="field-sub-label">Seçenekler</span>
-          <div class="options-list-wrap">
-            <div class="options-tags"></div>
-            <div class="option-add-row">
-              <input type="text" class="new-opt-input" placeholder="Seçenek yazın...">
-              <button type="button" class="option-add-btn"><i class="fas fa-plus"></i> Ekle</button>
-            </div>
-            <input type="hidden" name="field_options" class="real-opts" value="${fOptions.replace(/"/g,'&quot;')}">
-            <div class="option-hint"><i class="fas fa-info-circle"></i>&nbsp;<strong>Enter</strong> ile de ekleyebilirsiniz.</div>
-          </div>
-        </div>
-      </div>`;
-
-    fieldsList.appendChild(div);
-
-    const typeSelect    = div.querySelector('.field-select');
-    const optSection    = div.querySelector('.field-options-section');
-    const optTagsEl     = div.querySelector('.options-tags');
-    const newOptInput   = div.querySelector('.new-opt-input');
-    const addOptBtn     = div.querySelector('.option-add-btn');
-    const realOptsInput = div.querySelector('.real-opts');
-
-    let opts = fOptions ? fOptions.split(',').map(s => s.trim()).filter(Boolean) : [];
-
-    function renderOpts() {
-      optTagsEl.innerHTML = '';
-      opts.forEach((opt, i) => {
-        const tag = document.createElement('div');
-        tag.className = 'option-tag';
-        tag.innerHTML = `${opt}<span class="opt-remove" data-i="${i}">✕</span>`;
-        optTagsEl.appendChild(tag);
-      });
-      realOptsInput.value = opts.join(', ');
-    }
-
-    function addOpt() {
-      const v = newOptInput.value.trim();
-      if (v) { opts.push(v); renderOpts(); newOptInput.value = ''; newOptInput.focus(); }
-    }
-
-    addOptBtn.addEventListener('click', addOpt);
-    newOptInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addOpt(); } });
-    optTagsEl.addEventListener('click', e => {
-      const rm = e.target.closest('.opt-remove');
-      if (rm) { opts.splice(+rm.dataset.i, 1); renderOpts(); }
-    });
-
-    function toggleOpts() {
-      const show = typeSelect.value === 'multiple_choice' || typeSelect.value === 'checkbox';
-      optSection.style.display = show ? 'block' : 'none';
-    }
-    typeSelect.addEventListener('change', toggleOpts);
-    toggleOpts(); renderOpts();
-
-    div.querySelector('.field-remove-btn').addEventListener('click', () => {
-      div.style.opacity = '0'; div.style.transform = 'scale(.98)';
-      setTimeout(() => {
-        div.remove(); reindex();
-        if (!fieldsList.children.length) fieldsEmpty.style.display = 'block';
-      }, 260);
-    });
-
-    reindex();
-  }
-
-  function reindex() {
-    fieldsList.querySelectorAll('.field-item').forEach((item, i) => {
-      const num  = item.querySelector('.field-num');
-      const span = item.querySelector('.field-item-header-left > span');
-      const cb   = item.querySelector('input[name="field_required"]');
-      if (num)  num.textContent  = i + 1;
-      if (span) span.textContent = `Form Alanı #${i+1}`;
-      if (cb)   cb.value         = i;
-    });
-    fieldCounter = fieldsList.children.length;
-  }
-
-  /* Mevcut alanları yükle (edit modu) */
-  const taskFields = <%- (isEdit && typeof taskFields !== 'undefined') ? JSON.stringify(taskFields) : '[]' %>;
-  taskFields.forEach(f => addFormField(f));
-
-  document.getElementById('addFieldBtn').addEventListener('click', () => addFormField());
-
+    div.innerHTML = `<input type="text" name="field_labels" class="form-control" value="${data ? data.field_label : ''}" placeholder="Soru..." style="margin-bottom:5px">`;
+    document.getElementById('fieldsList').appendChild(div);
+  };
 })();
 </script>
 
