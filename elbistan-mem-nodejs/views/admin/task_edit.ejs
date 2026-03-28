@@ -922,14 +922,15 @@
 
                                 <div class="gf-question-list" id="dynamicFields">
                                     <% taskFields.forEach((field, idx) => { %>
-                                        <div class="gf-question-card active-q" data-index="<%= idx %>">
+                                        <div class="gf-question-card active-q" data-index="<%= idx %>" data-saved-options="<%= (field.field_options || '').replace(/"/g, '&quot;') %>">
                                             <div class="gf-card-header">
                                                 <div class="gf-card-toprow">
                                                     <span class="gf-drag-handle" title="Sürükle"><i class="fas fa-grip-vertical"></i></span>
                                                     <div class="gf-q-number"><%= idx + 1 %></div>
                                                     <input type="hidden" name="field_ids" value="<%= field.id %>">
+                                                    <input type="hidden" name="field_options" class="field-options-hidden" value="<%= (field.field_options || '').replace(/"/g, '&quot;') %>">
                                                     <input type="text" name="field_labels" class="gf-question-input" value="<%= field.field_label %>" placeholder="Soru başlığını yazın..." required>
-                                                    <select name="field_types" class="gf-type-select" onchange="updateCardPreview(this.closest('.gf-question-card'))">
+                                                    <select name="field_types" class="gf-type-select" onchange="window.updateCardPreview(this.closest('.gf-question-card'))">
                                                         <option value="text" <%= field.field_type==='text' ? 'selected' : '' %>>Kısa Yanıt</option>
                                                         <option value="textarea" <%= field.field_type==='textarea' ? 'selected' : '' %>>Paragraf</option>
                                                         <option value="number" <%= field.field_type==='number' ? 'selected' : '' %>>Sayı</option>
@@ -947,7 +948,7 @@
                                                 <div class="gf-actions-left">
                                                     <span class="gf-required-label">Zorunlu</span>
                                                     <label class="gf-switch" style="transform:scale(.85);">
-                                                        <input type="checkbox" name="field_required" value="1">
+                                                        <input type="checkbox" name="field_required" value="<%= idx %>" <%= field.is_required ? 'checked' : '' %>>
                                                         <span class="gf-slider"></span>
                                                     </label>
                                                 </div>
@@ -1188,7 +1189,7 @@
         let html = `<div class="gf-options-editor" data-type="${type}">`;
         options.forEach((opt, i) => {
             html += `<div class="gf-option-row"><div class="${iconClass}"></div>
-                <input type="text" class="gf-option-input" name="field_option_values" value="${opt}" placeholder="Seçenek ${i+1}">
+                <input type="text" class="gf-option-input" value="${opt}" placeholder="Seçenek ${i+1}" oninput="window.syncOptionsToHidden(this.closest('.gf-question-card'))">
                 <button type="button" class="gf-option-remove" onclick="removeOption(this)" title="Sil"><i class="fas fa-times"></i></button></div>`;
         });
         html += `<button type="button" class="gf-add-option-btn" onclick="addOption(this)"><i class="fas fa-plus"></i> Seçenek Ekle</button></div>`;
@@ -1201,16 +1202,45 @@
         });
     };
 
-    const updateCardPreview = (card) => {
+    // Sync option input values to the hidden field_options input
+    window.syncOptionsToHidden = (card) => {
+        const hiddenInput = card.querySelector('.field-options-hidden');
+        if (!hiddenInput) return;
+        const optInputs = card.querySelectorAll('.gf-option-input');
+        const values = Array.from(optInputs).map(inp => inp.value).filter(v => v.trim() !== '');
+        hiddenInput.value = values.join(',');
+    };
+
+    // Global updateCardPreview so HTML onchange can call it
+    window.updateCardPreview = (card) => {
         const type = card.querySelector('.gf-type-select').value;
         const bodyEl = card.querySelector('.gf-card-body');
         const info = FIELD_TYPES[type];
-        bodyEl.innerHTML = (info && info.hasOptions) ? buildOptionsEditor(type, []) : buildPreview(type);
+        const hiddenInput = card.querySelector('.field-options-hidden');
+
+        if (info && info.hasOptions) {
+            // When switching to an option-type, start with one default option
+            bodyEl.innerHTML = buildOptionsEditor(type, ['Seçenek 1']);
+            if (hiddenInput) hiddenInput.value = 'Seçenek 1';
+        } else {
+            bodyEl.innerHTML = buildPreview(type);
+            if (hiddenInput) hiddenInput.value = '';
+        }
     };
 
-    // Initialize existing card previews
+    // Initialize existing card previews with saved options
     document.querySelectorAll('#dynamicFields .gf-question-card').forEach(card => {
-        updateCardPreview(card);
+        const type = card.querySelector('.gf-type-select').value;
+        const bodyEl = card.querySelector('.gf-card-body');
+        const info = FIELD_TYPES[type];
+        const savedOptions = card.dataset.savedOptions || '';
+
+        if (info && info.hasOptions) {
+            const opts = savedOptions ? savedOptions.split(',').map(o => o.trim()).filter(o => o) : ['Seçenek 1'];
+            bodyEl.innerHTML = buildOptionsEditor(type, opts);
+        } else {
+            bodyEl.innerHTML = buildPreview(type);
+        }
     });
 
     window.addField = () => {
@@ -1226,8 +1256,9 @@
                     <span class="gf-drag-handle" title="Sürükle"><i class="fas fa-grip-vertical"></i></span>
                     <div class="gf-q-number">${count}</div>
                     <input type="hidden" name="field_ids" value="">
+                    <input type="hidden" name="field_options" class="field-options-hidden" value="">
                     <input type="text" name="field_labels" class="gf-question-input" placeholder="Soru başlığını yazın..." required>
-                    <select name="field_types" class="gf-type-select" onchange="updateCardPreview(this.closest('.gf-question-card'))">
+                    <select name="field_types" class="gf-type-select" onchange="window.updateCardPreview(this.closest('.gf-question-card'))">
                         ${buildTypeOptions('text')}
                     </select>
                 </div>
@@ -1270,22 +1301,26 @@
 
     window.addOption = (btn) => {
         const editor = btn.closest('.gf-options-editor');
+        const card = btn.closest('.gf-question-card');
         const type = editor.dataset.type;
         const iconClass = type === 'checkbox' ? 'gf-option-icon checkbox-icon' : 'gf-option-icon';
         const count = editor.querySelectorAll('.gf-option-row').length + 1;
         const row = document.createElement('div');
         row.className = 'gf-option-row';
         row.innerHTML = `<div class="${iconClass}"></div>
-            <input type="text" class="gf-option-input" name="field_option_values" value="" placeholder="Seçenek ${count}">
+            <input type="text" class="gf-option-input" value="" placeholder="Seçenek ${count}" oninput="window.syncOptionsToHidden(this.closest('.gf-question-card'))">
             <button type="button" class="gf-option-remove" onclick="removeOption(this)" title="Sil"><i class="fas fa-times"></i></button>`;
         btn.before(row);
         row.querySelector('.gf-option-input').focus();
+        window.syncOptionsToHidden(card);
     };
 
     window.removeOption = (btn) => {
         const editor = btn.closest('.gf-options-editor');
+        const card = btn.closest('.gf-question-card');
         if (editor.querySelectorAll('.gf-option-row').length > 1) {
             btn.closest('.gf-option-row').remove();
+            window.syncOptionsToHidden(card);
         }
     };
 
