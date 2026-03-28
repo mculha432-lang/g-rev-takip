@@ -1079,336 +1079,382 @@
             </div>
         </div>
 
+        <!-- ═══ SCRIPT 1: Page Navigation, CKEditor, File Upload, Schools ═══ -->
         <script>
             (function () {
-                'use strict';
-
                 /* ── Step navigation ── */
-                let currentStep = 1;
+                var currentStep = 1;
 
-                const gotoStep = (n) => {
+                var gotoStep = function(n) {
                     currentStep = n;
-                    document.querySelectorAll('.step-pane').forEach((p, i) => p.classList.toggle('active', (i + 1) === n));
-                    document.querySelectorAll('.step-item').forEach((it, i) => it.classList.toggle('active', (i + 1) === n));
+                    document.querySelectorAll('.step-pane').forEach(function(p, i) { p.classList.toggle('active', (i + 1) === n); });
+                    document.querySelectorAll('.step-item').forEach(function(it, i) { it.classList.toggle('active', (i + 1) === n); });
                     document.getElementById('btnPrev').style.visibility = n === 1 ? 'hidden' : 'visible';
                     document.getElementById('btnNext').style.display = n === 4 ? 'none' : 'inline-flex';
                     document.getElementById('btnSubmit').style.display = n === 4 ? 'inline-flex' : 'none';
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 };
 
-                document.getElementById('btnNext').onclick = () => { if (currentStep < 4) gotoStep(currentStep + 1); };
-                document.getElementById('btnPrev').onclick = () => { if (currentStep > 1) gotoStep(currentStep - 1); };
-                document.getElementById('btnSubmit').onclick = () => document.getElementById('editForm').submit();
+                document.querySelectorAll('.step-item').forEach(function(item) {
+                    item.addEventListener('click', function() { gotoStep(parseInt(item.dataset.step)); });
+                });
+                document.getElementById('btnNext').onclick = function() { if (currentStep < 4) gotoStep(currentStep + 1); };
+                document.getElementById('btnPrev').onclick = function() { if (currentStep > 1) gotoStep(currentStep - 1); };
+                document.getElementById('btnSubmit').onclick = function() { document.getElementById('editForm').submit(); };
 
                 /* ── CKEditor ── */
-                ClassicEditor.create(document.querySelector('#editor'), {
-                    language: 'tr',
-                    toolbar: {
-                        items: [
-                            'heading', '|',
-                            'bold', 'italic', 'link', '|',
-                            'bulletedList', 'numberedList', 'blockQuote', '|',
-                            'insertTable', 'mediaEmbed', '|',
-                            'undo', 'redo'
-                        ],
-                        shouldNotGroupWhenFull: true
-                    }
-                }).catch(err => console.error(err));
+                try {
+                    ClassicEditor.create(document.querySelector('#editor'), {
+                        language: 'tr',
+                        toolbar: {
+                            items: [
+                                'heading', '|',
+                                'bold', 'italic', 'link', '|',
+                                'bulletedList', 'numberedList', 'blockQuote', '|',
+                                'insertTable', 'mediaEmbed', '|',
+                                'undo', 'redo'
+                            ],
+                            shouldNotGroupWhenFull: true
+                        }
+                    }).catch(function(err) { console.error('CKEditor error:', err); });
+                } catch(e) { console.error('CKEditor init error:', e); }
 
                 /* ── Flatpickr ── */
-                flatpickr('#deadlinePicker', { enableTime: true, dateFormat: 'Y-m-d H:i', locale: 'tr', time_24hr: true });
+                try {
+                    flatpickr('#deadlinePicker', { enableTime: true, dateFormat: 'Y-m-d H:i', locale: 'tr', time_24hr: true });
+                } catch(e) { console.error('Flatpickr error:', e); }
 
                 /* ── File zone ── */
-                document.getElementById('taskFileInput').addEventListener('change', function () {
-                    const name = this.files[0] ? this.files[0].name : '';
-                    const chosen = document.getElementById('fileChosen');
-                    const chosenN = document.getElementById('fileChosenName');
-                    if (name) { chosenN.textContent = name; chosen.style.display = 'flex'; }
-                    else { chosen.style.display = 'none'; }
-                });
+                var fileInput = document.getElementById('taskFileInput');
+                if (fileInput) {
+                    fileInput.addEventListener('change', function () {
+                        var name = this.files[0] ? this.files[0].name : '';
+                        var chosen = document.getElementById('fileChosen');
+                        var chosenN = document.getElementById('fileChosenName');
+                        if (name) { chosenN.textContent = name; chosen.style.display = 'flex'; }
+                        else { chosen.style.display = 'none'; }
+                    });
+                }
 
-                /* ── Toggle: requires_file → enable/disable mandatory + file count ── */
-                document.getElementById('requiresFileToggle').addEventListener('change', function () {
-                    const row = document.getElementById('mandatoryRow');
-                    const countRow = document.getElementById('fileCountRow');
-                    row.style.opacity = this.checked ? '1' : '0.4';
-                    row.style.pointerEvents = this.checked ? 'auto' : 'none';
-                    countRow.style.display = this.checked ? 'flex' : 'none';
-                    if (!this.checked) document.getElementById('fileMandatoryToggle').checked = false;
-                });
+                /* ── Toggle: requires_file ── */
+                var rfToggle = document.getElementById('requiresFileToggle');
+                if (rfToggle) {
+                    rfToggle.addEventListener('change', function () {
+                        var row = document.getElementById('mandatoryRow');
+                        var countRow = document.getElementById('fileCountRow');
+                        row.style.opacity = this.checked ? '1' : '0.4';
+                        row.style.pointerEvents = this.checked ? 'auto' : 'none';
+                        countRow.style.display = this.checked ? 'flex' : 'none';
+                        if (!this.checked) document.getElementById('fileMandatoryToggle').checked = false;
+                    });
+                }
 
                 /* ── File count stepper ── */
-                window.changeFileCount = (delta) => {
-                    const inp = document.getElementById('maxFileCountInput');
-                    const disp = document.getElementById('fileCountDisplay');
-                    let val = parseInt(inp.value) + delta;
+                window.changeFileCount = function(delta) {
+                    var inp = document.getElementById('maxFileCountInput');
+                    var disp = document.getElementById('fileCountDisplay');
+                    var val = parseInt(inp.value) + delta;
                     if (val < 1) val = 1;
                     if (val > 20) val = 20;
                     inp.value = val;
                     disp.textContent = val;
                 };
 
-                /* ── Dynamic fields ── */
-    // ═══ FIELD TYPE DEFINITIONS ═══
-    const FIELD_TYPES = {
-        text:     { label: 'Kısa Yanıt',      icon: 'fa-minus',            hasOptions: false },
-        textarea: { label: 'Paragraf',         icon: 'fa-align-left',       hasOptions: false },
-        number:   { label: 'Sayı',             icon: 'fa-hashtag',          hasOptions: false },
-        radio:    { label: 'Çoktan Seçmeli',   icon: 'fa-dot-circle',       hasOptions: true, optionIcon: '' },
-        checkbox: { label: 'Onay Kutuları',    icon: 'fa-check-square',     hasOptions: true, optionIcon: 'checkbox-icon' },
-        select:   { label: 'Açılır Menü',      icon: 'fa-caret-square-down',hasOptions: true, optionIcon: '' },
-        date:     { label: 'Tarih',            icon: 'fa-calendar-alt',     hasOptions: false },
-        time:     { label: 'Saat',             icon: 'fa-clock',            hasOptions: false },
-        scale:    { label: 'Doğrusal Ölçek',   icon: 'fa-sliders-h',        hasOptions: false }
-    };
-
-    const buildTypeOptions = (selectedType) => {
-        return Object.entries(FIELD_TYPES).map(([val, info]) =>
-            `<option value="${val}" ${val === selectedType ? 'selected' : ''}>${info.label}</option>`
-        ).join('');
-    };
-
-    const buildPreview = (type) => {
-        switch(type) {
-            case 'text':     return `<div class="gf-preview"><i class="fas fa-minus"></i> Kısa metin yanıtı</div>`;
-            case 'textarea': return `<div class="gf-preview"><i class="fas fa-align-left"></i> Uzun metin yanıtı (paragraf)</div>`;
-            case 'number':   return `<div class="gf-preview"><i class="fas fa-hashtag"></i> Sayısal değer girişi</div>`;
-            case 'date':     return `<div class="gf-preview"><i class="fas fa-calendar-alt"></i> Tarih seçici alanı</div>`;
-            case 'time':     return `<div class="gf-preview"><i class="fas fa-clock"></i> Saat seçici alanı</div>`;
-            case 'scale':    return `<div class="gf-scale-preview">${[1,2,3,4,5].map(n=>`<div class="gf-scale-dot">${n}</div>`).join('')}</div>`;
-            case 'radio': case 'checkbox': case 'select': return '';
-            default: return `<div class="gf-preview"><i class="fas fa-minus"></i> ${type}</div>`;
-        }
-    };
-
-    const buildOptionsEditor = (type, opts) => {
-        const info = FIELD_TYPES[type];
-        if (!info || !info.hasOptions) return '';
-        const iconClass = type === 'checkbox' ? 'gf-option-icon checkbox-icon' : 'gf-option-icon';
-        const options = opts && opts.length ? opts : ['Seçenek 1'];
-        let html = `<div class="gf-options-editor" data-type="${type}">`;
-        options.forEach((opt, i) => {
-            html += `<div class="gf-option-row"><div class="${iconClass}"></div>
-                <input type="text" class="gf-option-input" value="${opt}" placeholder="Seçenek ${i+1}" oninput="window.syncOptionsToHidden(this.closest('.gf-question-card'))">
-                <button type="button" class="gf-option-remove" onclick="removeOption(this)" title="Sil"><i class="fas fa-times"></i></button></div>`;
-        });
-        html += `<button type="button" class="gf-add-option-btn" onclick="addOption(this)"><i class="fas fa-plus"></i> Seçenek Ekle</button></div>`;
-        return html;
-    };
-
-    const updateNumbers = () => {
-        document.querySelectorAll('#dynamicFields .gf-question-card .gf-q-number').forEach((el, i) => {
-            el.textContent = i + 1;
-        });
-    };
-
-    // Sync option input values to the hidden field_options input
-    window.syncOptionsToHidden = (card) => {
-        const hiddenInput = card.querySelector('.field-options-hidden');
-        if (!hiddenInput) return;
-        const optInputs = card.querySelectorAll('.gf-option-input');
-        const values = Array.from(optInputs).map(inp => inp.value).filter(v => v.trim() !== '');
-        hiddenInput.value = values.join(',');
-    };
-
-    // Global updateCardPreview so HTML onchange can call it
-    window.updateCardPreview = (card) => {
-        const type = card.querySelector('.gf-type-select').value;
-        const bodyEl = card.querySelector('.gf-card-body');
-        const info = FIELD_TYPES[type];
-        const hiddenInput = card.querySelector('.field-options-hidden');
-
-        if (info && info.hasOptions) {
-            // When switching to an option-type, start with one default option
-            bodyEl.innerHTML = buildOptionsEditor(type, ['Seçenek 1']);
-            if (hiddenInput) hiddenInput.value = 'Seçenek 1';
-        } else {
-            bodyEl.innerHTML = buildPreview(type);
-            if (hiddenInput) hiddenInput.value = '';
-        }
-    };
-
-    // Initialize existing card previews with saved options
-    document.querySelectorAll('#dynamicFields .gf-question-card').forEach(card => {
-        const type = card.querySelector('.gf-type-select').value;
-        const bodyEl = card.querySelector('.gf-card-body');
-        const info = FIELD_TYPES[type];
-        const savedOptions = card.dataset.savedOptions || '';
-
-        if (info && info.hasOptions) {
-            const opts = savedOptions ? savedOptions.split(',').map(o => o.trim()).filter(o => o) : ['Seçenek 1'];
-            bodyEl.innerHTML = buildOptionsEditor(type, opts);
-        } else {
-            bodyEl.innerHTML = buildPreview(type);
-        }
-    });
-
-    window.addField = () => {
-        const empty = document.getElementById('emptyState');
-        if (empty) empty.style.display = 'none';
-        const list = document.getElementById('dynamicFields');
-        const count = list.querySelectorAll('.gf-question-card').length + 1;
-        const card = document.createElement('div');
-        card.className = 'gf-question-card active-q';
-        card.innerHTML = `
-            <div class="gf-card-header">
-                <div class="gf-card-toprow">
-                    <span class="gf-drag-handle" title="Sürükle"><i class="fas fa-grip-vertical"></i></span>
-                    <div class="gf-q-number">${count}</div>
-                    <input type="hidden" name="field_ids" value="">
-                    <input type="hidden" name="field_options" class="field-options-hidden" value="">
-                    <input type="text" name="field_labels" class="gf-question-input" placeholder="Soru başlığını yazın..." required>
-                    <select name="field_types" class="gf-type-select" onchange="window.updateCardPreview(this.closest('.gf-question-card'))">
-                        ${buildTypeOptions('text')}
-                    </select>
-                </div>
-            </div>
-            <div class="gf-card-body">${buildPreview('text')}</div>
-            <div class="gf-card-actions">
-                <div class="gf-actions-left">
-                    <span class="gf-required-label">Zorunlu</span>
-                    <label class="gf-switch" style="transform:scale(.85);"><input type="checkbox" name="field_required" value="1"><span class="gf-slider"></span></label>
-                </div>
-                <div class="gf-actions-right">
-                    <button type="button" class="gf-action-btn" onclick="duplicateField(this)" title="Kopyala"><i class="fas fa-copy"></i></button>
-                    <div class="gf-divider"></div>
-                    <button type="button" class="gf-action-btn delete" onclick="removeField(this)" title="Sil"><i class="fas fa-trash-alt"></i></button>
-                </div>
-            </div>
-        `;
-        list.appendChild(card);
-        card.querySelector('.gf-question-input').focus();
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    };
-
-    window.removeField = (btn) => {
-        btn.closest('.gf-question-card').remove();
-        updateNumbers();
-        const empty = document.getElementById('emptyState');
-        if (empty && document.querySelectorAll('#dynamicFields .gf-question-card').length === 0) {
-            empty.style.display = 'block';
-        }
-    };
-
-    window.duplicateField = (btn) => {
-        const card = btn.closest('.gf-question-card');
-        const clone = card.cloneNode(true);
-        clone.querySelector('input[name="field_ids"]').value = '';
-        card.parentNode.insertBefore(clone, card.nextSibling);
-        updateNumbers();
-        clone.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    };
-
-    window.addOption = (btn) => {
-        const editor = btn.closest('.gf-options-editor');
-        const card = btn.closest('.gf-question-card');
-        const type = editor.dataset.type;
-        const iconClass = type === 'checkbox' ? 'gf-option-icon checkbox-icon' : 'gf-option-icon';
-        const count = editor.querySelectorAll('.gf-option-row').length + 1;
-        const row = document.createElement('div');
-        row.className = 'gf-option-row';
-        row.innerHTML = `<div class="${iconClass}"></div>
-            <input type="text" class="gf-option-input" value="" placeholder="Seçenek ${count}" oninput="window.syncOptionsToHidden(this.closest('.gf-question-card'))">
-            <button type="button" class="gf-option-remove" onclick="removeOption(this)" title="Sil"><i class="fas fa-times"></i></button>`;
-        btn.before(row);
-        row.querySelector('.gf-option-input').focus();
-        window.syncOptionsToHidden(card);
-    };
-
-    window.removeOption = (btn) => {
-        const editor = btn.closest('.gf-options-editor');
-        const card = btn.closest('.gf-question-card');
-        if (editor.querySelectorAll('.gf-option-row').length > 1) {
-            btn.closest('.gf-option-row').remove();
-            window.syncOptionsToHidden(card);
-        }
-    };
-
                 /* ── Schools ── */
-                const updateNewSchoolCount = () => {
-                    const count = document.querySelectorAll('#schoolList input[name="school_ids"]:checked').length;
-                    const el = document.getElementById('newSchoolCount');
+                var updateNewSchoolCount = function() {
+                    var count = document.querySelectorAll('#schoolList input[name="school_ids"]:checked').length;
+                    var el = document.getElementById('newSchoolCount');
                     if (el) el.textContent = count;
                 };
 
-                window.removeAssignedSchool = (id) => {
-                    const chip = document.getElementById('assigned-' + id);
-                    const input = document.getElementById('remove-input-' + id);
+                window.removeAssignedSchool = function(id) {
+                    var chip = document.getElementById('assigned-' + id);
+                    var input = document.getElementById('remove-input-' + id);
                     if (chip && input) {
                         chip.style.opacity = '0.4';
                         chip.style.backgroundColor = '#fee2e2';
                         input.value = id;
                         chip.querySelector('button').innerHTML = '<i class="fas fa-undo"></i>';
-                        chip.querySelector('button').onclick = () => undoRemove(id);
+                        chip.querySelector('button').onclick = function() { window.undoRemove(id); };
                     }
                 };
 
-                window.undoRemove = (id) => {
-                    const chip = document.getElementById('assigned-' + id);
-                    const input = document.getElementById('remove-input-' + id);
+                window.undoRemove = function(id) {
+                    var chip = document.getElementById('assigned-' + id);
+                    var input = document.getElementById('remove-input-' + id);
                     if (chip && input) {
                         chip.style.opacity = '1';
                         chip.style.backgroundColor = '#fff';
                         input.value = '';
                         chip.querySelector('button').innerHTML = '<i class="fas fa-times"></i>';
-                        chip.querySelector('button').onclick = () => removeAssignedSchool(id);
+                        chip.querySelector('button').onclick = function() { window.removeAssignedSchool(id); };
                     }
                 };
 
-                window.toggleAllNewSchools = (status) => {
-                    document.querySelectorAll('#schoolList .school-item').forEach(item => {
+                window.toggleAllNewSchools = function(status) {
+                    document.querySelectorAll('#schoolList .school-item').forEach(function(item) {
                         if (item.style.display !== 'none') {
-                            const cb = item.querySelector('input');
+                            var cb = item.querySelector('input');
                             cb.checked = status;
                             item.classList.toggle('selected', status);
                         }
                     });
-                    document.querySelectorAll('.type-btn').forEach(btn => {
+                    document.querySelectorAll('.type-btn').forEach(function(btn) {
                         btn.classList.remove('active');
                         btn.style.background = '#fff';
                     });
                     updateNewSchoolCount();
                 };
 
-                window.toggleTypeSelection = (type, btn) => {
-                    const isActive = btn.classList.contains('active');
-                    const color = btn.style.color;
+                window.toggleTypeSelection = function(type, btn) {
+                    var isActive = btn.classList.contains('active');
+                    var color = btn.style.color;
 
                     if (isActive) {
                         btn.classList.remove('active');
                         btn.style.background = '#fff';
-                        document.querySelectorAll(`#schoolList .school-item[data-type="${type}"]`).forEach(item => {
-                            const cb = item.querySelector('input');
-                            cb.checked = false;
+                        document.querySelectorAll('#schoolList .school-item[data-type="' + type + '"]').forEach(function(item) {
+                            item.querySelector('input').checked = false;
                             item.classList.remove('selected');
                         });
                     } else {
                         btn.classList.add('active');
                         btn.style.background = color;
-                        document.querySelectorAll(`#schoolList .school-item[data-type="${type}"]`).forEach(item => {
-                            const cb = item.querySelector('input');
-                            cb.checked = true;
+                        document.querySelectorAll('#schoolList .school-item[data-type="' + type + '"]').forEach(function(item) {
+                            item.querySelector('input').checked = true;
                             item.classList.add('selected');
                         });
                     }
                     updateNewSchoolCount();
                 };
 
-                document.getElementById('schoolSearch').oninput = (e) => {
-                    const term = e.target.value.toLowerCase();
-                    document.querySelectorAll('.school-item').forEach(item => {
-                        item.style.display = item.dataset.name.includes(term) ? 'flex' : 'none';
+                var schoolSearch = document.getElementById('schoolSearch');
+                if (schoolSearch) {
+                    schoolSearch.oninput = function(e) {
+                        var term = e.target.value.toLowerCase();
+                        document.querySelectorAll('.school-item').forEach(function(item) {
+                            item.style.display = item.dataset.name.includes(term) ? 'flex' : 'none';
+                        });
+                    };
+                }
+
+                var schoolList = document.getElementById('schoolList');
+                if (schoolList) {
+                    schoolList.addEventListener('change', function(e) {
+                        if (e.target.tagName === 'INPUT') {
+                            e.target.closest('.school-item').classList.toggle('selected', e.target.checked);
+                            updateNewSchoolCount();
+                        }
                     });
-                };
-
-                document.getElementById('schoolList').addEventListener('change', (e) => {
-                    if (e.target.tagName === 'INPUT') {
-                        e.target.closest('.school-item').classList.toggle('selected', e.target.checked);
-                        updateNewSchoolCount();
-                    }
-                });
-
+                }
             })();
+        </script>
+
+        <!-- ═══ SCRIPT 2: Dynamic Question Cards (fully independent) ═══ -->
+        <script>
+        (function() {
+            // ═══ FIELD TYPE DEFINITIONS ═══
+            var FIELD_TYPES = {
+                text:     { label: 'Kısa Yanıt',      icon: 'fa-minus',            hasOptions: false },
+                textarea: { label: 'Paragraf',         icon: 'fa-align-left',       hasOptions: false },
+                number:   { label: 'Sayı',             icon: 'fa-hashtag',          hasOptions: false },
+                radio:    { label: 'Çoktan Seçmeli',   icon: 'fa-dot-circle',       hasOptions: true },
+                checkbox: { label: 'Onay Kutuları',    icon: 'fa-check-square',     hasOptions: true },
+                select:   { label: 'Açılır Menü',      icon: 'fa-caret-square-down',hasOptions: true },
+                date:     { label: 'Tarih',            icon: 'fa-calendar-alt',     hasOptions: false },
+                time:     { label: 'Saat',             icon: 'fa-clock',            hasOptions: false },
+                scale:    { label: 'Doğrusal Ölçek',   icon: 'fa-sliders-h',        hasOptions: false }
+            };
+
+            function buildTypeOptions(selectedType) {
+                var html = '';
+                for (var val in FIELD_TYPES) {
+                    var info = FIELD_TYPES[val];
+                    html += '<option value="' + val + '"' + (val === selectedType ? ' selected' : '') + '>' + info.label + '</option>';
+                }
+                return html;
+            }
+
+            function buildPreview(type) {
+                switch(type) {
+                    case 'text':     return '<div class="gf-preview"><i class="fas fa-minus"></i> Kısa metin yanıtı</div>';
+                    case 'textarea': return '<div class="gf-preview"><i class="fas fa-align-left"></i> Uzun metin yanıtı (paragraf)</div>';
+                    case 'number':   return '<div class="gf-preview"><i class="fas fa-hashtag"></i> Sayısal değer girişi</div>';
+                    case 'date':     return '<div class="gf-preview"><i class="fas fa-calendar-alt"></i> Tarih seçici alanı</div>';
+                    case 'time':     return '<div class="gf-preview"><i class="fas fa-clock"></i> Saat seçici alanı</div>';
+                    case 'scale':
+                        var dots = '';
+                        for (var n = 1; n <= 5; n++) dots += '<div class="gf-scale-dot">' + n + '</div>';
+                        return '<div class="gf-scale-preview">' + dots + '</div>';
+                    case 'radio':
+                    case 'checkbox':
+                    case 'select':
+                        return '';
+                    default:
+                        return '<div class="gf-preview"><i class="fas fa-minus"></i> ' + type + '</div>';
+                }
+            }
+
+            function buildOptionsEditor(type, opts) {
+                var info = FIELD_TYPES[type];
+                if (!info || !info.hasOptions) return '';
+                var iconClass = (type === 'checkbox') ? 'gf-option-icon checkbox-icon' : 'gf-option-icon';
+                var options = (opts && opts.length) ? opts : ['Seçenek 1'];
+                var html = '<div class="gf-options-editor" data-type="' + type + '">';
+                for (var i = 0; i < options.length; i++) {
+                    html += '<div class="gf-option-row">';
+                    html += '<div class="' + iconClass + '"></div>';
+                    html += '<input type="text" class="gf-option-input" value="' + options[i] + '" placeholder="Seçenek ' + (i+1) + '" oninput="syncOptionsToHidden(this.closest(\'.gf-question-card\'))">';
+                    html += '<button type="button" class="gf-option-remove" onclick="removeOption(this)" title="Sil"><i class="fas fa-times"></i></button>';
+                    html += '</div>';
+                }
+                html += '<button type="button" class="gf-add-option-btn" onclick="addOption(this)"><i class="fas fa-plus"></i> Seçenek Ekle</button>';
+                html += '</div>';
+                return html;
+            }
+
+            function updateNumbers() {
+                var nums = document.querySelectorAll('#dynamicFields .gf-question-card .gf-q-number');
+                for (var i = 0; i < nums.length; i++) {
+                    nums[i].textContent = i + 1;
+                }
+            }
+
+            // ═══ GLOBAL FUNCTIONS ═══
+            window.syncOptionsToHidden = function(card) {
+                if (!card) return;
+                var hiddenInput = card.querySelector('.field-options-hidden');
+                if (!hiddenInput) return;
+                var optInputs = card.querySelectorAll('.gf-option-input');
+                var values = [];
+                for (var i = 0; i < optInputs.length; i++) {
+                    if (optInputs[i].value.trim() !== '') values.push(optInputs[i].value);
+                }
+                hiddenInput.value = values.join(',');
+            };
+
+            window.updateCardPreview = function(card) {
+                if (!card) return;
+                var typeSelect = card.querySelector('.gf-type-select');
+                if (!typeSelect) return;
+                var type = typeSelect.value;
+                var bodyEl = card.querySelector('.gf-card-body');
+                if (!bodyEl) return;
+                var info = FIELD_TYPES[type];
+                var hiddenInput = card.querySelector('.field-options-hidden');
+
+                if (info && info.hasOptions) {
+                    bodyEl.innerHTML = buildOptionsEditor(type, ['Seçenek 1']);
+                    if (hiddenInput) hiddenInput.value = 'Seçenek 1';
+                } else {
+                    bodyEl.innerHTML = buildPreview(type);
+                    if (hiddenInput) hiddenInput.value = '';
+                }
+            };
+
+            window.addField = function() {
+                var empty = document.getElementById('emptyState');
+                if (empty) empty.style.display = 'none';
+                var list = document.getElementById('dynamicFields');
+                var count = list.querySelectorAll('.gf-question-card').length + 1;
+                var card = document.createElement('div');
+                card.className = 'gf-question-card active-q';
+                card.innerHTML =
+                    '<div class="gf-card-header">' +
+                        '<div class="gf-card-toprow">' +
+                            '<span class="gf-drag-handle" title="Sürükle"><i class="fas fa-grip-vertical"></i></span>' +
+                            '<div class="gf-q-number">' + count + '</div>' +
+                            '<input type="hidden" name="field_ids" value="">' +
+                            '<input type="hidden" name="field_options" class="field-options-hidden" value="">' +
+                            '<input type="text" name="field_labels" class="gf-question-input" placeholder="Soru başlığını yazın..." required>' +
+                            '<select name="field_types" class="gf-type-select" onchange="updateCardPreview(this.closest(\'.gf-question-card\'))">' +
+                                buildTypeOptions('text') +
+                            '</select>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="gf-card-body">' + buildPreview('text') + '</div>' +
+                    '<div class="gf-card-actions">' +
+                        '<div class="gf-actions-left">' +
+                            '<span class="gf-required-label">Zorunlu</span>' +
+                            '<label class="gf-switch" style="transform:scale(.85);"><input type="checkbox" name="field_required" value="1"><span class="gf-slider"></span></label>' +
+                        '</div>' +
+                        '<div class="gf-actions-right">' +
+                            '<button type="button" class="gf-action-btn" onclick="duplicateField(this)" title="Kopyala"><i class="fas fa-copy"></i></button>' +
+                            '<div class="gf-divider"></div>' +
+                            '<button type="button" class="gf-action-btn delete" onclick="removeField(this)" title="Sil"><i class="fas fa-trash-alt"></i></button>' +
+                        '</div>' +
+                    '</div>';
+                list.appendChild(card);
+                card.querySelector('.gf-question-input').focus();
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            };
+
+            window.removeField = function(btn) {
+                btn.closest('.gf-question-card').remove();
+                updateNumbers();
+                var empty = document.getElementById('emptyState');
+                if (empty && document.querySelectorAll('#dynamicFields .gf-question-card').length === 0) {
+                    empty.style.display = 'block';
+                }
+            };
+
+            window.duplicateField = function(btn) {
+                var card = btn.closest('.gf-question-card');
+                var clone = card.cloneNode(true);
+                clone.querySelector('input[name="field_ids"]').value = '';
+                card.parentNode.insertBefore(clone, card.nextSibling);
+                updateNumbers();
+                clone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            };
+
+            window.addOption = function(btn) {
+                var editor = btn.closest('.gf-options-editor');
+                var card = btn.closest('.gf-question-card');
+                var type = editor.dataset.type;
+                var iconClass = (type === 'checkbox') ? 'gf-option-icon checkbox-icon' : 'gf-option-icon';
+                var count = editor.querySelectorAll('.gf-option-row').length + 1;
+                var row = document.createElement('div');
+                row.className = 'gf-option-row';
+                row.innerHTML =
+                    '<div class="' + iconClass + '"></div>' +
+                    '<input type="text" class="gf-option-input" value="" placeholder="Seçenek ' + count + '" oninput="syncOptionsToHidden(this.closest(\'.gf-question-card\'))">' +
+                    '<button type="button" class="gf-option-remove" onclick="removeOption(this)" title="Sil"><i class="fas fa-times"></i></button>';
+                btn.before(row);
+                row.querySelector('.gf-option-input').focus();
+                window.syncOptionsToHidden(card);
+            };
+
+            window.removeOption = function(btn) {
+                var editor = btn.closest('.gf-options-editor');
+                var card = btn.closest('.gf-question-card');
+                if (editor.querySelectorAll('.gf-option-row').length > 1) {
+                    btn.closest('.gf-option-row').remove();
+                    window.syncOptionsToHidden(card);
+                }
+            };
+
+            // ═══ INITIALIZE EXISTING CARDS ON PAGE LOAD ═══
+            var cards = document.querySelectorAll('#dynamicFields .gf-question-card');
+            for (var c = 0; c < cards.length; c++) {
+                var card = cards[c];
+                var typeSelect = card.querySelector('.gf-type-select');
+                if (!typeSelect) continue;
+                var type = typeSelect.value;
+                var bodyEl = card.querySelector('.gf-card-body');
+                if (!bodyEl) continue;
+                var info = FIELD_TYPES[type];
+                var savedOptions = card.getAttribute('data-saved-options') || '';
+
+                if (info && info.hasOptions) {
+                    var opts = savedOptions ? savedOptions.split(',').map(function(o) { return o.trim(); }).filter(function(o) { return o; }) : ['Seçenek 1'];
+                    bodyEl.innerHTML = buildOptionsEditor(type, opts);
+                } else {
+                    bodyEl.innerHTML = buildPreview(type);
+                }
+            }
+
+            console.log('[TaskEdit] Dynamic question card system initialized. Cards found:', cards.length);
+        })();
         </script>
 
         <%- include('../layouts/footer') %>
