@@ -1,32 +1,22 @@
-    <%- include('../layouts/header') %>
+<%- include('../layouts/header') %>
 
-        <!-- CSS & JS Assets -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-        <link
-            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
-            rel="stylesheet">
-        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-        <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
-        <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+    <!-- CSS & JS Assets -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
 
-    <%
-    const safeSchoolTypes = typeof schoolTypes !== 'undefined' ? schoolTypes : [];
-    const typeLabels = {
-        'ilkokul': 'İlkokul', 'ortaokul': 'Ortaokul', 'lise': 'Lise', 'anaokulu': 'Anaokulu',
-        'diger': 'Diğer Kurumlar', 'rehabilitasyon': 'Rehabilitasyon', 'surucu_kursu': 'Sürücü Kursu',
-        'kurs': 'Kurs', 'yurt': 'Yurt'
-    };
-    const typeIcons = {
-        'ilkokul': 'fa-child', 'ortaokul': 'fa-book-reader', 'lise': 'fa-graduation-cap', 'anaokulu': 'fa-baby',
-        'diger': 'fa-building', 'rehabilitasyon': 'fa-hands-helping', 'surucu_kursu': 'fa-car',
-        'kurs': 'fa-chalkboard-teacher', 'yurt': 'fa-bed'
-    };
-    const typeColors = {
-        'ilkokul': '#3b82f6', 'ortaokul': '#8b5cf6', 'lise': '#ef4444', 'anaokulu': '#f59e0b',
-        'diger': '#6b7280', 'rehabilitasyon': '#10b981', 'surucu_kursu': '#f97316',
-        'kurs': '#06b6d4', 'yurt': '#ec4899'
-    };
-    %>
+    <% const safeSchoolTypes=typeof schoolTypes !=='undefined' ? schoolTypes : []; const typeLabels={ 'ilkokul'
+        : 'İlkokul' , 'ortaokul' : 'Ortaokul' , 'lise' : 'Lise' , 'anaokulu' : 'Anaokulu' , 'diger' : 'Diğer Kurumlar'
+        , 'rehabilitasyon' : 'Rehabilitasyon' , 'surucu_kursu' : 'Sürücü Kursu' , 'kurs' : 'Kurs' , 'yurt' : 'Yurt' };
+        const typeIcons={ 'ilkokul' : 'fa-child' , 'ortaokul' : 'fa-book-reader' , 'lise' : 'fa-graduation-cap'
+        , 'anaokulu' : 'fa-baby' , 'diger' : 'fa-building' , 'rehabilitasyon' : 'fa-hands-helping' , 'surucu_kursu'
+        : 'fa-car' , 'kurs' : 'fa-chalkboard-teacher' , 'yurt' : 'fa-bed' }; const typeColors={ 'ilkokul' : '#3b82f6'
+        , 'ortaokul' : '#8b5cf6' , 'lise' : '#ef4444' , 'anaokulu' : '#f59e0b' , 'diger' : '#6b7280' , 'rehabilitasyon'
+        : '#10b981' , 'surucu_kursu' : '#f97316' , 'kurs' : '#06b6d4' , 'yurt' : '#ec4899' }; %>
 
         <style>
             :root {
@@ -534,242 +524,229 @@
                 transform: translateX(22px);
             }
 
-            /* Question / Field cards */
-            .gf-question-list {
-                display: flex;
-                flex-direction: column;
-                gap: 14px;
-            }
-
+            /* ═══ Enhanced Question Cards (Google Form Style) ═══ */
+            .gf-question-list { display: flex; flex-direction: column; gap: 16px; }
             .gf-question-card {
-                background: #fff;
-                border-radius: 12px;
-                box-shadow: var(--gf-card-shadow);
-                border: 1px solid rgba(0, 0, 0, .06);
-                overflow: hidden;
-                transition: box-shadow .18s, border-color .18s;
-                animation: fadeUp .3s ease;
+                background: #fff; border-radius: 12px; box-shadow: var(--gf-card-shadow);
+                border: 1px solid rgba(0,0,0,.06); overflow: hidden;
+                transition: box-shadow .18s, border-color .18s; animation: fadeUp .3s ease;
             }
+            .gf-question-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.11); }
+            .gf-question-card.active-q { border-left: 4px solid var(--gf-purple); }
 
-            .gf-question-card:hover {
-                box-shadow: 0 4px 18px rgba(0, 0, 0, .11);
-            }
-
-            .gf-question-card.active-q {
-                border-left: 4px solid var(--gf-purple);
-            }
-
-            .gf-question-body {
-                display: flex;
-                align-items: center;
-                gap: 14px;
-                padding: 18px 20px;
-            }
-
-            /* Drag handle */
-            .gf-drag-handle {
-                color: #ccc;
-                cursor: grab;
-                font-size: 16px;
-                flex-shrink: 0;
-                user-select: none;
-            }
-
-            .gf-drag-handle:active {
-                cursor: grabbing;
-            }
-
-            /* Type selector pill */
-            .gf-type-select {
-                appearance: none;
-                background: var(--gf-purple-light);
-                border: 1.5px solid var(--gf-purple-border);
-                border-radius: 8px;
-                color: var(--gf-purple);
-                font-family: inherit;
-                font-size: 13px;
-                font-weight: 700;
-                padding: 9px 30px 9px 12px;
-                cursor: pointer;
-                flex-shrink: 0;
-                width: 110px;
-                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23673ab7'/%3E%3C/svg%3E");
-                background-repeat: no-repeat;
-                background-position: right 10px center;
-                transition: all .18s;
-            }
-
-            .gf-type-select:focus {
-                outline: none;
-                box-shadow: 0 0 0 3px rgba(103, 58, 183, .18);
-            }
-
-            /* Question input — Google-style underline */
-            .gf-question-input {
-                flex: 1;
-                border: none;
-                border-bottom: 2px solid #e0e0e0;
-                border-radius: 0;
-                background: transparent;
-                font-family: inherit;
-                font-size: 15px;
-                font-weight: 600;
-                color: var(--navy);
-                padding: 10px 4px;
-                transition: border-color .2s;
-                box-sizing: border-box;
-            }
-
-            .gf-question-input:focus {
-                outline: none;
-                border-bottom-color: var(--gf-purple);
-                background: transparent;
-                box-shadow: none;
-            }
-
-            .gf-question-input::placeholder {
-                color: #bbb;
-                font-weight: 500;
-            }
-
-            /* Delete button */
-            .gf-q-delete {
-                background: transparent;
-                border: none;
-                color: #bbb;
-                cursor: pointer;
-                width: 36px;
-                height: 36px;
-                border-radius: 50%;
-                display: grid;
-                place-items: center;
-                font-size: 16px;
-                flex-shrink: 0;
-                transition: all .18s;
-            }
-
-            .gf-q-delete:hover {
-                background: #fef2f2;
-                color: var(--red);
-            }
-
-            /* Question number badge */
+            .gf-card-header { padding: 20px 24px 0; display: flex; flex-direction: column; gap: 16px; }
+            .gf-card-toprow { display: flex; align-items: center; gap: 12px; }
+            .gf-drag-handle { color: #ccc; cursor: grab; font-size: 14px; flex-shrink: 0; padding: 4px; user-select: none; }
+            .gf-drag-handle:hover { color: var(--gf-purple); }
             .gf-q-number {
-                width: 26px;
-                height: 26px;
-                background: var(--gf-purple-light);
-                color: var(--gf-purple);
-                border-radius: 50%;
-                font-size: 12px;
-                font-weight: 800;
-                display: grid;
-                place-items: center;
-                flex-shrink: 0;
+                width: 28px; height: 28px; background: var(--gf-purple); color: #fff;
+                border-radius: 8px; font-size: 12px; font-weight: 800; display: grid; place-items: center; flex-shrink: 0;
             }
+            .gf-question-input {
+                flex: 1; border: none; border-bottom: 2px solid #e0e0e0; border-radius: 0;
+                background: transparent; font-family: inherit; font-size: 16px; font-weight: 700;
+                color: var(--navy); padding: 10px 4px; transition: border-color .2s; box-sizing: border-box;
+            }
+            .gf-question-input:focus { outline: none; border-bottom-color: var(--gf-purple); background: transparent; box-shadow: none; }
+            .gf-question-input::placeholder { color: #bbb; font-weight: 500; }
 
-            /* Add question button */
+            .gf-type-select {
+                appearance: none; background: var(--gf-purple-light); border: 1.5px solid var(--gf-purple-border);
+                border-radius: 8px; color: var(--gf-purple); font-family: inherit; font-size: 13px;
+                font-weight: 700; padding: 10px 34px 10px 14px; cursor: pointer; flex-shrink: 0; min-width: 170px;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23673ab7'/%3E%3C/svg%3E");
+                background-repeat: no-repeat; background-position: right 12px center; transition: all .18s;
+            }
+            .gf-type-select:focus { outline: none; box-shadow: 0 0 0 3px rgba(103,58,183,.18); }
+
+            .gf-card-body { padding: 16px 24px; }
+            .gf-preview {
+                padding: 14px 18px; background: #fafafa; border-radius: 8px; border: 1px dashed #e2e8f0;
+                color: var(--text-3); font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 10px;
+            }
+            .gf-preview i { font-size: 16px; color: var(--gf-purple); }
+
+            .gf-options-editor { display: flex; flex-direction: column; gap: 10px; }
+            .gf-option-row { display: flex; align-items: center; gap: 10px; animation: fadeUp .2s ease; }
+            .gf-option-icon { width: 20px; height: 20px; border: 2px solid #c5b8e8; border-radius: 50%; flex-shrink: 0; }
+            .gf-option-icon.checkbox-icon { border-radius: 4px; }
+            .gf-option-input {
+                flex: 1; border: none; border-bottom: 1.5px solid #e0e0e0; padding: 8px 4px;
+                font-family: inherit; font-size: 14px; color: var(--navy); background: transparent; transition: border-color .2s;
+            }
+            .gf-option-input:focus { outline: none; border-bottom-color: var(--gf-purple); }
+            .gf-option-input::placeholder { color: #ccc; }
+            .gf-option-remove {
+                background: none; border: none; color: #ccc; cursor: pointer; width: 28px; height: 28px;
+                border-radius: 50%; display: grid; place-items: center; font-size: 14px; transition: all .15s;
+            }
+            .gf-option-remove:hover { background: #fef2f2; color: var(--red); }
+            .gf-add-option-btn {
+                display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px;
+                background: transparent; border: none; color: var(--gf-purple); font-family: inherit;
+                font-size: 13px; font-weight: 700; cursor: pointer; border-radius: 6px; transition: all .15s;
+                margin-top: 4px; width: fit-content;
+            }
+            .gf-add-option-btn:hover { background: var(--gf-purple-light); }
+
+            .gf-scale-preview { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+            .gf-scale-dot {
+                width: 36px; height: 36px; border: 2px solid var(--gf-purple-border); border-radius: 50%;
+                display: grid; place-items: center; font-size: 13px; font-weight: 700; color: var(--gf-purple);
+                background: #fff; transition: all .15s;
+            }
+            .gf-scale-dot:hover { background: var(--gf-purple-light); }
+
+            .gf-card-actions {
+                padding: 12px 24px; border-top: 1px solid var(--border-lt); display: flex;
+                align-items: center; justify-content: space-between; background: #fcfcfd;
+            }
+            .gf-actions-left { display: flex; align-items: center; gap: 6px; }
+            .gf-actions-right { display: flex; align-items: center; gap: 8px; }
+            .gf-action-btn {
+                background: none; border: none; color: #999; cursor: pointer; width: 36px; height: 36px;
+                border-radius: 8px; display: grid; place-items: center; font-size: 16px; transition: all .15s;
+            }
+            .gf-action-btn:hover { background: #f1f5f9; color: var(--text-1); }
+            .gf-action-btn.delete:hover { background: #fef2f2; color: var(--red); }
+            .gf-required-label { font-size: 12px; font-weight: 700; color: var(--text-3); margin-right: 6px; }
+            .gf-divider { width: 1px; height: 24px; background: var(--border); margin: 0 6px; }
+
             .gf-add-btn {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 10px;
-                width: 100%;
-                padding: 16px;
-                background: #fff;
-                border: 2px dashed #c5b8e8;
-                border-radius: 12px;
-                color: var(--gf-purple);
-                font-family: inherit;
-                font-size: 14px;
-                font-weight: 700;
-                cursor: pointer;
-                transition: all .2s;
-                margin-top: 4px;
+                display: flex; align-items: center; justify-content: center; gap: 10px;
+                width: 100%; padding: 18px; background: #fff; border: 2px dashed #c5b8e8;
+                border-radius: 12px; color: var(--gf-purple); font-family: inherit; font-size: 14px;
+                font-weight: 700; cursor: pointer; transition: all .2s; margin-top: 4px;
             }
+            .gf-add-btn:hover { background: var(--gf-hover); border-style: solid; }
 
-            .gf-add-btn:hover {
-                background: var(--gf-hover);
-                border-style: solid;
-                transform: none;
-            }
-
-            /* Existing file badge */
             .gf-existing-file {
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                padding: 8px 14px;
-                background: var(--blue-muted);
-                border: 1px solid var(--blue-border);
-                border-radius: 8px;
-                font-size: 13px;
-                font-weight: 600;
-                color: var(--blue);
-                margin-bottom: 14px;
-                text-decoration: none;
+                display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px;
+                background: var(--blue-muted); border: 1px solid var(--blue-border); border-radius: 8px;
+                font-size: 13px; font-weight: 600; color: var(--blue); margin-bottom: 14px; text-decoration: none;
             }
 
-            /* Empty state */
-            .gf-empty {
-                text-align: center;
-                padding: 32px 20px;
-                color: var(--text-3);
-            }
-
-            .gf-empty i {
-                font-size: 36px;
-                margin-bottom: 10px;
-                opacity: .4;
-                display: block;
-            }
-
-            .gf-empty p {
-                font-size: 13px;
-                margin: 0;
-            }
+            .gf-empty { text-align: center; padding: 40px 20px; color: var(--text-3); }
+            .gf-empty i { font-size: 40px; margin-bottom: 12px; opacity: .4; display: block; }
+            .gf-empty p { font-size: 14px; margin: 0; font-weight: 500; }
 
             /* File count stepper */
             .gf-stepper {
-                display: flex; align-items: center; gap: 12px; margin-top: 12px;
-                padding: 12px 16px; background: var(--gf-purple-light); border-radius: 10px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-top: 12px;
+                padding: 12px 16px;
+                background: var(--gf-purple-light);
+                border-radius: 10px;
                 border: 1px solid var(--gf-purple-border);
             }
-            .gf-stepper label { font-size: 13px; font-weight: 700; color: var(--gf-purple); flex: 1; }
-            .gf-stepper-btn {
-                width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--gf-purple-border);
-                background: #fff; color: var(--gf-purple); font-size: 16px; font-weight: 800;
-                cursor: pointer; display: grid; place-items: center; transition: all .15s;
+
+            .gf-stepper label {
+                font-size: 13px;
+                font-weight: 700;
+                color: var(--gf-purple);
+                flex: 1;
             }
-            .gf-stepper-btn:hover { background: var(--gf-purple); color: #fff; }
+
+            .gf-stepper-btn {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                border: 2px solid var(--gf-purple-border);
+                background: #fff;
+                color: var(--gf-purple);
+                font-size: 16px;
+                font-weight: 800;
+                cursor: pointer;
+                display: grid;
+                place-items: center;
+                transition: all .15s;
+            }
+
+            .gf-stepper-btn:hover {
+                background: var(--gf-purple);
+                color: #fff;
+            }
+
             .gf-stepper-val {
-                font-size: 18px; font-weight: 800; color: var(--gf-purple);
-                min-width: 30px; text-align: center;
+                font-size: 18px;
+                font-weight: 800;
+                color: var(--gf-purple);
+                min-width: 30px;
+                text-align: center;
             }
 
             /* Type buttons */
-            .type-btn-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-lt); }
-            .type-btn {
-                display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px;
-                border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer;
-                border: 2px solid; transition: all .2s; background: #fff; font-family: inherit;
+            .type-btn-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-top: 12px;
+                padding-top: 12px;
+                border-top: 1px solid var(--border-lt);
             }
-            .type-btn:hover { transform: translateY(-1px); }
-            .type-btn.active { color: #fff !important; }
-            .type-btn i { font-size: 11px; }
+
+            .type-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 6px 14px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 700;
+                cursor: pointer;
+                border: 2px solid;
+                transition: all .2s;
+                background: #fff;
+                font-family: inherit;
+            }
+
+            .type-btn:hover {
+                transform: translateY(-1px);
+            }
+
+            .type-btn.active {
+                color: #fff !important;
+            }
+
+            .type-btn i {
+                font-size: 11px;
+            }
 
             /* School count badge */
             .school-count-badge {
-                position: sticky; bottom: 0; padding: 12px 18px;
+                position: sticky;
+                bottom: 0;
+                padding: 12px 18px;
                 background: linear-gradient(to top, #fff 80%, transparent);
-                display: flex; align-items: center; justify-content: space-between;
-                font-size: 13px; font-weight: 700; color: var(--text-2);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-size: 13px;
+                font-weight: 700;
+                color: var(--text-2);
             }
-            .school-count-badge .count { color: var(--red); font-size: 18px; font-weight: 800; }
+
+            .school-count-badge .count {
+                color: var(--red);
+                font-size: 18px;
+                font-weight: 800;
+            }
 
             /* School item styles for edit */
-            .school-item { transition: all .15s; }
-            .school-item:hover { background: #f1f5f9; }
-            .school-item.selected { background: var(--red-muted); border-color: var(--red-border) !important; }
+            .school-item {
+                transition: all .15s;
+            }
+
+            .school-item:hover {
+                background: #f1f5f9;
+            }
+
+            .school-item.selected {
+                background: var(--red-muted);
+                border-color: var(--red-border) !important;
+            }
         </style>
 
         <div class="tp page-root">
@@ -783,7 +760,8 @@
                                 <p>Aşağıdaki adımları takip ederek görev detaylarını güncelleyin.</p>
                             </div>
                         </div>
-                        <a href="/admin/tasks/<%= task.id %>" class="btn btn-ghost btn-sm"><i class="fas fa-arrow-left"></i>
+                        <a href="/admin/tasks/<%= task.id %>" class="btn btn-ghost btn-sm"><i
+                                class="fas fa-arrow-left"></i>
                             Geri Dön</a>
                     </div>
 
@@ -832,14 +810,16 @@
 
                             <!-- Title card -->
                             <div class="gf-section-header">
-                                <h3><i class="fas fa-wpforms" style="color:var(--gf-purple); margin-right:10px;"></i>Form &
+                                <h3><i class="fas fa-wpforms"
+                                        style="color:var(--gf-purple); margin-right:10px;"></i>Form &
                                     Ekler</h3>
                                 <p>Okulların dolduracağı alanları ve dosya ayarlarını yapılandırın.</p>
                             </div>
 
                             <!-- File upload card -->
                             <div class="gf-card" id="fileCard">
-                                <div class="gf-card-label"><i class="fas fa-paperclip"></i> Ek Dosya (İsteğe Bağlı)</div>
+                                <div class="gf-card-label"><i class="fas fa-paperclip"></i> Ek Dosya (İsteğe Bağlı)
+                                </div>
 
                                 <% if (task.file_path) { %>
                                     <div class="gf-existing-file">
@@ -859,7 +839,8 @@
                                             </div>
                                         </div>
                                         <div class="gf-file-chosen" id="fileChosen"><i class="fas fa-check-circle"></i>
-                                            <span id="fileChosenName"></span></div>
+                                            <span id="fileChosenName"></span>
+                                        </div>
                             </div>
 
                             <!-- File settings card -->
@@ -885,64 +866,82 @@
                                         <span>Aktifse okullar dosya yüklemeden formu gönderemez</span>
                                     </div>
                                     <label class="gf-switch">
-                                        <input type="checkbox" name="is_file_mandatory" value="1" id="fileMandatoryToggle"
-                                            <%=task.is_file_mandatory ? 'checked' : '' %>>
+                                        <input type="checkbox" name="is_file_mandatory" value="1"
+                                            id="fileMandatoryToggle" <%=task.is_file_mandatory ? 'checked' : '' %>>
                                         <span class="gf-slider"></span>
                                     </label>
                                 </div>
 
                                 <!-- File count stepper -->
-                                <div class="gf-stepper" id="fileCountRow" style="<%= task.requires_file ? '' : 'display: none;' %>">
-                                    <label><i class="fas fa-copy" style="margin-right: 6px;"></i> Maksimum Dosya Sayısı</label>
-                                    <button type="button" class="gf-stepper-btn" onclick="changeFileCount(-1)">−</button>
-                                    <span class="gf-stepper-val" id="fileCountDisplay"><%= task.max_file_count || 1 %></span>
+                                <div class="gf-stepper" id="fileCountRow"
+                                    style="<%= task.requires_file ? '' : 'display: none;' %>">
+                                    <label><i class="fas fa-copy" style="margin-right: 6px;"></i> Maksimum Dosya
+                                        Sayısı</label>
+                                    <button type="button" class="gf-stepper-btn"
+                                        onclick="changeFileCount(-1)">−</button>
+                                    <span class="gf-stepper-val" id="fileCountDisplay">
+                                        <%= task.max_file_count || 1 %>
+                                    </span>
                                     <button type="button" class="gf-stepper-btn" onclick="changeFileCount(1)">+</button>
-                                    <input type="hidden" name="max_file_count" id="maxFileCountInput" value="<%= task.max_file_count || 1 %>">
+                                    <input type="hidden" name="max_file_count" id="maxFileCountInput"
+                                        value="<%= task.max_file_count || 1 %>">
                                 </div>
                             </div>
 
                             <!-- Dynamic question cards -->
-                            <div class="gf-card" style="padding-bottom: 16px;">
-                                <div class="gf-card-label" style="margin-bottom:18px;"><i class="fas fa-list-ul"></i> Veri
-                                    Giriş Alanları</div>
+                            <div class="gf-card" style="padding: 24px 28px 20px;">
+                                <div class="gf-card-label" style="margin-bottom:6px;"><i class="fas fa-list-ul"></i> Veri Giriş Formu</div>
+                                <p style="font-size:12px; color:var(--text-3); margin:0 0 20px; font-weight:500;">Okulların dolduracağı soruları ekleyin. Her soru için alan tipini seçebilir, seçenekler ekleyebilir ve zorunluluk belirleyebilirsiniz.</p>
 
                                 <div class="gf-question-list" id="dynamicFields">
-                                    <% taskFields.forEach((field, idx)=> { %>
+                                    <% taskFields.forEach((field, idx) => { %>
                                         <div class="gf-question-card active-q" data-index="<%= idx %>">
-                                            <div class="gf-question-body">
-                                                <span class="gf-drag-handle" title="Sürükle"><i
-                                                        class="fas fa-grip-vertical"></i></span>
-                                                <div class="gf-q-number">
-                                                    <%= idx + 1 %>
+                                            <div class="gf-card-header">
+                                                <div class="gf-card-toprow">
+                                                    <span class="gf-drag-handle" title="Sürükle"><i class="fas fa-grip-vertical"></i></span>
+                                                    <div class="gf-q-number"><%= idx + 1 %></div>
+                                                    <input type="hidden" name="field_ids" value="<%= field.id %>">
+                                                    <input type="text" name="field_labels" class="gf-question-input" value="<%= field.field_label %>" placeholder="Soru başlığını yazın..." required>
+                                                    <select name="field_types" class="gf-type-select" onchange="updateCardPreview(this.closest('.gf-question-card'))">
+                                                        <option value="text" <%= field.field_type==='text' ? 'selected' : '' %>>Kısa Yanıt</option>
+                                                        <option value="textarea" <%= field.field_type==='textarea' ? 'selected' : '' %>>Paragraf</option>
+                                                        <option value="number" <%= field.field_type==='number' ? 'selected' : '' %>>Sayı</option>
+                                                        <option value="radio" <%= field.field_type==='radio' ? 'selected' : '' %>>Çoktan Seçmeli</option>
+                                                        <option value="checkbox" <%= field.field_type==='checkbox' ? 'selected' : '' %>>Onay Kutuları</option>
+                                                        <option value="select" <%= field.field_type==='select' ? 'selected' : '' %>>Açılır Menü</option>
+                                                        <option value="date" <%= field.field_type==='date' ? 'selected' : '' %>>Tarih</option>
+                                                        <option value="time" <%= field.field_type==='time' ? 'selected' : '' %>>Saat</option>
+                                                        <option value="scale" <%= field.field_type==='scale' ? 'selected' : '' %>>Doğrusal Ölçek</option>
+                                                    </select>
                                                 </div>
-                                                <input type="hidden" name="field_ids" value="<%= field.id %>">
-                                                <select name="field_types" class="gf-type-select">
-                                                    <option value="text" <%=field.field_type==='text' ? 'selected' : '' %>
-                                                        >Metin</option>
-                                                    <option value="number" <%=field.field_type==='number' ? 'selected' : ''
-                                                        %>>Sayı</option>
-                                                    <option value="date" <%=field.field_type==='date' ? 'selected' : '' %>
-                                                        >Tarih</option>
-                                                </select>
-                                                <input type="text" name="field_labels"
-                                                    class="gf-question-input form-control" value="<%= field.field_label %>"
-                                                    placeholder="Soru başlığını yazın..." required>
-                                                <button type="button" class="gf-q-delete" title="Alanı sil"
-                                                    onclick="removeField(this)"><i class="fas fa-trash-alt"></i></button>
+                                            </div>
+                                            <div class="gf-card-body" id="cardBody-<%= idx %>"></div>
+                                            <div class="gf-card-actions">
+                                                <div class="gf-actions-left">
+                                                    <span class="gf-required-label">Zorunlu</span>
+                                                    <label class="gf-switch" style="transform:scale(.85);">
+                                                        <input type="checkbox" name="field_required" value="1">
+                                                        <span class="gf-slider"></span>
+                                                    </label>
+                                                </div>
+                                                <div class="gf-actions-right">
+                                                    <button type="button" class="gf-action-btn" onclick="duplicateField(this)" title="Kopyala"><i class="fas fa-copy"></i></button>
+                                                    <div class="gf-divider"></div>
+                                                    <button type="button" class="gf-action-btn delete" onclick="removeField(this)" title="Sil"><i class="fas fa-trash-alt"></i></button>
+                                                </div>
                                             </div>
                                         </div>
-                                        <% }) %>
+                                    <% }) %>
 
-                                            <% if (!taskFields || taskFields.length===0) { %>
-                                                <div class="gf-empty" id="emptyState">
-                                                    <i class="fas fa-plus-square"></i>
-                                                    <p>Henüz alan eklenmemiş. Aşağıdaki butona tıklayarak alan ekleyin.</p>
-                                                </div>
-                                                <% } %>
+                                    <% if (!taskFields || taskFields.length===0) { %>
+                                        <div class="gf-empty" id="emptyState">
+                                            <i class="fas fa-clipboard-list"></i>
+                                            <p>Henüz soru eklenmemiş.<br><span style="font-size:12px; color:#bbb;">Aşağıdaki butona tıklayarak Google Form benzeri sorular oluşturun.</span></p>
+                                        </div>
+                                    <% } %>
                                 </div>
                             </div>
 
-                            <!-- Add question button -->
                             <button type="button" class="gf-add-btn" onclick="addField()">
                                 <i class="fas fa-plus-circle"></i> Yeni Soru / Veri Alanı Ekle
                             </button>
@@ -952,60 +951,84 @@
                         <!-- ─── Step 4: Schools ─── -->
                         <div class="step-pane" id="pane-4">
                             <div style="margin-bottom:20px;">
-                                <h4 style="font-size:12px; font-weight:800; color:var(--text-3); text-transform:uppercase; margin-bottom:12px;">
+                                <h4
+                                    style="font-size:12px; font-weight:800; color:var(--text-3); text-transform:uppercase; margin-bottom:12px;">
                                     Tanımlı Okullar
-                                    <span style="background:var(--green); color:#fff; padding:2px 8px; border-radius:10px; margin-left:8px;">
+                                    <span
+                                        style="background:var(--green); color:#fff; padding:2px 8px; border-radius:10px; margin-left:8px;">
                                         <%= assignedIds.length %>
                                     </span>
                                 </h4>
                                 <div class="chip-box">
                                     <% assignedSchoolDetails.forEach(s=> { %>
                                         <div class="school-chip" id="assigned-<%= s.id %>">
-                                            <span><%= s.full_name %></span>
-                                            <input type="hidden" name="remove_school_ids" value="" id="remove-input-<%= s.id %>">
-                                            <button type="button" class="chip-remove" onclick="removeAssignedSchool('<%= s.id %>')"><i class="fas fa-times"></i></button>
+                                            <span>
+                                                <%= s.full_name %>
+                                            </span>
+                                            <input type="hidden" name="remove_school_ids" value=""
+                                                id="remove-input-<%= s.id %>">
+                                            <button type="button" class="chip-remove"
+                                                onclick="removeAssignedSchool('<%= s.id %>')"><i
+                                                    class="fas fa-times"></i></button>
                                         </div>
-                                    <% }) %>
-                                    <% if (assignedIds.length===0) { %>
-                                        <p style="font-size:13px; color:var(--text-3); font-style:italic;">Henüz hiç okul atanmamış.</p>
-                                    <% } %>
+                                        <% }) %>
+                                            <% if (assignedIds.length===0) { %>
+                                                <p style="font-size:13px; color:var(--text-3); font-style:italic;">Henüz
+                                                    hiç okul atanmamış.</p>
+                                                <% } %>
                                 </div>
                             </div>
 
-                            <div class="school-picker" style="border: 2px solid var(--border); border-radius: 12px; overflow: hidden; background: #f8fafc;">
-                                <div style="padding:15px; border-bottom:1px solid var(--border); background:#fff; display:flex; gap:12px; align-items:center; flex-wrap: wrap;">
+                            <div class="school-picker"
+                                style="border: 2px solid var(--border); border-radius: 12px; overflow: hidden; background: #f8fafc;">
+                                <div
+                                    style="padding:15px; border-bottom:1px solid var(--border); background:#fff; display:flex; gap:12px; align-items:center; flex-wrap: wrap;">
                                     <i class="fas fa-plus-circle" style="color:var(--blue);"></i>
-                                    <input type="text" id="schoolSearch" class="form-control" style="border:none; padding:5px; background:transparent; flex: 1;" placeholder="Yeni okul eklemek için ara...">
-                                    <button type="button" class="btn btn-sm" style="background:var(--navy);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;" onclick="toggleAllNewSchools(true)">Tümünü Seç</button>
-                                    <button type="button" class="btn btn-sm" style="background:transparent;color:var(--text-2);border:2px solid var(--border);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;" onclick="toggleAllNewSchools(false)">Temizle</button>
+                                    <input type="text" id="schoolSearch" class="form-control"
+                                        style="border:none; padding:5px; background:transparent; flex: 1;"
+                                        placeholder="Yeni okul eklemek için ara...">
+                                    <button type="button" class="btn btn-sm"
+                                        style="background:var(--navy);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;"
+                                        onclick="toggleAllNewSchools(true)">Tümünü Seç</button>
+                                    <button type="button" class="btn btn-sm"
+                                        style="background:transparent;color:var(--text-2);border:2px solid var(--border);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;"
+                                        onclick="toggleAllNewSchools(false)">Temizle</button>
 
                                     <!-- Quick type buttons -->
                                     <div class="type-btn-group" style="width:100%;">
-                                        <% safeSchoolTypes.forEach(type => { %>
+                                        <% safeSchoolTypes.forEach(type=> { %>
                                             <button type="button" class="type-btn" data-type="<%= type %>"
                                                 style="color: <%= typeColors[type] || '#6b7280' %>; border-color: <%= typeColors[type] || '#6b7280' %>;"
                                                 onclick="toggleTypeSelection('<%= type %>', this)">
                                                 <i class="fas <%= typeIcons[type] || 'fa-building' %>"></i>
                                                 <%= typeLabels[type] || type %>
                                             </button>
-                                        <% }) %>
+                                            <% }) %>
                                     </div>
                                 </div>
                                 <div style="max-height: 380px; overflow-y: auto; padding: 10px;" id="schoolList">
                                     <% schools.forEach(s=> {
                                         if (!assignedIds.includes(s.id)) { %>
-                                        <label style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 8px; cursor: pointer; border: 1px solid transparent;"
-                                            class="school-item" data-name="<%= s.full_name.toLowerCase() %>" data-type="<%= s.school_type %>">
-                                            <input type="checkbox" name="school_ids" value="<%= s.id %>" style="width:18px;height:18px; accent-color: var(--red);">
-                                            <span style="font-size:14px; font-weight:600; flex:1;"><%= s.full_name %></span>
-                                            <span style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:12px; background: <%= typeColors[s.school_type] ? typeColors[s.school_type] + '18' : '#f1f5f9' %>; color: <%= typeColors[s.school_type] || '#6b7280' %>;">
+                                        <label
+                                            style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 8px; cursor: pointer; border: 1px solid transparent;"
+                                            class="school-item" data-name="<%= s.full_name.toLowerCase() %>"
+                                            data-type="<%= s.school_type %>">
+                                            <input type="checkbox" name="school_ids" value="<%= s.id %>"
+                                                style="width:18px;height:18px; accent-color: var(--red);">
+                                            <span style="font-size:14px; font-weight:600; flex:1;">
+                                                <%= s.full_name %>
+                                            </span>
+                                            <span
+                                                style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:12px; background: <%= typeColors[s.school_type] ? typeColors[s.school_type] + '18' : '#f1f5f9' %>; color: <%= typeColors[s.school_type] || '#6b7280' %>;">
                                                 <%= typeLabels[s.school_type] || s.school_type || '-' %>
                                             </span>
                                         </label>
-                                    <% }}) %>
+                                        <% }}) %>
                                 </div>
                                 <div class="school-count-badge">
-                                    <span><i class="fas fa-check-circle" style="color: var(--green); margin-right: 6px;"></i>Yeni Eklenecek Okul:</span>
+                                    <span><i class="fas fa-check-circle"
+                                            style="color: var(--green); margin-right: 6px;"></i>Yeni Eklenecek
+                                        Okul:</span>
                                     <span class="count" id="newSchoolCount">0</span>
                                 </div>
                             </div>
@@ -1017,8 +1040,8 @@
                         <button type="button" id="btnPrev" class="btn btn-ghost" style="visibility:hidden"><i
                                 class="fas fa-chevron-left"></i> Geri Dön</button>
                         <div>
-                            <button type="button" id="btnNext" class="btn btn-red">Sonraki <i class="fas fa-chevron-right"
-                                    style="margin-left:10px;"></i></button>
+                            <button type="button" id="btnNext" class="btn btn-red">Sonraki <i
+                                    class="fas fa-chevron-right" style="margin-left:10px;"></i></button>
                             <button type="button" id="btnSubmit" class="btn btn-navy"
                                 style="display:none; background:var(--green); border-color:var(--green);">Değişiklikleri
                                 Kaydet <i class="fas fa-check-circle" style="margin-left:10px;"></i></button>
@@ -1086,55 +1109,146 @@
                 };
 
                 /* ── Dynamic fields ── */
-                const updateNumbers = () => {
-                    document.querySelectorAll('#dynamicFields .gf-question-card .gf-q-number').forEach((el, i) => {
-                        el.textContent = i + 1;
-                    });
-                };
+    // ═══ FIELD TYPE DEFINITIONS ═══
+    const FIELD_TYPES = {
+        text:     { label: 'Kısa Yanıt',      icon: 'fa-minus',            hasOptions: false },
+        textarea: { label: 'Paragraf',         icon: 'fa-align-left',       hasOptions: false },
+        number:   { label: 'Sayı',             icon: 'fa-hashtag',          hasOptions: false },
+        radio:    { label: 'Çoktan Seçmeli',   icon: 'fa-dot-circle',       hasOptions: true, optionIcon: '' },
+        checkbox: { label: 'Onay Kutuları',    icon: 'fa-check-square',     hasOptions: true, optionIcon: 'checkbox-icon' },
+        select:   { label: 'Açılır Menü',      icon: 'fa-caret-square-down',hasOptions: true, optionIcon: '' },
+        date:     { label: 'Tarih',            icon: 'fa-calendar-alt',     hasOptions: false },
+        time:     { label: 'Saat',             icon: 'fa-clock',            hasOptions: false },
+        scale:    { label: 'Doğrusal Ölçek',   icon: 'fa-sliders-h',        hasOptions: false }
+    };
 
-                window.addField = () => {
-                    // hide empty state
-                    const empty = document.getElementById('emptyState');
-                    if (empty) empty.style.display = 'none';
+    const buildTypeOptions = (selectedType) => {
+        return Object.entries(FIELD_TYPES).map(([val, info]) =>
+            `<option value="${val}" ${val === selectedType ? 'selected' : ''}>${info.label}</option>`
+        ).join('');
+    };
 
-                    const list = document.getElementById('dynamicFields');
-                    const count = list.querySelectorAll('.gf-question-card').length + 1;
+    const buildPreview = (type) => {
+        switch(type) {
+            case 'text':     return `<div class="gf-preview"><i class="fas fa-minus"></i> Kısa metin yanıtı</div>`;
+            case 'textarea': return `<div class="gf-preview"><i class="fas fa-align-left"></i> Uzun metin yanıtı (paragraf)</div>`;
+            case 'number':   return `<div class="gf-preview"><i class="fas fa-hashtag"></i> Sayısal değer girişi</div>`;
+            case 'date':     return `<div class="gf-preview"><i class="fas fa-calendar-alt"></i> Tarih seçici alanı</div>`;
+            case 'time':     return `<div class="gf-preview"><i class="fas fa-clock"></i> Saat seçici alanı</div>`;
+            case 'scale':    return `<div class="gf-scale-preview">${[1,2,3,4,5].map(n=>`<div class="gf-scale-dot">${n}</div>`).join('')}</div>`;
+            case 'radio': case 'checkbox': case 'select': return '';
+            default: return `<div class="gf-preview"><i class="fas fa-minus"></i> ${type}</div>`;
+        }
+    };
 
-                    const card = document.createElement('div');
-                    card.className = 'gf-question-card active-q';
-                    card.innerHTML = `
-                <div class="gf-question-body">
+    const buildOptionsEditor = (type, opts) => {
+        const info = FIELD_TYPES[type];
+        if (!info || !info.hasOptions) return '';
+        const iconClass = type === 'checkbox' ? 'gf-option-icon checkbox-icon' : 'gf-option-icon';
+        const options = opts && opts.length ? opts : ['Seçenek 1'];
+        let html = `<div class="gf-options-editor" data-type="${type}">`;
+        options.forEach((opt, i) => {
+            html += `<div class="gf-option-row"><div class="${iconClass}"></div>
+                <input type="text" class="gf-option-input" name="field_option_values" value="${opt}" placeholder="Seçenek ${i+1}">
+                <button type="button" class="gf-option-remove" onclick="removeOption(this)" title="Sil"><i class="fas fa-times"></i></button></div>`;
+        });
+        html += `<button type="button" class="gf-add-option-btn" onclick="addOption(this)"><i class="fas fa-plus"></i> Seçenek Ekle</button></div>`;
+        return html;
+    };
+
+    const updateNumbers = () => {
+        document.querySelectorAll('#dynamicFields .gf-question-card .gf-q-number').forEach((el, i) => {
+            el.textContent = i + 1;
+        });
+    };
+
+    const updateCardPreview = (card) => {
+        const type = card.querySelector('.gf-type-select').value;
+        const bodyEl = card.querySelector('.gf-card-body');
+        const info = FIELD_TYPES[type];
+        bodyEl.innerHTML = (info && info.hasOptions) ? buildOptionsEditor(type, []) : buildPreview(type);
+    };
+
+    // Initialize existing card previews
+    document.querySelectorAll('#dynamicFields .gf-question-card').forEach(card => {
+        updateCardPreview(card);
+    });
+
+    window.addField = () => {
+        const empty = document.getElementById('emptyState');
+        if (empty) empty.style.display = 'none';
+        const list = document.getElementById('dynamicFields');
+        const count = list.querySelectorAll('.gf-question-card').length + 1;
+        const card = document.createElement('div');
+        card.className = 'gf-question-card active-q';
+        card.innerHTML = `
+            <div class="gf-card-header">
+                <div class="gf-card-toprow">
                     <span class="gf-drag-handle" title="Sürükle"><i class="fas fa-grip-vertical"></i></span>
                     <div class="gf-q-number">${count}</div>
                     <input type="hidden" name="field_ids" value="">
-                    <select name="field_types" class="gf-type-select">
-                        <option value="text">Metin</option>
-                        <option value="number">Sayı</option>
-                        <option value="date">Tarih</option>
+                    <input type="text" name="field_labels" class="gf-question-input" placeholder="Soru başlığını yazın..." required>
+                    <select name="field_types" class="gf-type-select" onchange="updateCardPreview(this.closest('.gf-question-card'))">
+                        ${buildTypeOptions('text')}
                     </select>
-                    <input type="text" name="field_labels" class="gf-question-input form-control"
-                        placeholder="Soru başlığını yazın..." required>
-                    <button type="button" class="gf-q-delete" title="Alanı sil" onclick="removeField(this)">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
                 </div>
-            `;
-                    list.appendChild(card);
+            </div>
+            <div class="gf-card-body">${buildPreview('text')}</div>
+            <div class="gf-card-actions">
+                <div class="gf-actions-left">
+                    <span class="gf-required-label">Zorunlu</span>
+                    <label class="gf-switch" style="transform:scale(.85);"><input type="checkbox" name="field_required" value="1"><span class="gf-slider"></span></label>
+                </div>
+                <div class="gf-actions-right">
+                    <button type="button" class="gf-action-btn" onclick="duplicateField(this)" title="Kopyala"><i class="fas fa-copy"></i></button>
+                    <div class="gf-divider"></div>
+                    <button type="button" class="gf-action-btn delete" onclick="removeField(this)" title="Sil"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>
+        `;
+        list.appendChild(card);
+        card.querySelector('.gf-question-input').focus();
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
 
-                    // Auto-focus the new input
-                    card.querySelector('.gf-question-input').focus();
-                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                };
+    window.removeField = (btn) => {
+        btn.closest('.gf-question-card').remove();
+        updateNumbers();
+        const empty = document.getElementById('emptyState');
+        if (empty && document.querySelectorAll('#dynamicFields .gf-question-card').length === 0) {
+            empty.style.display = 'block';
+        }
+    };
 
-                window.removeField = (btn) => {
-                    btn.closest('.gf-question-card').remove();
-                    updateNumbers();
+    window.duplicateField = (btn) => {
+        const card = btn.closest('.gf-question-card');
+        const clone = card.cloneNode(true);
+        clone.querySelector('input[name="field_ids"]').value = '';
+        card.parentNode.insertBefore(clone, card.nextSibling);
+        updateNumbers();
+        clone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
 
-                    const empty = document.getElementById('emptyState');
-                    if (empty && document.querySelectorAll('#dynamicFields .gf-question-card').length === 0) {
-                        empty.style.display = 'block';
-                    }
-                };
+    window.addOption = (btn) => {
+        const editor = btn.closest('.gf-options-editor');
+        const type = editor.dataset.type;
+        const iconClass = type === 'checkbox' ? 'gf-option-icon checkbox-icon' : 'gf-option-icon';
+        const count = editor.querySelectorAll('.gf-option-row').length + 1;
+        const row = document.createElement('div');
+        row.className = 'gf-option-row';
+        row.innerHTML = `<div class="${iconClass}"></div>
+            <input type="text" class="gf-option-input" name="field_option_values" value="" placeholder="Seçenek ${count}">
+            <button type="button" class="gf-option-remove" onclick="removeOption(this)" title="Sil"><i class="fas fa-times"></i></button>`;
+        btn.before(row);
+        row.querySelector('.gf-option-input').focus();
+    };
+
+    window.removeOption = (btn) => {
+        const editor = btn.closest('.gf-options-editor');
+        if (editor.querySelectorAll('.gf-option-row').length > 1) {
+            btn.closest('.gf-option-row').remove();
+        }
+    };
 
                 /* ── Schools ── */
                 const updateNewSchoolCount = () => {
