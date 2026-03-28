@@ -1215,13 +1215,35 @@
                         <span>Kurumsal Duyurular</span>
                     </div>
 
-                    <form action="/admin/announcements" method="POST" class="ann-form">
+                    <form action="/admin/announcements" method="POST" class="ann-form" style="display: block;">
                         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                        <input type="text" name="title" class="ann-input" placeholder="Okullara hızlı duyuru yayınla..."
-                            required autocomplete="off">
-                        <input type="hidden" name="content" value="Detaylar için panele bakınız.">
-                        <button type="submit" class="ann-send"><i class="fas fa-paper-plane"></i></button>
+                        
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" name="title" class="ann-input" placeholder="Okullara hızlı duyuru yayınla (Başlık)..."
+                                required autocomplete="off" id="ann-title">
+                            <button type="submit" class="ann-send"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                        
+                        <div id="ann-content-wrapper" style="display: none; margin-top: 10px;">
+                            <textarea name="content" class="ann-input" placeholder="Duyuru detaylarını buraya yazabilirsiniz..."
+                                rows="3" style="width: 100%; box-sizing: border-box; resize: vertical; margin: 0;"></textarea>
+                        </div>
                     </form>
+
+                    <script>
+                        const annTitle = document.getElementById('ann-title');
+                        const annWrapper = document.getElementById('ann-content-wrapper');
+                        
+                        annTitle.addEventListener('focus', () => {
+                            annWrapper.style.display = 'block';
+                        });
+                        
+                        document.addEventListener('click', (e) => {
+                            if (!e.target.closest('.ann-form') && annWrapper.querySelector('textarea').value.trim() === '') {
+                                annWrapper.style.display = 'none';
+                            }
+                        });
+                    </script>
 
                     <ul class="item-list">
                         <% if(announcements.length===0) { %>
@@ -1231,12 +1253,14 @@
                                     <li class="item-row">
                                         <div class="item-icon bell"><i class="fas fa-bell"></i></div>
                                         <div class="item-content">
-                                            <h4>
+                                            <h4 title="<%= ann.content %>" style="cursor: help; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;">
                                                 <%= ann.title %>
                                             </h4>
                                             <p><i class="far fa-clock" style="font-size:9px;"></i>
-                                                <%= ann.created_at ? new
-                                                    Date(ann.created_at).toLocaleDateString('tr-TR') : '' %>
+                                                <%= ann.created_at ? new Date(ann.created_at).toLocaleDateString('tr-TR') : '' %>
+                                                <% if(ann.content && ann.content !== 'Detaylar için panele bakınız.') { %>
+                                                    <span style="margin-left:5px; color:#E31E24; font-size:9px;" title="<%= ann.content %>"><i class="fas fa-info-circle"></i> Detay var</span>
+                                                <% } %>
                                             </p>
                                         </div>
                                         <form action="/admin/announcements/<%= ann.id %>/delete" method="POST"
