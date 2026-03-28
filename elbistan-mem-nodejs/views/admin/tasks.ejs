@@ -1,1060 +1,1837 @@
 <%- include('../layouts/header') %>
 
-<!-- CSS & JS Assets -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
-<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
-
-<%
-  const safeTasks = typeof tasks !== 'undefined' ? tasks : [];
-  const totalTasks = safeTasks.length;
-  const activeTasks = safeTasks.filter(t => new Date(t.deadline) >= new Date()).length;
-  const expiredTasks = totalTasks - activeTasks;
-  const safeSchoolTypes = typeof schoolTypes !== 'undefined' ? schoolTypes : [];
-  
-  // Tür etiketleri
-  const typeLabels = {
-    'ilkokul': 'İlkokul',
-    'ortaokul': 'Ortaokul',
-    'lise': 'Lise',
-    'anaokulu': 'Anaokulu',
-    'diger': 'Diğer Kurumlar',
-    'rehabilitasyon': 'Rehabilitasyon',
-    'surucu_kursu': 'Sürücü Kursu',
-    'kurs': 'Kurs',
-    'yurt': 'Yurt'
-  };
-  const typeIcons = {
-    'ilkokul': 'fa-child',
-    'ortaokul': 'fa-book-reader',
-    'lise': 'fa-graduation-cap',
-    'anaokulu': 'fa-baby',
-    'diger': 'fa-building',
-    'rehabilitasyon': 'fa-hands-helping',
-    'surucu_kursu': 'fa-car',
-    'kurs': 'fa-chalkboard-teacher',
-    'yurt': 'fa-bed'
-  };
-  const typeColors = {
-    'ilkokul': '#3b82f6',
-    'ortaokul': '#8b5cf6',
-    'lise': '#ef4444',
-    'anaokulu': '#f59e0b',
-    'diger': '#6b7280',
-    'rehabilitasyon': '#10b981',
-    'surucu_kursu': '#f97316',
-    'kurs': '#06b6d4',
-    'yurt': '#ec4899'
-  };
-%>
-
-<style>
-    :root {
-        --red: #dc2626; --red-dark: #b91c1c; --red-muted: #fef2f2; --red-border: #fecaca;
-        --blue: #2563eb; --blue-muted: #eff6ff; --blue-border: #dbeafe;
-        --green: #059669; --green-muted: #ecfdf5; --green-border: #d1fae5;
-        --navy: #1e293b; --navy-deep: #0f172a;
-        --purple: #7c3aed; --purple-muted: #f5f3ff; --purple-border: #ddd6fe;
-        --surface: #ffffff; --bg: #f8fafc;
-        --border: #e2e8f0; --border-lt: #f1f5f9;
-        --text-1: #1e293b; --text-2: #475569; --text-3: #94a3b8;
-        --shadow-sm: 0 1px 3px rgba(0,0,0,.07);
-        --shadow-md: 0 4px 16px rgba(0,0,0,.08);
-        --shadow-lg: 0 20px 50px rgba(0,0,0,.14);
-        --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px;
-        --font: 'Plus Jakarta Sans', sans-serif;
-        /* Google Form purple */
-        --gf-purple: #673ab7; --gf-purple-light: #ede7f6; --gf-purple-border: #b39ddb;
-        --gf-card-shadow: 0 2px 6px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
-        --gf-hover: #f3e8ff;
-    }
-
-    .tp { font-family: var(--font); color: var(--text-1); -webkit-font-smoothing: antialiased; }
-    .page-root { margin-top: 18px; }
-
-    /* ── Dashboard Stats ── */
-    .tp .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-    .tp .stat-card {
-        background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
-        padding: 20px 22px; display: flex; align-items: center; gap: 16px;
-        box-shadow: var(--shadow-sm); transition: transform .2s, box-shadow .2s; cursor: pointer;
-    }
-    .tp .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-    .tp .stat-card.active-filter { border-color: var(--blue); background: var(--blue-muted); }
-    .tp .stat-icon { width: 48px; height: 48px; border-radius: var(--r-md); display: grid; place-items: center; font-size: 20px; flex-shrink: 0; }
-    .tp .stat-icon.navy { background: var(--blue-muted); color: var(--blue); }
-    .tp .stat-icon.green { background: var(--green-muted); color: var(--green); }
-    .tp .stat-icon.red { background: var(--red-muted); color: var(--red); }
-    .tp .stat-info h3 { font-size: 28px; font-weight: 800; line-height: 1; margin: 0; }
-    .tp .stat-info p { font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .5px; margin-top: 5px; }
-
-    /* ── Search & Filter Bar ── */
-    .tp .filter-bar {
-        display: flex; align-items: center; gap: 14px; margin-bottom: 20px;
-        padding: 14px 20px; background: var(--surface); border: 1px solid var(--border);
-        border-radius: var(--r-lg); box-shadow: var(--shadow-sm);
-    }
-    .tp .filter-bar input {
-        flex: 1; border: none; outline: none; font-family: inherit; font-size: 14px;
-        font-weight: 500; color: var(--text-1); background: transparent;
-    }
-    .tp .filter-bar input::placeholder { color: var(--text-3); }
-
-    /* ── Task Grid ── */
-    .tp .task-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px; }
-    .tp .task-card {
-        background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl);
-        overflow: hidden; box-shadow: var(--shadow-sm); display: flex; flex-direction: column;
-        transition: transform .25s, box-shadow .25s;
-    }
-    .tp .task-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
-    .tp .card-top { padding: 22px 24px; flex: 1; }
-    .tp .card-status-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-    .tp .badge { font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: .5px; }
-    .tp .badge-active { background: var(--green-muted); color: var(--green); border: 1px solid var(--green-border); }
-    .tp .badge-expired { background: var(--red-muted); color: var(--red); border: 1px solid var(--red-border); }
-    .tp .card-title { font-size: 15px; font-weight: 700; color: var(--text-1); line-height: 1.5; margin-bottom: 10px; }
-    .tp .card-stats-row {
-        display: flex; gap: 12px; margin-bottom: 14px; font-size: 11px; font-weight: 700; color: var(--text-3);
-    }
-    .tp .card-stats-row .cs-item { display: flex; align-items: center; gap: 5px; }
-    .tp .card-stats-row .cs-item i { font-size: 12px; }
-    .tp .card-footer { background: #fcfdfe; padding: 14px 18px; border-top: 1px solid var(--border-lt); display: flex; gap: 8px; }
-
-    /* ── Wizard Layout ── */
-    .tp .wizard-wrap { display: block; max-width: 960px; margin: 0 auto; min-height: 85vh; padding-bottom: 40px; }
-    .tp .wizard-panel {
-        background: var(--surface); border-radius: var(--r-xl); border: 1px solid var(--border);
-        box-shadow: var(--shadow-lg); display: flex; flex-direction: column; overflow: hidden;
-    }
-    .tp .wizard-header { padding: 22px 32px; border-bottom: 1px solid var(--border-lt); display: flex; justify-content: space-between; align-items: center; background: #fff; }
-    .tp .wizard-header h2 { font-size: 20px; font-weight: 800; margin: 0; color: var(--navy); }
-
-    .tp .step-nav { display: flex; background: #f8fafc; border-bottom: 1px solid var(--border); padding: 0 32px; gap: 40px; overflow-x: auto; }
-    .tp .step-item {
-        display: flex; align-items: center; gap: 12px; padding: 18px 0;
-        font-size: 14px; font-weight: 700; color: var(--text-3); cursor: pointer;
-        border-bottom: 3px solid transparent; transition: all .2s; white-space: nowrap;
-    }
-    .tp .step-item.active { color: var(--red); border-bottom-color: var(--red); }
-    .tp .step-icon { width: 28px; height: 28px; border-radius: 8px; background: #e2e8f0; display: grid; place-items: center; font-size: 12px; font-weight: 800; }
-    .tp .step-item.active .step-icon { background: var(--red); color: #fff; }
-    .tp .step-item.completed .step-icon { background: var(--green); color: #fff; }
-    .tp .step-item.completed { color: var(--green); }
-
-    .tp .step-content { flex: 1; padding: 36px 48px; background: #fff; }
-    .tp .step-pane { display: none; }
-    .tp .step-pane.active { display: block; animation: fadeUp .3s ease; }
-
-    /* ── Google Form Style ── */
-    .gf-section-header {
-        background: #fff; border-radius: 12px; border-top: 8px solid var(--gf-purple);
-        box-shadow: var(--gf-card-shadow); padding: 22px 28px; margin-bottom: 18px;
-    }
-    .gf-section-header h3 { margin: 0 0 4px; font-size: 18px; font-weight: 800; color: var(--navy); }
-    .gf-section-header p { margin: 0; font-size: 13px; color: var(--text-3); font-weight: 500; }
-    .gf-card {
-        background: #fff; border-radius: 12px; box-shadow: var(--gf-card-shadow);
-        border: 1px solid rgba(0,0,0,.06); padding: 24px 28px; margin-bottom: 16px;
-        transition: box-shadow .18s; position: relative;
-    }
-    .gf-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.11); }
-    .gf-card.focused { border-left: 4px solid var(--gf-purple); padding-left: 24px; }
-    .gf-card-label {
-        font-size: 13px; font-weight: 700; color: var(--text-2); text-transform: uppercase;
-        letter-spacing: .7px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
-    }
-    .gf-card-label i { color: var(--gf-purple); font-size: 14px; }
-
-    /* File upload zone */
-    .gf-file-zone {
-        border: 2px dashed #c5b8e8; border-radius: 10px; padding: 28px 20px;
-        text-align: center; background: #faf8ff; cursor: pointer; transition: all .2s;
-    }
-    .gf-file-zone:hover { border-color: var(--gf-purple); background: var(--gf-hover); }
-    .gf-file-zone input[type="file"] { display: none; }
-    .gf-file-zone .gf-file-icon { font-size: 30px; color: var(--gf-purple); margin-bottom: 8px; }
-    .gf-file-zone .gf-file-text { font-size: 14px; font-weight: 700; color: var(--gf-purple); }
-    .gf-file-zone .gf-file-sub { font-size: 12px; color: var(--text-3); margin-top: 4px; }
-    .gf-file-chosen { font-size: 13px; font-weight: 600; color: var(--green); margin-top: 10px; display: none; align-items: center; gap: 6px; justify-content: center; }
-
-    /* Toggle switches */
-    .gf-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; gap: 16px; }
-    .gf-toggle-row+.gf-toggle-row { margin-top: 16px; border-top: 1px solid var(--border-lt); padding-top: 20px; }
-    .gf-toggle-label { display: flex; flex-direction: column; gap: 3px; flex: 1; }
-    .gf-toggle-label strong { font-size: 15px; font-weight: 700; color: var(--navy); }
-    .gf-toggle-label span { font-size: 12px; color: var(--text-3); font-weight: 500; }
-    .gf-switch { position: relative; display: inline-block; width: 48px; height: 26px; flex-shrink: 0; }
-    .gf-switch input { opacity: 0; width: 0; height: 0; }
-    .gf-slider {
-        position: absolute; cursor: pointer; inset: 0; background: #c8c8c8;
-        border-radius: 26px; transition: .25s;
-    }
-    .gf-slider:before {
-        content: ""; position: absolute; height: 20px; width: 20px; left: 3px; bottom: 3px;
-        background: #fff; border-radius: 50%; transition: .25s; box-shadow: 0 1px 4px rgba(0,0,0,.2);
-    }
-    .gf-switch input:checked+.gf-slider { background: var(--gf-purple); }
-    .gf-switch input:checked+.gf-slider:before { transform: translateX(22px); }
-
-    /* File count stepper */
-    .gf-stepper {
-        display: flex; align-items: center; gap: 12px; margin-top: 12px;
-        padding: 12px 16px; background: var(--gf-purple-light); border-radius: 10px;
-        border: 1px solid var(--gf-purple-border);
-    }
-    .gf-stepper label { font-size: 13px; font-weight: 700; color: var(--gf-purple); flex: 1; }
-    .gf-stepper-btn {
-        width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--gf-purple-border);
-        background: #fff; color: var(--gf-purple); font-size: 16px; font-weight: 800;
-        cursor: pointer; display: grid; place-items: center; transition: all .15s;
-    }
-    .gf-stepper-btn:hover { background: var(--gf-purple); color: #fff; }
-    .gf-stepper-val {
-        font-size: 18px; font-weight: 800; color: var(--gf-purple);
-        min-width: 30px; text-align: center;
-    }
-
-    /* ═══ Enhanced Question Cards (Google Form Style) ═══ */
-    .gf-question-list { display: flex; flex-direction: column; gap: 16px; }
-    .gf-question-card {
-        background: #fff; border-radius: 12px; box-shadow: var(--gf-card-shadow);
-        border: 1px solid rgba(0,0,0,.06); overflow: hidden;
-        transition: box-shadow .18s, border-color .18s; animation: fadeUp .3s ease;
-    }
-    .gf-question-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.11); }
-    .gf-question-card.active-q { border-left: 4px solid var(--gf-purple); }
-
-    /* Card Header — drag + number + title + type selector */
-    .gf-card-header {
-        padding: 20px 24px 0; display: flex; flex-direction: column; gap: 16px;
-    }
-    .gf-card-toprow { display: flex; align-items: center; gap: 12px; }
-    .gf-drag-handle { color: #ccc; cursor: grab; font-size: 14px; flex-shrink: 0; user-select: none; padding: 4px; }
-    .gf-drag-handle:hover { color: var(--gf-purple); }
-    .gf-q-number {
-        width: 28px; height: 28px; background: var(--gf-purple); color: #fff;
-        border-radius: 8px; font-size: 12px; font-weight: 800; display: grid; place-items: center; flex-shrink: 0;
-    }
-    .gf-question-input {
-        flex: 1; border: none; border-bottom: 2px solid #e0e0e0; border-radius: 0;
-        background: transparent; font-family: inherit; font-size: 16px; font-weight: 700;
-        color: var(--navy); padding: 10px 4px; transition: border-color .2s; box-sizing: border-box;
-    }
-    .gf-question-input:focus { outline: none; border-bottom-color: var(--gf-purple); background: transparent; box-shadow: none; }
-    .gf-question-input::placeholder { color: #bbb; font-weight: 500; }
-
-    /* Type selector — full width with icon */
-    .gf-type-select {
-        appearance: none; background: var(--gf-purple-light); border: 1.5px solid var(--gf-purple-border);
-        border-radius: 8px; color: var(--gf-purple); font-family: inherit; font-size: 13px;
-        font-weight: 700; padding: 10px 34px 10px 14px; cursor: pointer; flex-shrink: 0; min-width: 170px;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23673ab7'/%3E%3C/svg%3E");
-        background-repeat: no-repeat; background-position: right 12px center; transition: all .18s;
-    }
-    .gf-type-select:focus { outline: none; box-shadow: 0 0 0 3px rgba(103,58,183,.18); }
-
-    /* Card Body — preview / options area */
-    .gf-card-body { padding: 16px 24px; }
-    .gf-preview {
-        padding: 14px 18px; background: #fafafa; border-radius: 8px; border: 1px dashed #e2e8f0;
-        color: var(--text-3); font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 10px;
-    }
-    .gf-preview i { font-size: 16px; color: var(--gf-purple); }
-
-    /* Options editor (for radio/checkbox/select) */
-    .gf-options-editor { display: flex; flex-direction: column; gap: 10px; }
-    .gf-option-row {
-        display: flex; align-items: center; gap: 10px; animation: fadeUp .2s ease;
-    }
-    .gf-option-icon {
-        width: 20px; height: 20px; border: 2px solid #c5b8e8; border-radius: 50%; flex-shrink: 0;
-    }
-    .gf-option-icon.checkbox-icon { border-radius: 4px; }
-    .gf-option-input {
-        flex: 1; border: none; border-bottom: 1.5px solid #e0e0e0; padding: 8px 4px;
-        font-family: inherit; font-size: 14px; color: var(--navy); background: transparent;
-        transition: border-color .2s;
-    }
-    .gf-option-input:focus { outline: none; border-bottom-color: var(--gf-purple); }
-    .gf-option-input::placeholder { color: #ccc; }
-    .gf-option-remove {
-        background: none; border: none; color: #ccc; cursor: pointer; width: 28px; height: 28px;
-        border-radius: 50%; display: grid; place-items: center; font-size: 14px; transition: all .15s;
-    }
-    .gf-option-remove:hover { background: #fef2f2; color: var(--red); }
-    .gf-add-option-btn {
-        display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px;
-        background: transparent; border: none; color: var(--gf-purple); font-family: inherit;
-        font-size: 13px; font-weight: 700; cursor: pointer; border-radius: 6px; transition: all .15s;
-        margin-top: 4px; width: fit-content;
-    }
-    .gf-add-option-btn:hover { background: var(--gf-purple-light); }
-
-    /* Scale preview */
-    .gf-scale-preview { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .gf-scale-dot {
-        width: 36px; height: 36px; border: 2px solid var(--gf-purple-border); border-radius: 50%;
-        display: grid; place-items: center; font-size: 13px; font-weight: 700; color: var(--gf-purple);
-        background: #fff; transition: all .15s;
-    }
-    .gf-scale-dot:hover { background: var(--gf-purple-light); }
-
-    /* Card Footer — actions bar */
-    .gf-card-actions {
-        padding: 12px 24px; border-top: 1px solid var(--border-lt); display: flex;
-        align-items: center; justify-content: space-between; background: #fcfcfd;
-    }
-    .gf-actions-left { display: flex; align-items: center; gap: 6px; }
-    .gf-actions-right { display: flex; align-items: center; gap: 8px; }
-    .gf-action-btn {
-        background: none; border: none; color: #999; cursor: pointer; width: 36px; height: 36px;
-        border-radius: 8px; display: grid; place-items: center; font-size: 16px; transition: all .15s;
-    }
-    .gf-action-btn:hover { background: #f1f5f9; color: var(--text-1); }
-    .gf-action-btn.delete:hover { background: #fef2f2; color: var(--red); }
-    .gf-required-label { font-size: 12px; font-weight: 700; color: var(--text-3); margin-right: 6px; }
-    .gf-divider { width: 1px; height: 24px; background: var(--border); margin: 0 6px; }
-
-    /* Add question button */
-    .gf-add-btn {
-        display: flex; align-items: center; justify-content: center; gap: 10px;
-        width: 100%; padding: 18px; background: #fff; border: 2px dashed #c5b8e8;
-        border-radius: 12px; color: var(--gf-purple); font-family: inherit; font-size: 14px;
-        font-weight: 700; cursor: pointer; transition: all .2s; margin-top: 4px;
-    }
-    .gf-add-btn:hover { background: var(--gf-hover); border-style: solid; }
-    .gf-empty { text-align: center; padding: 40px 20px; color: var(--text-3); }
-    .gf-empty i { font-size: 40px; margin-bottom: 12px; opacity: .4; display: block; }
-    .gf-empty p { font-size: 14px; margin: 0; font-weight: 500; }
-
-    /* ── Forms ── */
-    .tp .form-group { margin-bottom: 26px; }
-    .tp .form-label { display: block; font-size: 11px; font-weight: 800; color: var(--text-2); margin-bottom: 10px; text-transform: uppercase; letter-spacing: .8px; }
-    .tp .form-control {
-        width: 100%; padding: 14px 18px; border: 2px solid var(--border); border-radius: var(--r-md);
-        font-family: inherit; font-size: 14px; background: #f8fafc; transition: all .2s; box-sizing: border-box;
-    }
-    .tp .form-control:focus { outline: none; border-color: var(--blue); background: #fff; box-shadow: 0 0 0 5px rgba(37,99,235,.06); }
-
-    /* ── School Picker ── */
-    .tp .school-picker { border: 2px solid var(--border); border-radius: var(--r-md); overflow: hidden; background: #f8fafc; }
-    .tp .school-search { padding: 14px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; background: #fff; flex-wrap: wrap; }
-    .tp .school-list { max-height: 440px; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
-    .tp .school-item {
-        display: flex; align-items: center; gap: 14px; padding: 12px 16px;
-        border-radius: var(--r-md); cursor: pointer; transition: all .15s; border: 1px solid transparent;
-    }
-    .tp .school-item:hover { background: #f1f5f9; }
-    .tp .school-item input { width: 20px; height: 20px; cursor: pointer; accent-color: var(--red); }
-    .tp .school-item.selected { background: var(--red-muted); color: var(--red); font-weight: 700; border-color: var(--red-border); }
-
-    /* Quick type buttons */
-    .type-btn-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-lt); }
-    .type-btn {
-        display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px;
-        border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer;
-        border: 2px solid; transition: all .2s; background: #fff; font-family: inherit;
-    }
-    .type-btn:hover { transform: translateY(-1px); }
-    .type-btn.active { color: #fff !important; }
-    .type-btn i { font-size: 11px; }
-
-    /* School count badge */
-    .school-count-badge {
-        position: sticky; bottom: 0; padding: 12px 18px; background: linear-gradient(to top, #fff 80%, transparent);
-        display: flex; align-items: center; justify-content: space-between;
-        font-size: 13px; font-weight: 700; color: var(--text-2);
-    }
-    .school-count-badge .count { color: var(--red); font-size: 18px; font-weight: 800; }
-
-    /* ── Utilities ── */
-    .btn {
-        display: inline-flex; align-items: center; gap: 10px; padding: 12px 26px;
-        border-radius: var(--r-md); font-size: 14px; font-weight: 700; cursor: pointer;
-        transition: all .2s; border: none; font-family: inherit; text-decoration: none;
-    }
-    .btn-red { background: var(--red); color: #fff; box-shadow: 0 4px 14px rgba(220,38,38,.25); }
-    .btn-red:hover { background: var(--red-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(220,38,38,.35); }
-    .btn-navy { background: var(--navy); color: #fff; }
-    .btn-navy:hover { background: var(--navy-deep); }
-    .btn-ghost { background: transparent; color: var(--text-2); border: 2px solid var(--border); }
-    .btn-ghost:hover { background: #f1f5f9; color: var(--text-1); border-color: #cbd5e1; }
-    .btn-sm { padding: 8px 16px; font-size: 13px; }
-
-    /* Delete modal */
-    .tp-modal { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.6); backdrop-filter: blur(6px); z-index: 9999; align-items: center; justify-content: center; }
-    .tp-modal.active { display: flex; animation: tpFadeIn .18s ease; }
-    .tp-modal-box { background: var(--surface); border-radius: var(--r-xl); padding: 28px; width: 90%; max-width: 420px; box-shadow: var(--shadow-lg); border-top: 4px solid var(--red); }
-
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes tpFadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-    @media (max-width: 768px) {
-        .tp .stats-grid { grid-template-columns: 1fr; }
-        .tp .task-grid { grid-template-columns: 1fr; }
-        .tp .step-content { padding: 24px 18px !important; }
-        .tp .step-nav { padding: 0 18px; gap: 20px; }
-        .tp .wizard-header { padding: 18px 20px; }
-        .tp .filter-bar { flex-wrap: wrap; }
-        #pane-3 { margin: -24px -18px !important; padding: 24px 18px 24px !important; }
-    }
-</style>
-
-<div class="tp page-root">
-
-    <!-- Dashboard View -->
-    <div id="dashboardView">
-        <div class="dash-topbar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; flex-wrap: wrap; gap: 14px;">
-            <div>
-                <h1 style="font-size:26px; font-weight:800; margin:0; color:var(--navy);">Görev Yönetimi</h1>
-                <p style="color:var(--text-3); font-size:14px; margin:6px 0 0; font-weight:500;">Kurum genelindeki görevleri ve okul yanıtlarını takip edin.</p>
-            </div>
-            <button class="btn btn-red" onclick="switchView('wizard')">
-                <i class="fas fa-plus-circle"></i> Yeni Görev Oluştur
-            </button>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-card" onclick="filterTasks('all')" id="filterAll">
-                <div class="stat-icon navy"><i class="fas fa-folder-open"></i></div>
-                <div class="stat-info"><h3><%= totalTasks %></h3><p>Toplam Görev</p></div>
-            </div>
-            <div class="stat-card" onclick="filterTasks('active')" id="filterActive">
-                <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
-                <div class="stat-info"><h3><%= activeTasks %></h3><p>Aktif Görevler</p></div>
-            </div>
-            <div class="stat-card" onclick="filterTasks('expired')" id="filterExpired">
-                <div class="stat-icon red"><i class="fas fa-history"></i></div>
-                <div class="stat-info"><h3><%= expiredTasks %></h3><p>Süresi Dolanlar</p></div>
-            </div>
-        </div>
-
-        <!-- Search & Filter -->
-        <div class="filter-bar">
-            <i class="fas fa-search" style="color: var(--text-3); font-size: 16px;"></i>
-            <input type="text" id="taskSearchInput" placeholder="Görev ara... (başlık veya tarih)" oninput="searchTasks(this.value)">
-        </div>
-
-        <div class="task-grid" id="taskGrid">
-            <% if (safeTasks.length === 0) { %>
-                <div style="grid-column: 1/-1; text-align: center; padding: 70px; background: #fff; border-radius: 20px; border: 2px dashed var(--border);">
-                    <i class="fas fa-clipboard-list" style="font-size: 56px; color: var(--border); margin-bottom: 20px; display: block;"></i>
-                    <p style="color: var(--text-3); font-weight: 600; font-size:15px;">Henüz hiç görev oluşturulmadı.</p>
-                    <button class="btn btn-red" style="margin-top: 16px;" onclick="switchView('wizard')">
-                        <i class="fas fa-plus"></i> İlk Görevi Oluştur
-                    </button>
-                </div>
-            <% } %>
-            <% safeTasks.forEach(t => {
-                const isExpired = new Date(t.deadline) < new Date();
-                const deadlineDate = new Date(t.deadline);
-                const now = new Date();
-                const diffDays = Math.ceil((deadlineDate - now) / (1000 * 60 * 60 * 24));
-            %>
-                <div class="task-card" data-title="<%= t.title.toLowerCase() %>" data-expired="<%= isExpired ? '1' : '0' %>" data-deadline="<%= t.deadline %>">
-                    <div class="card-top">
-                        <div class="card-status-row">
-                            <span class="badge <%= isExpired ? 'badge-expired' : 'badge-active' %>">
-                                <%= isExpired ? 'Süresi Doldu' : 'Aktif' %>
-                            </span>
-                            <span style="font-size:11px; font-weight:800; color:var(--text-3);">
-                                <i class="fas fa-calendar-alt"></i> <%= deadlineDate.toLocaleDateString('tr-TR') %>
-                            </span>
-                        </div>
-                        <div class="card-title"><%= t.title %></div>
-                        <div class="card-stats-row">
-                            <div class="cs-item">
-                                <i class="fas fa-school" style="color: var(--blue);"></i>
-                                <span><%= t.total_assignments || 0 %> okul</span>
-                            </div>
-                            <div class="cs-item">
-                                <i class="fas fa-check-circle" style="color: var(--green);"></i>
-                                <span><%= t.completed_assignments || 0 %> tamamlandı</span>
-                            </div>
-                            <% if (!isExpired && diffDays <= 3 && diffDays > 0) { %>
-                                <div class="cs-item" style="color: #f59e0b;">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    <span><%= diffDays %> gün kaldı</span>
-                                </div>
-                            <% } %>
-                        </div>
-                        <div style="margin-top:auto;">
-                            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:var(--text-2); margin-bottom:8px;">
-                                <span>Tamamlanma Oranı</span>
-                                <span>%<%= t.completion_rate || 0 %></span>
-                            </div>
-                            <div style="height:7px; background:var(--border-lt); border-radius:10px; overflow:hidden;">
-                                <div style="width:<%= t.completion_rate || 0 %>%; height:100%; background:linear-gradient(90deg, var(--green), #34d399); border-radius:10px; transition: width .5s ease;"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-footer">
-                        <a href="/admin/tasks/<%= t.id %>" class="btn btn-navy btn-sm" style="flex:1; justify-content:center;">
-                            <i class="fas fa-chart-bar"></i> Takip Et
-                        </a>
-                        <a href="/admin/tasks/<%= t.id %>/edit" class="btn btn-ghost btn-sm" title="Düzenle"><i class="fas fa-pencil-alt"></i></a>
-                        <form action="/admin/tasks/<%= t.id %>/delete" method="POST" style="display:inline; margin:0;" onsubmit="return confirm('⚠️ DİKKAT!\n\nBu görevi silmek istediğinize emin misiniz?\nOkulların yüklediği tüm dosyalar, form cevapları ve mesajlar kalıcı olarak silinecektir.');">
-                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                            <button type="submit" class="btn btn-ghost btn-sm" title="Görevi Sil" style="color:#ef4444; border-color:#fecaca;"><i class="fas fa-trash-alt"></i></button>
-                        </form>
-                    </div>
-                </div>
-            <% }) %>
-        </div>
-    </div>
-
-    <!-- Wizard View (New Task) -->
-    <div id="wizardView" style="display:none">
-        <div class="wizard-wrap">
-            <div class="wizard-panel">
-                <div class="wizard-header">
-                    <h2><i class="fas fa-pen-nib" style="color:var(--red); margin-right:12px;"></i> Yeni Görev Yaz</h2>
-                    <button class="btn btn-ghost btn-sm" onclick="switchView('dashboard')">Listeye Dön</button>
-                </div>
-
-                <div class="step-nav">
-                    <div class="step-item active" data-step="1"><div class="step-icon">1</div> Temel Bilgiler</div>
-                    <div class="step-item" data-step="2"><div class="step-icon">2</div> Görev Metni</div>
-                    <div class="step-item" data-step="3"><div class="step-icon">3</div> Form & Dosya</div>
-                    <div class="step-item" data-step="4"><div class="step-icon">4</div> Okul Seçimi</div>
-                </div>
-
-                <form id="taskForm" action="/admin/tasks" method="POST" enctype="multipart/form-data" class="step-content">
-                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-
-                    <!-- Step 1: Basic Info -->
-                    <div class="step-pane active" id="pane-1">
-                        <div class="gf-section-header" style="border-top-color: var(--red);">
-                            <h3><i class="fas fa-info-circle" style="color:var(--red); margin-right:10px;"></i>Temel Bilgiler</h3>
-                            <p>Görevin başlığını, dosya numarasını ve son teslim tarihini belirleyin.</p>
-                        </div>
-
-                        <div class="gf-card focused">
-                            <div class="gf-card-label"><i class="fas fa-heading"></i> Görev Başlığı / Konusu <span style="color: var(--red);">*</span></div>
-                            <input type="text" name="title" id="mainTitle" class="form-control" placeholder="Örn: 2024 Yılı Taşımalı Eğitim Veri Girişi" required style="font-size:15px;">
-                        </div>
-
-                        <div class="gf-card">
-                            <div class="gf-card-label"><i class="fas fa-file-signature"></i> Dosya / Sayı Numarası (Opsiyonel)</div>
-                            <input type="text" name="ebys_no" class="form-control" placeholder="Örn: 12345678-100-E.12345">
-                        </div>
-
-                        <div class="gf-card">
-                            <div class="gf-card-label"><i class="fas fa-calendar-check"></i> Son Teslim Tarihi ve Saati <span style="color: var(--red);">*</span></div>
-                            <input type="text" name="deadline" id="deadlinePicker" class="form-control" placeholder="Tarih seçiniz..." required>
-                        </div>
-                    </div>
-
-                    <!-- Step 2: Content -->
-                    <div class="step-pane" id="pane-2">
-                        <div class="gf-section-header" style="border-top-color: var(--blue);">
-                            <h3><i class="fas fa-file-alt" style="color:var(--blue); margin-right:10px;"></i>Görev Metni</h3>
-                            <p>Okullara gönderilecek resmî yazı metnini düzenleyin.</p>
-                        </div>
-
-                        <div class="gf-card" style="padding: 0; overflow: hidden;">
-                            <textarea name="description" id="editor"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Step 3: Form & Files (Google Form Style) -->
-                    <div class="step-pane" id="pane-3" style="background: #fafafa; margin: -36px -48px; padding: 36px 48px;">
-                        <div class="gf-section-header">
-                            <h3><i class="fas fa-wpforms" style="color:var(--gf-purple); margin-right:10px;"></i>Form & Dosya Ayarları</h3>
-                            <p>Okullardan istenecek dosya ve veri giriş alanlarını yapılandırın.</p>
-                        </div>
-
-                        <!-- File upload card -->
-                        <div class="gf-card" id="fileCard">
-                            <div class="gf-card-label"><i class="fas fa-paperclip"></i> Ek Dosya (İsteğe Bağlı)</div>
-                            <div class="gf-file-zone" id="fileZone" onclick="document.getElementById('taskFileInput').click()">
-                                <input type="file" name="task_file" id="taskFileInput">
-                                <div class="gf-file-icon"><i class="fas fa-cloud-upload-alt"></i></div>
-                                <div class="gf-file-text">Dosya seçmek için tıklayın veya sürükleyin</div>
-                                <div class="gf-file-sub">PDF, Word, Excel vb. — Okulların indirmesi için</div>
-                            </div>
-                            <div class="gf-file-chosen" id="fileChosen"><i class="fas fa-check-circle"></i> <span id="fileChosenName"></span></div>
-                        </div>
-
-                        <!-- File settings card -->
-                        <div class="gf-card">
-                            <div class="gf-card-label"><i class="fas fa-cog"></i> Dosya Yükleme Ayarları</div>
-
-                            <div class="gf-toggle-row">
-                                <div class="gf-toggle-label">
-                                    <strong>Okullar Dosya Yüklesin</strong>
-                                    <span>Okulların bu göreve dosya eklemesine izin verir</span>
-                                </div>
-                                <label class="gf-switch">
-                                    <input type="checkbox" name="requires_file" value="1" id="requiresFileToggle">
-                                    <span class="gf-slider"></span>
-                                </label>
-                            </div>
-
-                            <div class="gf-toggle-row" id="mandatoryRow" style="opacity:.4; pointer-events:none;">
-                                <div class="gf-toggle-label">
-                                    <strong>Dosya Yükleme Zorunlu</strong>
-                                    <span>Aktifse okullar dosya yüklemeden formu gönderemez</span>
-                                </div>
-                                <label class="gf-switch">
-                                    <input type="checkbox" name="is_file_mandatory" value="1" id="fileMandatoryToggle">
-                                    <span class="gf-slider"></span>
-                                </label>
-                            </div>
-
-                            <!-- File count stepper -->
-                            <div class="gf-stepper" id="fileCountRow" style="display: none;">
-                                <label><i class="fas fa-copy" style="margin-right: 6px;"></i> Maksimum Dosya Sayısı</label>
-                                <button type="button" class="gf-stepper-btn" onclick="changeFileCount(-1)">−</button>
-                                <span class="gf-stepper-val" id="fileCountDisplay">1</span>
-                                <button type="button" class="gf-stepper-btn" onclick="changeFileCount(1)">+</button>
-                                <input type="hidden" name="max_file_count" id="maxFileCountInput" value="1">
-                            </div>
-                        </div>
-
-                        <!-- Dynamic question cards -->
-                        <div class="gf-card" style="padding: 24px 28px 20px;">
-                            <div class="gf-card-label" style="margin-bottom:6px;"><i class="fas fa-list-ul"></i> Veri Giriş Formu</div>
-                            <p style="font-size:12px; color:var(--text-3); margin:0 0 20px; font-weight:500;">Okulların dolduracağı soruları ekleyin. Her soru için alan tipini seçebilir, seçenekler ekleyebilir ve zorunluluk belirleyebilirsiniz.</p>
-                            <div class="gf-question-list" id="dynamicFields">
-                                <div class="gf-empty" id="emptyState">
-                                    <i class="fas fa-clipboard-list"></i>
-                                    <p>Henüz soru eklenmemiş.<br><span style="font-size:12px; color:#bbb;">Aşağıdaki butona tıklayarak Google Form benzeri sorular oluşturun.</span></p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button type="button" class="gf-add-btn" onclick="addField()">
-                            <i class="fas fa-plus-circle"></i> Yeni Soru / Veri Alanı Ekle
-                        </button>
-                    </div>
-
-                    <!-- Step 4: School Selection -->
-                    <div class="step-pane" id="pane-4">
-                        <div class="gf-section-header" style="border-top-color: var(--green);">
-                            <h3><i class="fas fa-school" style="color:var(--green); margin-right:10px;"></i>Okul Seçimi</h3>
-                            <p>Görevi hangi okul ve kurumlara göndereceğinizi seçin.</p>
-                        </div>
-
-                        <div class="school-picker">
-                            <div class="school-search">
-                                <i class="fas fa-search" style="color:var(--text-3); align-self:center; margin-left:10px;"></i>
-                                <input type="text" id="schoolSearch" class="form-control" style="border:none; background:transparent; flex: 1;" placeholder="Okul veya kurum adı ile ara...">
-                                <button type="button" class="btn btn-navy btn-sm" onclick="toggleAllSchools(true)">Tümünü Seç</button>
-                                <button type="button" class="btn btn-ghost btn-sm" onclick="toggleAllSchools(false)">Temizle</button>
-
-                                <!-- Quick type buttons -->
-                                <div class="type-btn-group" id="typeButtonGroup">
-                                    <% safeSchoolTypes.forEach(type => { %>
-                                        <button type="button" class="type-btn" data-type="<%= type %>"
-                                            style="color: <%= typeColors[type] || '#6b7280' %>; border-color: <%= typeColors[type] || '#6b7280' %>;"
-                                            onclick="toggleTypeSelection('<%= type %>', this)">
-                                            <i class="fas <%= typeIcons[type] || 'fa-building' %>"></i>
-                                            <%= typeLabels[type] || type %>
-                                        </button>
-                                    <% }) %>
-                                </div>
-                            </div>
-                            <div class="school-list" id="schoolList">
-                                <% schools.forEach(s => { %>
-                                    <label class="school-item" data-name="<%= s.full_name.toLowerCase() %>" data-type="<%= s.school_type %>">
-                                        <input type="checkbox" name="school_ids" value="<%= s.id %>">
-                                        <span style="font-size:14px; font-weight:600; flex:1;"><%= s.full_name %></span>
-                                        <span style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:12px; background: <%= typeColors[s.school_type] ? typeColors[s.school_type] + '18' : '#f1f5f9' %>; color: <%= typeColors[s.school_type] || '#6b7280' %>;">
-                                            <%= typeLabels[s.school_type] || s.school_type || '-' %>
-                                        </span>
-                                    </label>
-                                <% }) %>
-                            </div>
-                            <div class="school-count-badge">
-                                <span><i class="fas fa-check-circle" style="color: var(--green); margin-right: 6px;"></i>Seçilen Okul Sayısı:</span>
-                                <span class="count" id="selectedSchoolCount">0</span>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-
-                <div class="wizard-footer" style="padding: 26px 48px; background: #f8fafc; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items:center;">
-                    <button type="button" id="btnPrev" class="btn btn-ghost" style="visibility:hidden">
-                        <i class="fas fa-chevron-left"></i> Önceki Adım
-                    </button>
-                    <div>
-                        <button type="button" id="btnNext" class="btn btn-red" style="padding:14px 32px;">
-                            Sonraki Adım <i class="fas fa-chevron-right" style="margin-left:10px;"></i>
-                        </button>
-                        <button type="button" id="btnSubmit" class="btn btn-navy" style="display:none; padding:14px 36px; background:var(--green); border-color:var(--green);">
-                            <i class="fas fa-paper-plane" style="margin-right:10px;"></i> Görevi Yayınla
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-<script>
-(function() {
-    'use strict';
-    let currentStep = 1;
-
-    // View Switching
-    window.switchView = (mode) => {
-        const dash = document.getElementById('dashboardView');
-        const wiz  = document.getElementById('wizardView');
-        if (mode === 'wizard') {
-            dash.style.display = 'none';
-            wiz.style.display  = 'block';
-        } else {
-            dash.style.display = 'block';
-            wiz.style.display  = 'none';
-            gotoStep(1);
-        }
-    };
-
-    // Wizard Navigation
-    const gotoStep = (n) => {
-        currentStep = n;
-        document.querySelectorAll('.step-pane').forEach((p, i) => p.classList.toggle('active', (i+1) === n));
-        document.querySelectorAll('.step-item').forEach((it, i) => {
-            it.classList.toggle('active', (i+1) === n);
-            it.classList.toggle('completed', (i+1) < n);
-        });
-
-        const btnPrev   = document.getElementById('btnPrev');
-        const btnNext   = document.getElementById('btnNext');
-        const btnSubmit = document.getElementById('btnSubmit');
-
-        btnPrev.style.visibility = n === 1 ? 'hidden' : 'visible';
-        btnNext.style.display    = n === 4 ? 'none' : 'inline-flex';
-        btnSubmit.style.display  = n === 4 ? 'inline-flex' : 'none';
-
-        document.getElementById('wizardView').scrollIntoView({ behavior: 'smooth' });
-    };
-
-    // Step clicks
-    document.querySelectorAll('.step-item').forEach(item => {
-        item.addEventListener('click', () => {
-            const step = parseInt(item.dataset.step);
-            if (step) gotoStep(step);
-        });
-    });
-
-    document.getElementById('btnNext').onclick = () => { if(currentStep < 4) gotoStep(currentStep + 1); };
-    document.getElementById('btnPrev').onclick = () => { if(currentStep > 1) gotoStep(currentStep - 1); };
-    document.getElementById('btnSubmit').onclick = () => {
-        const title = document.getElementById('mainTitle').value;
-        if (!title) { alert('Lütfen görev başlığını giriniz.'); gotoStep(1); return; }
-
-        const deadline = document.getElementById('deadlinePicker').value;
-        if (!deadline) { alert('Lütfen son teslim tarihini belirleyiniz.'); gotoStep(1); return; }
-
-        const schools = document.querySelectorAll('input[name="school_ids"]:checked');
-        if (schools.length === 0) { alert('Lütfen en az bir okul seçiniz.'); gotoStep(4); return; }
-
-        document.getElementById('taskForm').submit();
-    };
-
-    // Editor
-    ClassicEditor.create(document.querySelector('#editor'), {
-        language: 'tr',
-        toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'insertTable', 'undo', 'redo']
-    }).catch(err => console.error(err));
-
-    // Date Picker
-    flatpickr("#deadlinePicker", {
-        enableTime: true,
-        dateFormat: "Y-m-d H:i",
-        locale: "tr",
-        minDate: "today",
-        time_24hr: true
-    });
-
-    // File zone feedback
-    document.getElementById('taskFileInput').addEventListener('change', function() {
-        const name = this.files[0] ? this.files[0].name : '';
-        const chosen = document.getElementById('fileChosen');
-        const chosenN = document.getElementById('fileChosenName');
-        if (name) { chosenN.textContent = name; chosen.style.display = 'flex'; }
-        else { chosen.style.display = 'none'; }
-    });
-
-    // Toggle: requires_file → enable/disable mandatory & file count
-    document.getElementById('requiresFileToggle').addEventListener('change', function() {
-        const mandRow = document.getElementById('mandatoryRow');
-        const countRow = document.getElementById('fileCountRow');
-        mandRow.style.opacity = this.checked ? '1' : '0.4';
-        mandRow.style.pointerEvents = this.checked ? 'auto' : 'none';
-        countRow.style.display = this.checked ? 'flex' : 'none';
-        if (!this.checked) document.getElementById('fileMandatoryToggle').checked = false;
-    });
-
-    // File count stepper
-    window.changeFileCount = (delta) => {
-        const inp = document.getElementById('maxFileCountInput');
-        const disp = document.getElementById('fileCountDisplay');
-        let val = parseInt(inp.value) + delta;
-        if (val < 1) val = 1;
-        if (val > 20) val = 20;
-        inp.value = val;
-        disp.textContent = val;
-    };
-
-    // ═══ FIELD TYPE DEFINITIONS ═══
-    const FIELD_TYPES = {
-        text:     { label: 'Kısa Yanıt',      icon: 'fa-minus',            hasOptions: false },
-        textarea: { label: 'Paragraf',         icon: 'fa-align-left',       hasOptions: false },
-        number:   { label: 'Sayı',             icon: 'fa-hashtag',          hasOptions: false },
-        radio:    { label: 'Çoktan Seçmeli',   icon: 'fa-dot-circle',       hasOptions: true, optionIcon: '' },
-        checkbox: { label: 'Onay Kutuları',    icon: 'fa-check-square',     hasOptions: true, optionIcon: 'checkbox-icon' },
-        select:   { label: 'Açılır Menü',      icon: 'fa-caret-square-down',hasOptions: true, optionIcon: '' },
-        date:     { label: 'Tarih',            icon: 'fa-calendar-alt',     hasOptions: false },
-        time:     { label: 'Saat',             icon: 'fa-clock',            hasOptions: false },
-        scale:    { label: 'Doğrusal Ölçek',   icon: 'fa-sliders-h',        hasOptions: false }
-    };
-
-    const buildTypeOptions = (selectedType) => {
-        return Object.entries(FIELD_TYPES).map(([val, info]) =>
-            `<option value="${val}" ${val === selectedType ? 'selected' : ''}>${info.label}</option>`
-        ).join('');
-    };
-
-    const buildPreview = (type) => {
-        const info = FIELD_TYPES[type] || FIELD_TYPES.text;
-        switch(type) {
-            case 'text':     return `<div class="gf-preview"><i class="fas fa-minus"></i> Kısa metin yanıtı</div>`;
-            case 'textarea': return `<div class="gf-preview"><i class="fas fa-align-left"></i> Uzun metin yanıtı (paragraf)</div>`;
-            case 'number':   return `<div class="gf-preview"><i class="fas fa-hashtag"></i> Sayısal değer girişi</div>`;
-            case 'date':     return `<div class="gf-preview"><i class="fas fa-calendar-alt"></i> Tarih seçici alanı</div>`;
-            case 'time':     return `<div class="gf-preview"><i class="fas fa-clock"></i> Saat seçici alanı</div>`;
-            case 'scale':
-                return `<div class="gf-scale-preview">${[1,2,3,4,5].map(n=>`<div class="gf-scale-dot">${n}</div>`).join('')}</div>`;
-            case 'radio': case 'checkbox': case 'select':
-                return ''; // options editor handles this
-            default: return `<div class="gf-preview"><i class="fas ${info.icon}"></i> ${info.label}</div>`;
-        }
-    };
-
-    const buildOptionsEditor = (type, existingOptions) => {
-        const info = FIELD_TYPES[type];
-        if (!info || !info.hasOptions) return '';
-        const iconClass = type === 'checkbox' ? 'gf-option-icon checkbox-icon' : 'gf-option-icon';
-        const opts = existingOptions && existingOptions.length ? existingOptions : ['Seçenek 1'];
-        let html = `<div class="gf-options-editor" data-type="${type}">`;
-        opts.forEach((opt, i) => {
-            html += `<div class="gf-option-row">
-                <div class="${iconClass}"></div>
-                <input type="text" class="gf-option-input" name="field_option_values" value="${opt}" placeholder="Seçenek ${i+1}">
-                <button type="button" class="gf-option-remove" onclick="removeOption(this)" title="Seçeneği sil"><i class="fas fa-times"></i></button>
-            </div>`;
-        });
-        html += `<button type="button" class="gf-add-option-btn" onclick="addOption(this)">
-            <i class="fas fa-plus"></i> Seçenek Ekle
-        </button></div>`;
-        return html;
-    };
-
-    // Dynamic Fields
-    const updateNumbers = () => {
-        document.querySelectorAll('#dynamicFields .gf-question-card .gf-q-number').forEach((el, i) => {
-            el.textContent = i + 1;
-        });
-    };
-
-    const updateCardPreview = (card) => {
-        const type = card.querySelector('.gf-type-select').value;
-        const bodyEl = card.querySelector('.gf-card-body');
-        const info = FIELD_TYPES[type];
-        if (info && info.hasOptions) {
-            bodyEl.innerHTML = buildOptionsEditor(type, []);
-        } else {
-            bodyEl.innerHTML = buildPreview(type);
-        }
-    };
-
-    window.addField = () => {
-        const empty = document.getElementById('emptyState');
-        if (empty) empty.style.display = 'none';
-
-        const list = document.getElementById('dynamicFields');
-        const count = list.querySelectorAll('.gf-question-card').length + 1;
-
-        const card = document.createElement('div');
-        card.className = 'gf-question-card active-q';
-        card.innerHTML = `
-            <div class="gf-card-header">
-                <div class="gf-card-toprow">
-                    <span class="gf-drag-handle" title="Sürükle"><i class="fas fa-grip-vertical"></i></span>
-                    <div class="gf-q-number">${count}</div>
-                    <input type="hidden" name="field_ids" value="">
-                    <input type="text" name="field_labels" class="gf-question-input"
-                           placeholder="Soru başlığını yazın..." required>
-                    <select name="field_types" class="gf-type-select" onchange="updateCardPreview(this.closest('.gf-question-card'))">
-                        ${buildTypeOptions('text')}
-                    </select>
-                </div>
-            </div>
-            <div class="gf-card-body">
-                ${buildPreview('text')}
-            </div>
-            <div class="gf-card-actions">
-                <div class="gf-actions-left">
-                    <span class="gf-required-label">Zorunlu</span>
-                    <label class="gf-switch" style="transform:scale(.85);">
-                        <input type="checkbox" name="field_required" value="1">
-                        <span class="gf-slider"></span>
-                    </label>
-                </div>
-                <div class="gf-actions-right">
-                    <button type="button" class="gf-action-btn" onclick="duplicateField(this)" title="Kopyala"><i class="fas fa-copy"></i></button>
-                    <div class="gf-divider"></div>
-                    <button type="button" class="gf-action-btn delete" onclick="removeField(this)" title="Sil"><i class="fas fa-trash-alt"></i></button>
-                </div>
-            </div>
-        `;
-        list.appendChild(card);
-        card.querySelector('.gf-question-input').focus();
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    };
-
-    window.removeField = (btn) => {
-        btn.closest('.gf-question-card').remove();
-        updateNumbers();
-        const empty = document.getElementById('emptyState');
-        if (empty && document.querySelectorAll('#dynamicFields .gf-question-card').length === 0) {
-            empty.style.display = 'block';
-        }
-    };
-
-    window.duplicateField = (btn) => {
-        const card = btn.closest('.gf-question-card');
-        const clone = card.cloneNode(true);
-        clone.querySelector('input[name="field_ids"]').value = '';
-        card.parentNode.insertBefore(clone, card.nextSibling);
-        updateNumbers();
-        clone.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    };
-
-    // Options management for radio/checkbox/select
-    window.addOption = (btn) => {
-        const editor = btn.closest('.gf-options-editor');
-        const type = editor.dataset.type;
-        const iconClass = type === 'checkbox' ? 'gf-option-icon checkbox-icon' : 'gf-option-icon';
-        const count = editor.querySelectorAll('.gf-option-row').length + 1;
-        const row = document.createElement('div');
-        row.className = 'gf-option-row';
-        row.innerHTML = `
-            <div class="${iconClass}"></div>
-            <input type="text" class="gf-option-input" name="field_option_values" value="" placeholder="Seçenek ${count}">
-            <button type="button" class="gf-option-remove" onclick="removeOption(this)" title="Seçeneği sil"><i class="fas fa-times"></i></button>
-        `;
-        btn.before(row);
-        row.querySelector('.gf-option-input').focus();
-    };
-
-    window.removeOption = (btn) => {
-        const editor = btn.closest('.gf-options-editor');
-        if (editor.querySelectorAll('.gf-option-row').length > 1) {
-            btn.closest('.gf-option-row').remove();
-        }
-    };
-
-    // School Picker Logic
-    const schoolSearch = document.getElementById('schoolSearch');
-    schoolSearch.oninput = (e) => {
-        const term = e.target.value.toLowerCase();
-        document.querySelectorAll('.school-item').forEach(item => {
-            const visible = item.dataset.name.includes(term);
-            item.style.display = visible ? 'flex' : 'none';
-        });
-    };
-
-    const updateSchoolCount = () => {
-        const count = document.querySelectorAll('input[name="school_ids"]:checked').length;
-        document.getElementById('selectedSchoolCount').textContent = count;
-    };
-
-    window.toggleAllSchools = (status) => {
-        document.querySelectorAll('.school-item').forEach(item => {
-            if (item.style.display !== 'none') {
-                const cb = item.querySelector('input');
-                cb.checked = status;
-                item.classList.toggle('selected', status);
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+
+    <% const safeTasks=typeof tasks !=='undefined' ? tasks : []; const totalTasks=safeTasks.length; const
+        activeTasks=safeTasks.filter(t=> new Date(t.deadline) >= new Date()).length;
+        const expiredTasks = totalTasks - activeTasks;
+        const safeSchoolTypes = typeof schoolTypes !== 'undefined' ? schoolTypes : [];
+
+        const typeLabels = {
+        ilkokul: 'İlkokul', ortaokul: 'Ortaokul', lise: 'Lise', anaokulu: 'Anaokulu',
+        diger: 'Diğer Kurumlar', rehabilitasyon: 'Rehabilitasyon',
+        surucu_kursu: 'Sürücü Kursu', kurs: 'Kurs', yurt: 'Yurt'
+        };
+        const typeIcons = {
+        ilkokul: 'fa-child', ortaokul: 'fa-book-reader', lise: 'fa-graduation-cap',
+        anaokulu: 'fa-baby', diger: 'fa-building', rehabilitasyon: 'fa-hands-helping',
+        surucu_kursu: 'fa-car', kurs: 'fa-chalkboard-teacher', yurt: 'fa-bed'
+        };
+        const typeColors = {
+        ilkokul: '#3b82f6', ortaokul: '#8b5cf6', lise: '#ef4444', anaokulu: '#f59e0b',
+        diger: '#6b7280', rehabilitasyon: '#10b981', surucu_kursu: '#f97316',
+        kurs: '#06b6d4', yurt: '#ec4899'
+        };
+        %>
+
+        <style>
+            :root {
+                --red: #dc2626;
+                --red-dark: #b91c1c;
+                --red-muted: #fef2f2;
+                --red-border: #fecaca;
+                --blue: #2563eb;
+                --blue-muted: #eff6ff;
+                --blue-border: #dbeafe;
+                --green: #059669;
+                --green-muted: #ecfdf5;
+                --green-border: #d1fae5;
+                --navy: #1e293b;
+                --navy-deep: #0f172a;
+                --surface: #ffffff;
+                --bg: #f8fafc;
+                --border: #e2e8f0;
+                --border-lt: #f1f5f9;
+                --text-1: #1e293b;
+                --text-2: #475569;
+                --text-3: #94a3b8;
+                --shadow-sm: 0 1px 3px rgba(0, 0, 0, .07);
+                --shadow-md: 0 4px 16px rgba(0, 0, 0, .08);
+                --shadow-lg: 0 20px 50px rgba(0, 0, 0, .14);
+                --r-sm: 8px;
+                --r-md: 12px;
+                --r-lg: 16px;
+                --r-xl: 20px;
+                --font: 'Plus Jakarta Sans', sans-serif;
+                --gf-purple: #673ab7;
+                --gf-purple-light: #ede7f6;
+                --gf-purple-border: #b39ddb;
+                --gf-card-shadow: 0 2px 6px rgba(0, 0, 0, .08), 0 0 0 1px rgba(0, 0, 0, .04);
+                --gf-hover: #f3e8ff;
             }
-        });
-        // Reset type buttons
-        document.querySelectorAll('.type-btn').forEach(btn => {
-            btn.classList.remove('active');
-            btn.style.background = '#fff';
-        });
-        updateSchoolCount();
-    };
 
-    // Type-based quick selection
-    window.toggleTypeSelection = (type, btn) => {
-        const isActive = btn.classList.contains('active');
-        const color = btn.style.color;
+            /* ── Base ── */
+            .tp {
+                font-family: var(--font);
+                color: var(--text-1);
+                -webkit-font-smoothing: antialiased;
+            }
 
-        if (isActive) {
-            btn.classList.remove('active');
-            btn.style.background = '#fff';
-            // Uncheck all of this type
-            document.querySelectorAll(`.school-item[data-type="${type}"]`).forEach(item => {
-                const cb = item.querySelector('input');
-                cb.checked = false;
-                item.classList.remove('selected');
-            });
-        } else {
-            btn.classList.add('active');
-            btn.style.background = color;
-            // Check all of this type
-            document.querySelectorAll(`.school-item[data-type="${type}"]`).forEach(item => {
-                const cb = item.querySelector('input');
-                cb.checked = true;
-                item.classList.add('selected');
-            });
-        }
-        updateSchoolCount();
-    };
+            .page-root {
+                margin-top: 18px;
+            }
 
-    document.getElementById('schoolList').addEventListener('change', (e) => {
-        if (e.target.tagName === 'INPUT') {
-            e.target.closest('.school-item').classList.toggle('selected', e.target.checked);
-            updateSchoolCount();
-        }
-    });
+            /* ── Stats ── */
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
+                margin-bottom: 24px;
+            }
 
-    // Task Search in Dashboard
-    window.searchTasks = (term) => {
-        const lower = term.toLowerCase();
-        document.querySelectorAll('.task-card').forEach(card => {
-            const title = card.dataset.title || '';
-            const deadline = card.dataset.deadline || '';
-            const match = title.includes(lower) || deadline.includes(lower);
-            card.style.display = match ? '' : 'none';
-        });
-    };
+            .stat-card {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--r-lg);
+                padding: 20px 22px;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                box-shadow: var(--shadow-sm);
+                transition: transform .2s, box-shadow .2s;
+                cursor: pointer;
+            }
 
-    // Task Filter by status
-    let currentFilter = 'all';
-    window.filterTasks = (type) => {
-        currentFilter = type;
-        document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
-        const filterEl = document.getElementById('filter' + type.charAt(0).toUpperCase() + type.slice(1));
-        if (filterEl) filterEl.classList.add('active-filter');
+            .stat-card:hover {
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-md);
+            }
 
-        document.querySelectorAll('.task-card').forEach(card => {
-            const isExpired = card.dataset.expired === '1';
-            if (type === 'all') { card.style.display = ''; }
-            else if (type === 'active') { card.style.display = isExpired ? 'none' : ''; }
-            else if (type === 'expired') { card.style.display = isExpired ? '' : 'none'; }
-        });
-    };
+            .stat-card.active-filter {
+                border-color: var(--blue);
+                background: var(--blue-muted);
+            }
 
-})();
-</script>
+            .stat-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: var(--r-md);
+                display: grid;
+                place-items: center;
+                font-size: 20px;
+                flex-shrink: 0;
+            }
 
-<%- include('../layouts/footer') %>
+            .stat-icon.navy {
+                background: var(--blue-muted);
+                color: var(--blue);
+            }
+
+            .stat-icon.green {
+                background: var(--green-muted);
+                color: var(--green);
+            }
+
+            .stat-icon.red {
+                background: var(--red-muted);
+                color: var(--red);
+            }
+
+            .stat-info h3 {
+                font-size: 28px;
+                font-weight: 800;
+                line-height: 1;
+                margin: 0;
+            }
+
+            .stat-info p {
+                font-size: 11px;
+                font-weight: 700;
+                color: var(--text-3);
+                text-transform: uppercase;
+                letter-spacing: .5px;
+                margin-top: 5px;
+            }
+
+            /* ── Filter Bar ── */
+            .filter-bar {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                margin-bottom: 20px;
+                padding: 14px 20px;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--r-lg);
+                box-shadow: var(--shadow-sm);
+            }
+
+            .filter-bar input {
+                flex: 1;
+                border: none;
+                outline: none;
+                font-family: inherit;
+                font-size: 14px;
+                font-weight: 500;
+                color: var(--text-1);
+                background: transparent;
+            }
+
+            .filter-bar input::placeholder {
+                color: var(--text-3);
+            }
+
+            /* ── Task Grid ── */
+            .task-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+                gap: 18px;
+            }
+
+            .task-card {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--r-xl);
+                overflow: hidden;
+                box-shadow: var(--shadow-sm);
+                display: flex;
+                flex-direction: column;
+                transition: transform .25s, box-shadow .25s;
+            }
+
+            .task-card:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--shadow-md);
+            }
+
+            .card-top {
+                padding: 22px 24px;
+                flex: 1;
+            }
+
+            .card-status-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 14px;
+            }
+
+            .badge {
+                font-size: 10px;
+                font-weight: 800;
+                padding: 4px 10px;
+                border-radius: 20px;
+                text-transform: uppercase;
+                letter-spacing: .5px;
+            }
+
+            .badge-active {
+                background: var(--green-muted);
+                color: var(--green);
+                border: 1px solid var(--green-border);
+            }
+
+            .badge-expired {
+                background: var(--red-muted);
+                color: var(--red);
+                border: 1px solid var(--red-border);
+            }
+
+            .card-title {
+                font-size: 15px;
+                font-weight: 700;
+                color: var(--text-1);
+                line-height: 1.5;
+                margin-bottom: 10px;
+            }
+
+            .card-stats-row {
+                display: flex;
+                gap: 12px;
+                margin-bottom: 14px;
+                font-size: 11px;
+                font-weight: 700;
+                color: var(--text-3);
+            }
+
+            .card-stats-row .cs-item {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .card-footer {
+                background: #fcfdfe;
+                padding: 14px 18px;
+                border-top: 1px solid var(--border-lt);
+                display: flex;
+                gap: 8px;
+            }
+
+            /* ── Wizard ── */
+            .wizard-wrap {
+                max-width: 960px;
+                margin: 0 auto;
+                min-height: 85vh;
+                padding-bottom: 40px;
+            }
+
+            .wizard-panel {
+                background: var(--surface);
+                border-radius: var(--r-xl);
+                border: 1px solid var(--border);
+                box-shadow: var(--shadow-lg);
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            .wizard-header {
+                padding: 22px 32px;
+                border-bottom: 1px solid var(--border-lt);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: #fff;
+            }
+
+            .wizard-header h2 {
+                font-size: 20px;
+                font-weight: 800;
+                margin: 0;
+                color: var(--navy);
+            }
+
+            /* ── Step Nav ── */
+            .step-nav {
+                display: flex;
+                background: #f8fafc;
+                border-bottom: 1px solid var(--border);
+                padding: 0 32px;
+                gap: 40px;
+                overflow-x: auto;
+            }
+
+            .step-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 18px 0;
+                font-size: 14px;
+                font-weight: 700;
+                color: var(--text-3);
+                cursor: pointer;
+                border-bottom: 3px solid transparent;
+                transition: all .2s;
+                white-space: nowrap;
+            }
+
+            .step-item.active {
+                color: var(--red);
+                border-bottom-color: var(--red);
+            }
+
+            .step-item.completed {
+                color: var(--green);
+            }
+
+            .step-icon {
+                width: 28px;
+                height: 28px;
+                border-radius: 8px;
+                background: #e2e8f0;
+                display: grid;
+                place-items: center;
+                font-size: 12px;
+                font-weight: 800;
+            }
+
+            .step-item.active .step-icon {
+                background: var(--red);
+                color: #fff;
+            }
+
+            .step-item.completed .step-icon {
+                background: var(--green);
+                color: #fff;
+            }
+
+            /* ── Step Content ── */
+            .step-content {
+                flex: 1;
+                padding: 36px 48px;
+                background: #fff;
+            }
+
+            .step-pane {
+                display: none;
+            }
+
+            .step-pane.active {
+                display: block;
+                animation: fadeUp .3s ease;
+            }
+
+            /* ── Google Form Cards ── */
+            .gf-section-header {
+                background: #fff;
+                border-radius: 12px;
+                border-top: 8px solid var(--gf-purple);
+                box-shadow: var(--gf-card-shadow);
+                padding: 22px 28px;
+                margin-bottom: 18px;
+            }
+
+            .gf-section-header h3 {
+                margin: 0 0 4px;
+                font-size: 18px;
+                font-weight: 800;
+                color: var(--navy);
+            }
+
+            .gf-section-header p {
+                margin: 0;
+                font-size: 13px;
+                color: var(--text-3);
+                font-weight: 500;
+            }
+
+            .gf-card {
+                background: #fff;
+                border-radius: 12px;
+                box-shadow: var(--gf-card-shadow);
+                border: 1px solid rgba(0, 0, 0, .06);
+                padding: 24px 28px;
+                margin-bottom: 16px;
+                transition: box-shadow .18s;
+                position: relative;
+            }
+
+            .gf-card:hover {
+                box-shadow: 0 4px 18px rgba(0, 0, 0, .11);
+            }
+
+            .gf-card.focused {
+                border-left: 4px solid var(--gf-purple);
+                padding-left: 24px;
+            }
+
+            .gf-card-label {
+                font-size: 13px;
+                font-weight: 700;
+                color: var(--text-2);
+                text-transform: uppercase;
+                letter-spacing: .7px;
+                margin-bottom: 14px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .gf-card-label i {
+                color: var(--gf-purple);
+                font-size: 14px;
+            }
+
+            /* File Zone */
+            .gf-file-zone {
+                border: 2px dashed #c5b8e8;
+                border-radius: 10px;
+                padding: 28px 20px;
+                text-align: center;
+                background: #faf8ff;
+                cursor: pointer;
+                transition: all .2s;
+            }
+
+            .gf-file-zone:hover {
+                border-color: var(--gf-purple);
+                background: var(--gf-hover);
+            }
+
+            .gf-file-zone input[type="file"] {
+                display: none;
+            }
+
+            .gf-file-zone .gf-file-icon {
+                font-size: 30px;
+                color: var(--gf-purple);
+                margin-bottom: 8px;
+            }
+
+            .gf-file-zone .gf-file-text {
+                font-size: 14px;
+                font-weight: 700;
+                color: var(--gf-purple);
+            }
+
+            .gf-file-zone .gf-file-sub {
+                font-size: 12px;
+                color: var(--text-3);
+                margin-top: 4px;
+            }
+
+            .gf-file-chosen {
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--green);
+                margin-top: 10px;
+                display: none;
+                align-items: center;
+                gap: 6px;
+                justify-content: center;
+            }
+
+            /* Toggle */
+            .gf-toggle-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 4px 0;
+                gap: 16px;
+            }
+
+            .gf-toggle-row+.gf-toggle-row {
+                margin-top: 16px;
+                border-top: 1px solid var(--border-lt);
+                padding-top: 20px;
+            }
+
+            .gf-toggle-label {
+                display: flex;
+                flex-direction: column;
+                gap: 3px;
+                flex: 1;
+            }
+
+            .gf-toggle-label strong {
+                font-size: 15px;
+                font-weight: 700;
+                color: var(--navy);
+            }
+
+            .gf-toggle-label span {
+                font-size: 12px;
+                color: var(--text-3);
+                font-weight: 500;
+            }
+
+            .gf-switch {
+                position: relative;
+                display: inline-block;
+                width: 48px;
+                height: 26px;
+                flex-shrink: 0;
+            }
+
+            .gf-switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            .gf-slider {
+                position: absolute;
+                cursor: pointer;
+                inset: 0;
+                background: #c8c8c8;
+                border-radius: 26px;
+                transition: .25s;
+            }
+
+            .gf-slider::before {
+                content: "";
+                position: absolute;
+                height: 20px;
+                width: 20px;
+                left: 3px;
+                bottom: 3px;
+                background: #fff;
+                border-radius: 50%;
+                transition: .25s;
+                box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
+            }
+
+            .gf-switch input:checked+.gf-slider {
+                background: var(--gf-purple);
+            }
+
+            .gf-switch input:checked+.gf-slider::before {
+                transform: translateX(22px);
+            }
+
+            /* Stepper */
+            .gf-stepper {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-top: 12px;
+                padding: 12px 16px;
+                background: var(--gf-purple-light);
+                border-radius: 10px;
+                border: 1px solid var(--gf-purple-border);
+            }
+
+            .gf-stepper label {
+                font-size: 13px;
+                font-weight: 700;
+                color: var(--gf-purple);
+                flex: 1;
+            }
+
+            .gf-stepper-btn {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                border: 2px solid var(--gf-purple-border);
+                background: #fff;
+                color: var(--gf-purple);
+                font-size: 16px;
+                font-weight: 800;
+                cursor: pointer;
+                display: grid;
+                place-items: center;
+                transition: all .15s;
+            }
+
+            .gf-stepper-btn:hover {
+                background: var(--gf-purple);
+                color: #fff;
+            }
+
+            .gf-stepper-val {
+                font-size: 18px;
+                font-weight: 800;
+                color: var(--gf-purple);
+                min-width: 30px;
+                text-align: center;
+            }
+
+            /* Question Cards */
+            .gf-question-list {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .gf-question-card {
+                background: #fff;
+                border-radius: 12px;
+                box-shadow: var(--gf-card-shadow);
+                border: 1px solid rgba(0, 0, 0, .06);
+                overflow: hidden;
+                transition: box-shadow .18s, border-color .18s;
+                animation: fadeUp .3s ease;
+            }
+
+            .gf-question-card:hover {
+                box-shadow: 0 4px 18px rgba(0, 0, 0, .11);
+            }
+
+            .gf-question-card.active-q {
+                border-left: 4px solid var(--gf-purple);
+            }
+
+            .gf-card-header {
+                padding: 20px 24px 0;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .gf-card-toprow {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .gf-drag-handle {
+                color: #ccc;
+                cursor: grab;
+                font-size: 14px;
+                flex-shrink: 0;
+                user-select: none;
+                padding: 4px;
+            }
+
+            .gf-drag-handle:hover {
+                color: var(--gf-purple);
+            }
+
+            .gf-q-number {
+                width: 28px;
+                height: 28px;
+                background: var(--gf-purple);
+                color: #fff;
+                border-radius: 8px;
+                font-size: 12px;
+                font-weight: 800;
+                display: grid;
+                place-items: center;
+                flex-shrink: 0;
+            }
+
+            .gf-question-input {
+                flex: 1;
+                border: none;
+                border-bottom: 2px solid #e0e0e0;
+                border-radius: 0;
+                background: transparent;
+                font-family: inherit;
+                font-size: 16px;
+                font-weight: 700;
+                color: var(--navy);
+                padding: 10px 4px;
+                transition: border-color .2s;
+                box-sizing: border-box;
+            }
+
+            .gf-question-input:focus {
+                outline: none;
+                border-bottom-color: var(--gf-purple);
+            }
+
+            .gf-question-input::placeholder {
+                color: #bbb;
+                font-weight: 500;
+            }
+
+            .gf-type-select {
+                appearance: none;
+                background: var(--gf-purple-light);
+                border: 1.5px solid var(--gf-purple-border);
+                border-radius: 8px;
+                color: var(--gf-purple);
+                font-family: inherit;
+                font-size: 13px;
+                font-weight: 700;
+                padding: 10px 34px 10px 14px;
+                cursor: pointer;
+                flex-shrink: 0;
+                min-width: 170px;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23673ab7'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 12px center;
+                transition: all .18s;
+            }
+
+            .gf-type-select:focus {
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(103, 58, 183, .18);
+            }
+
+            .gf-card-body {
+                padding: 16px 24px;
+            }
+
+            .gf-preview {
+                padding: 14px 18px;
+                background: #fafafa;
+                border-radius: 8px;
+                border: 1px dashed #e2e8f0;
+                color: var(--text-3);
+                font-size: 13px;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .gf-preview i {
+                font-size: 16px;
+                color: var(--gf-purple);
+            }
+
+            .gf-options-editor {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .gf-option-row {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                animation: fadeUp .2s ease;
+            }
+
+            .gf-option-icon {
+                width: 20px;
+                height: 20px;
+                border: 2px solid #c5b8e8;
+                border-radius: 50%;
+                flex-shrink: 0;
+            }
+
+            .gf-option-icon.checkbox-icon {
+                border-radius: 4px;
+            }
+
+            .gf-option-input {
+                flex: 1;
+                border: none;
+                border-bottom: 1.5px solid #e0e0e0;
+                padding: 8px 4px;
+                font-family: inherit;
+                font-size: 14px;
+                color: var(--navy);
+                background: transparent;
+                transition: border-color .2s;
+            }
+
+            .gf-option-input:focus {
+                outline: none;
+                border-bottom-color: var(--gf-purple);
+            }
+
+            .gf-option-input::placeholder {
+                color: #ccc;
+            }
+
+            .gf-option-remove {
+                background: none;
+                border: none;
+                color: #ccc;
+                cursor: pointer;
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                font-size: 14px;
+                transition: all .15s;
+            }
+
+            .gf-option-remove:hover {
+                background: #fef2f2;
+                color: var(--red);
+            }
+
+            .gf-add-option-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 14px;
+                background: transparent;
+                border: none;
+                color: var(--gf-purple);
+                font-family: inherit;
+                font-size: 13px;
+                font-weight: 700;
+                cursor: pointer;
+                border-radius: 6px;
+                transition: all .15s;
+                margin-top: 4px;
+                width: fit-content;
+            }
+
+            .gf-add-option-btn:hover {
+                background: var(--gf-purple-light);
+            }
+
+            .gf-scale-preview {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            .gf-scale-dot {
+                width: 36px;
+                height: 36px;
+                border: 2px solid var(--gf-purple-border);
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                font-size: 13px;
+                font-weight: 700;
+                color: var(--gf-purple);
+                background: #fff;
+                transition: all .15s;
+            }
+
+            .gf-scale-dot:hover {
+                background: var(--gf-purple-light);
+            }
+
+            .gf-card-actions {
+                padding: 12px 24px;
+                border-top: 1px solid var(--border-lt);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background: #fcfcfd;
+            }
+
+            .gf-actions-left {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .gf-actions-right {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .gf-action-btn {
+                background: none;
+                border: none;
+                color: #999;
+                cursor: pointer;
+                width: 36px;
+                height: 36px;
+                border-radius: 8px;
+                display: grid;
+                place-items: center;
+                font-size: 16px;
+                transition: all .15s;
+            }
+
+            .gf-action-btn:hover {
+                background: #f1f5f9;
+                color: var(--text-1);
+            }
+
+            .gf-action-btn.delete:hover {
+                background: #fef2f2;
+                color: var(--red);
+            }
+
+            .gf-required-label {
+                font-size: 12px;
+                font-weight: 700;
+                color: var(--text-3);
+                margin-right: 6px;
+            }
+
+            .gf-divider {
+                width: 1px;
+                height: 24px;
+                background: var(--border);
+                margin: 0 6px;
+            }
+
+            .gf-add-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                width: 100%;
+                padding: 18px;
+                background: #fff;
+                border: 2px dashed #c5b8e8;
+                border-radius: 12px;
+                color: var(--gf-purple);
+                font-family: inherit;
+                font-size: 14px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all .2s;
+                margin-top: 4px;
+            }
+
+            .gf-add-btn:hover {
+                background: var(--gf-hover);
+                border-style: solid;
+            }
+
+            .gf-empty {
+                text-align: center;
+                padding: 40px 20px;
+                color: var(--text-3);
+            }
+
+            .gf-empty i {
+                font-size: 40px;
+                margin-bottom: 12px;
+                opacity: .4;
+                display: block;
+            }
+
+            .gf-empty p {
+                font-size: 14px;
+                margin: 0;
+                font-weight: 500;
+            }
+
+            /* ── Forms ── */
+            .form-control {
+                width: 100%;
+                padding: 14px 18px;
+                border: 2px solid var(--border);
+                border-radius: var(--r-md);
+                font-family: inherit;
+                font-size: 14px;
+                background: #f8fafc;
+                transition: all .2s;
+                box-sizing: border-box;
+            }
+
+            .form-control:focus {
+                outline: none;
+                border-color: var(--blue);
+                background: #fff;
+                box-shadow: 0 0 0 5px rgba(37, 99, 235, .06);
+            }
+
+            /* ── School Picker ── */
+            .school-picker {
+                border: 2px solid var(--border);
+                border-radius: var(--r-md);
+                overflow: hidden;
+                background: #f8fafc;
+            }
+
+            .school-search {
+                padding: 14px;
+                border-bottom: 1px solid var(--border);
+                display: flex;
+                gap: 12px;
+                background: #fff;
+                flex-wrap: wrap;
+            }
+
+            .school-list {
+                max-height: 440px;
+                overflow-y: auto;
+                padding: 10px;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            .school-item {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                padding: 12px 16px;
+                border-radius: var(--r-md);
+                cursor: pointer;
+                transition: all .15s;
+                border: 1px solid transparent;
+            }
+
+            .school-item:hover {
+                background: #f1f5f9;
+            }
+
+            .school-item input {
+                width: 20px;
+                height: 20px;
+                cursor: pointer;
+                accent-color: var(--red);
+            }
+
+            .school-item.selected {
+                background: var(--red-muted);
+                color: var(--red);
+                font-weight: 700;
+                border-color: var(--red-border);
+            }
+
+            .type-btn-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-top: 12px;
+                padding-top: 12px;
+                border-top: 1px solid var(--border-lt);
+            }
+
+            .type-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 6px 14px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 700;
+                cursor: pointer;
+                border: 2px solid;
+                transition: all .2s;
+                background: #fff;
+                font-family: inherit;
+            }
+
+            .type-btn:hover {
+                transform: translateY(-1px);
+            }
+
+            .type-btn.active {
+                color: #fff !important;
+            }
+
+            .type-btn i {
+                font-size: 11px;
+            }
+
+            .school-count-badge {
+                position: sticky;
+                bottom: 0;
+                padding: 12px 18px;
+                background: linear-gradient(to top, #fff 80%, transparent);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-size: 13px;
+                font-weight: 700;
+                color: var(--text-2);
+            }
+
+            .school-count-badge .count {
+                color: var(--red);
+                font-size: 18px;
+                font-weight: 800;
+            }
+
+            /* ── Buttons ── */
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                padding: 12px 26px;
+                border-radius: var(--r-md);
+                font-size: 14px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all .2s;
+                border: none;
+                font-family: inherit;
+                text-decoration: none;
+            }
+
+            .btn-red {
+                background: var(--red);
+                color: #fff;
+                box-shadow: 0 4px 14px rgba(220, 38, 38, .25);
+            }
+
+            .btn-red:hover {
+                background: var(--red-dark);
+                transform: translateY(-1px);
+                box-shadow: 0 6px 20px rgba(220, 38, 38, .35);
+            }
+
+            .btn-navy {
+                background: var(--navy);
+                color: #fff;
+            }
+
+            .btn-navy:hover {
+                background: var(--navy-deep);
+            }
+
+            .btn-ghost {
+                background: transparent;
+                color: var(--text-2);
+                border: 2px solid var(--border);
+            }
+
+            .btn-ghost:hover {
+                background: #f1f5f9;
+                color: var(--text-1);
+                border-color: #cbd5e1;
+            }
+
+            .btn-sm {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            @keyframes fadeUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(12px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @media (max-width: 768px) {
+                .stats-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .task-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .step-content {
+                    padding: 24px 18px !important;
+                }
+
+                .step-nav {
+                    padding: 0 18px;
+                    gap: 20px;
+                }
+
+                .wizard-header {
+                    padding: 18px 20px;
+                }
+
+                .filter-bar {
+                    flex-wrap: wrap;
+                }
+
+                #pane-3 {
+                    margin: -24px -18px !important;
+                    padding: 24px 18px 24px !important;
+                }
+            }
+        </style>
+
+        <div class="tp page-root">
+
+            <!-- ══════════════════════════════════════════
+       DASHBOARD VIEW
+  ══════════════════════════════════════════ -->
+            <div id="dashboardView">
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; flex-wrap:wrap; gap:14px;">
+                    <div>
+                        <h1 style="font-size:26px; font-weight:800; margin:0; color:var(--navy);">Görev Yönetimi</h1>
+                        <p style="color:var(--text-3); font-size:14px; margin:6px 0 0; font-weight:500;">Kurum
+                            genelindeki görevleri ve okul yanıtlarını takip edin.</p>
+                    </div>
+                    <button class="btn btn-red" onclick="switchView('wizard')">
+                        <i class="fas fa-plus-circle"></i> Yeni Görev Oluştur
+                    </button>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card" onclick="filterTasks('all')" id="filterAll">
+                        <div class="stat-icon navy"><i class="fas fa-folder-open"></i></div>
+                        <div class="stat-info">
+                            <h3>
+                                <%= totalTasks %>
+                            </h3>
+                            <p>Toplam Görev</p>
+                        </div>
+                    </div>
+                    <div class="stat-card" onclick="filterTasks('active')" id="filterActive">
+                        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-info">
+                            <h3>
+                                <%= activeTasks %>
+                            </h3>
+                            <p>Aktif Görevler</p>
+                        </div>
+                    </div>
+                    <div class="stat-card" onclick="filterTasks('expired')" id="filterExpired">
+                        <div class="stat-icon red"><i class="fas fa-history"></i></div>
+                        <div class="stat-info">
+                            <h3>
+                                <%= expiredTasks %>
+                            </h3>
+                            <p>Süresi Dolanlar</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search -->
+                <div class="filter-bar">
+                    <i class="fas fa-search" style="color:var(--text-3); font-size:16px;"></i>
+                    <input type="text" id="taskSearchInput" placeholder="Görev ara... (başlık veya tarih)"
+                        oninput="searchTasks(this.value)">
+                </div>
+
+                <!-- Task Grid -->
+                <div class="task-grid" id="taskGrid">
+                    <% if (safeTasks.length===0) { %>
+                        <div
+                            style="grid-column:1/-1; text-align:center; padding:70px; background:#fff; border-radius:20px; border:2px dashed var(--border);">
+                            <i class="fas fa-clipboard-list"
+                                style="font-size:56px; color:var(--border); margin-bottom:20px; display:block;"></i>
+                            <p style="color:var(--text-3); font-weight:600; font-size:15px;">Henüz hiç görev
+                                oluşturulmadı.</p>
+                            <button class="btn btn-red" style="margin-top:16px;" onclick="switchView('wizard')">
+                                <i class="fas fa-plus"></i> İlk Görevi Oluştur
+                            </button>
+                        </div>
+                        <% } %>
+
+                            <% safeTasks.forEach(t=> {
+                                const isExpired = new Date(t.deadline) < new Date(); const deadlineDate=new
+                                    Date(t.deadline); const diffDays=Math.ceil((deadlineDate - new Date()) / (1000 * 60
+                                    * 60 * 24)); %>
+                                    <div class="task-card" data-title="<%= t.title.toLowerCase() %>"
+                                        data-expired="<%= isExpired ? '1' : '0' %>" data-deadline="<%= t.deadline %>">
+
+                                        <div class="card-top">
+                                            <div class="card-status-row">
+                                                <span class="badge <%= isExpired ? 'badge-expired' : 'badge-active' %>">
+                                                    <%= isExpired ? 'Süresi Doldu' : 'Aktif' %>
+                                                </span>
+                                                <span style="font-size:11px; font-weight:800; color:var(--text-3);">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                    <%= deadlineDate.toLocaleDateString('tr-TR') %>
+                                                </span>
+                                            </div>
+
+                                            <div class="card-title">
+                                                <%= t.title %>
+                                            </div>
+
+                                            <div class="card-stats-row">
+                                                <div class="cs-item"><i class="fas fa-school"
+                                                        style="color:var(--blue);"></i><span>
+                                                        <%= t.total_assignments || 0 %> okul
+                                                    </span></div>
+                                                <div class="cs-item"><i class="fas fa-check-circle"
+                                                        style="color:var(--green);"></i><span>
+                                                        <%= t.completed_assignments || 0 %> tamamlandı
+                                                    </span></div>
+                                                <% if (!isExpired && diffDays <=3 && diffDays> 0) { %>
+                                                    <div class="cs-item" style="color:#f59e0b;">
+                                                        <i class="fas fa-exclamation-triangle"></i><span>
+                                                            <%= diffDays %> gün kaldı
+                                                        </span>
+                                                    </div>
+                                                    <% } %>
+                                            </div>
+
+                                            <div>
+                                                <div
+                                                    style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:var(--text-2); margin-bottom:8px;">
+                                                    <span>Tamamlanma Oranı</span><span>%<%= t.completion_rate || 0 %>
+                                                            </span>
+                                                </div>
+                                                <div
+                                                    style="height:7px; background:var(--border-lt); border-radius:10px; overflow:hidden;">
+                                                    <div
+                                                        style="width:<%= t.completion_rate || 0 %>%; height:100%; background:linear-gradient(90deg, var(--green), #34d399); border-radius:10px; transition:width .5s ease;">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="card-footer">
+                                            <a href="/admin/tasks/<%= t.id %>" class="btn btn-navy btn-sm"
+                                                style="flex:1; justify-content:center;">
+                                                <i class="fas fa-chart-bar"></i> Takip Et
+                                            </a>
+                                            <a href="/admin/tasks/<%= t.id %>/edit" class="btn btn-ghost btn-sm"
+                                                title="Düzenle"><i class="fas fa-pencil-alt"></i></a>
+                                            <form action="/admin/tasks/<%= t.id %>/delete" method="POST"
+                                                style="display:inline; margin:0;"
+                                                onsubmit="return confirm('⚠️ DİKKAT!\n\nBu görevi silmek istediğinize emin misiniz?\nOkulların yüklediği tüm dosyalar, form cevapları ve mesajlar kalıcı olarak silinecektir.');">
+                                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                                <button type="submit" class="btn btn-ghost btn-sm" title="Görevi Sil"
+                                                    style="color:#ef4444; border-color:#fecaca;">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <% }) %>
+                </div>
+            </div>
+
+            <!-- ══════════════════════════════════════════
+       WIZARD VIEW
+  ══════════════════════════════════════════ -->
+            <div id="wizardView" style="display:none;">
+                <div class="wizard-wrap">
+                    <div class="wizard-panel">
+
+                        <div class="wizard-header">
+                            <h2><i class="fas fa-pen-nib" style="color:var(--red); margin-right:12px;"></i> Yeni Görev
+                                Yaz</h2>
+                            <button class="btn btn-ghost btn-sm" onclick="switchView('dashboard')">Listeye Dön</button>
+                        </div>
+
+                        <div class="step-nav">
+                            <div class="step-item active" data-step="1">
+                                <div class="step-icon">1</div> Temel Bilgiler
+                            </div>
+                            <div class="step-item" data-step="2">
+                                <div class="step-icon">2</div> Görev Metni
+                            </div>
+                            <div class="step-item" data-step="3">
+                                <div class="step-icon">3</div> Form & Dosya
+                            </div>
+                            <div class="step-item" data-step="4">
+                                <div class="step-icon">4</div> Okul Seçimi
+                            </div>
+                        </div>
+
+                        <form id="taskForm" action="/admin/tasks" method="POST" enctype="multipart/form-data"
+                            class="step-content">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+                            <!-- Step 1: Temel Bilgiler -->
+                            <div class="step-pane active" id="pane-1">
+                                <div class="gf-section-header" style="border-top-color:var(--red);">
+                                    <h3><i class="fas fa-info-circle"
+                                            style="color:var(--red); margin-right:10px;"></i>Temel Bilgiler</h3>
+                                    <p>Görevin başlığını, dosya numarasını ve son teslim tarihini belirleyin.</p>
+                                </div>
+
+                                <div class="gf-card focused">
+                                    <div class="gf-card-label"><i class="fas fa-heading"></i> Görev Başlığı / Konusu
+                                        <span style="color:var(--red);">*</span></div>
+                                    <input type="text" name="title" id="mainTitle" class="form-control"
+                                        placeholder="Örn: 2024 Yılı Taşımalı Eğitim Veri Girişi" required
+                                        style="font-size:15px;">
+                                </div>
+
+                                <div class="gf-card">
+                                    <div class="gf-card-label"><i class="fas fa-file-signature"></i> Dosya / Sayı
+                                        Numarası (Opsiyonel)</div>
+                                    <input type="text" name="ebys_no" class="form-control"
+                                        placeholder="Örn: 12345678-100-E.12345">
+                                </div>
+
+                                <div class="gf-card">
+                                    <div class="gf-card-label"><i class="fas fa-calendar-check"></i> Son Teslim Tarihi
+                                        ve Saati <span style="color:var(--red);">*</span></div>
+                                    <input type="text" name="deadline" id="deadlinePicker" class="form-control"
+                                        placeholder="Tarih seçiniz..." required>
+                                </div>
+                            </div>
+
+                            <!-- Step 2: Görev Metni -->
+                            <div class="step-pane" id="pane-2">
+                                <div class="gf-section-header" style="border-top-color:var(--blue);">
+                                    <h3><i class="fas fa-file-alt"
+                                            style="color:var(--blue); margin-right:10px;"></i>Görev Metni</h3>
+                                    <p>Okullara gönderilecek resmî yazı metnini düzenleyin.</p>
+                                </div>
+                                <div class="gf-card" style="padding:0; overflow:hidden;">
+                                    <textarea name="description" id="editor"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: Form & Dosya -->
+                            <div class="step-pane" id="pane-3"
+                                style="background:#fafafa; margin:-36px -48px; padding:36px 48px;">
+                                <div class="gf-section-header">
+                                    <h3><i class="fas fa-wpforms"
+                                            style="color:var(--gf-purple); margin-right:10px;"></i>Form & Dosya Ayarları
+                                    </h3>
+                                    <p>Okullardan istenecek dosya ve veri giriş alanlarını yapılandırın.</p>
+                                </div>
+
+                                <!-- Ek Dosya -->
+                                <div class="gf-card">
+                                    <div class="gf-card-label"><i class="fas fa-paperclip"></i> Ek Dosya (İsteğe Bağlı)
+                                    </div>
+                                    <div class="gf-file-zone"
+                                        onclick="document.getElementById('taskFileInput').click()">
+                                        <input type="file" name="task_file" id="taskFileInput">
+                                        <div class="gf-file-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                                        <div class="gf-file-text">Dosya seçmek için tıklayın veya sürükleyin</div>
+                                        <div class="gf-file-sub">PDF, Word, Excel vb. — Okulların indirmesi için</div>
+                                    </div>
+                                    <div class="gf-file-chosen" id="fileChosen">
+                                        <i class="fas fa-check-circle"></i> <span id="fileChosenName"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Dosya Ayarları -->
+                                <div class="gf-card">
+                                    <div class="gf-card-label"><i class="fas fa-cog"></i> Dosya Yükleme Ayarları</div>
+
+                                    <div class="gf-toggle-row">
+                                        <div class="gf-toggle-label">
+                                            <strong>Okullar Dosya Yüklesin</strong>
+                                            <span>Okulların bu göreve dosya eklemesine izin verir</span>
+                                        </div>
+                                        <label class="gf-switch">
+                                            <input type="checkbox" name="requires_file" value="1"
+                                                id="requiresFileToggle">
+                                            <span class="gf-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div class="gf-toggle-row" id="mandatoryRow"
+                                        style="opacity:.4; pointer-events:none;">
+                                        <div class="gf-toggle-label">
+                                            <strong>Dosya Yükleme Zorunlu</strong>
+                                            <span>Aktifse okullar dosya yüklemeden formu gönderemez</span>
+                                        </div>
+                                        <label class="gf-switch">
+                                            <input type="checkbox" name="is_file_mandatory" value="1"
+                                                id="fileMandatoryToggle">
+                                            <span class="gf-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div class="gf-stepper" id="fileCountRow" style="display:none;">
+                                        <label><i class="fas fa-copy" style="margin-right:6px;"></i> Maksimum Dosya
+                                            Sayısı</label>
+                                        <button type="button" class="gf-stepper-btn"
+                                            onclick="changeFileCount(-1)">−</button>
+                                        <span class="gf-stepper-val" id="fileCountDisplay">1</span>
+                                        <button type="button" class="gf-stepper-btn"
+                                            onclick="changeFileCount(1)">+</button>
+                                        <input type="hidden" name="max_file_count" id="maxFileCountInput" value="1">
+                                    </div>
+                                </div>
+
+                                <!-- Sorular -->
+                                <div class="gf-card" style="padding:24px 28px 20px;">
+                                    <div class="gf-card-label" style="margin-bottom:6px;"><i class="fas fa-list-ul"></i>
+                                        Veri Giriş Formu</div>
+                                    <p style="font-size:12px; color:var(--text-3); margin:0 0 20px; font-weight:500;">
+                                        Okulların dolduracağı soruları ekleyin.</p>
+                                    <div class="gf-question-list" id="dynamicFields">
+                                        <div class="gf-empty" id="emptyState">
+                                            <i class="fas fa-clipboard-list"></i>
+                                            <p>Henüz soru eklenmemiş.<br><span
+                                                    style="font-size:12px; color:#bbb;">Aşağıdaki butona tıklayarak soru
+                                                    oluşturun.</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="button" class="gf-add-btn" onclick="addField()">
+                                    <i class="fas fa-plus-circle"></i> Yeni Soru / Veri Alanı Ekle
+                                </button>
+                            </div>
+
+                            <!-- Step 4: Okul Seçimi -->
+                            <div class="step-pane" id="pane-4">
+                                <div class="gf-section-header" style="border-top-color:var(--green);">
+                                    <h3><i class="fas fa-school" style="color:var(--green); margin-right:10px;"></i>Okul
+                                        Seçimi</h3>
+                                    <p>Görevi hangi okul ve kurumlara göndereceğinizi seçin.</p>
+                                </div>
+
+                                <div class="school-picker">
+                                    <div class="school-search">
+                                        <i class="fas fa-search"
+                                            style="color:var(--text-3); align-self:center; margin-left:10px;"></i>
+                                        <input type="text" id="schoolSearch" class="form-control"
+                                            style="border:none; background:transparent; flex:1;"
+                                            placeholder="Okul veya kurum adı ile ara...">
+                                        <button type="button" class="btn btn-navy btn-sm"
+                                            onclick="toggleAllSchools(true)">Tümünü Seç</button>
+                                        <button type="button" class="btn btn-ghost btn-sm"
+                                            onclick="toggleAllSchools(false)">Temizle</button>
+                                        <div class="type-btn-group" id="typeButtonGroup">
+                                            <% safeSchoolTypes.forEach(type=> { %>
+                                                <button type="button" class="type-btn" data-type="<%= type %>"
+                                                    style="color:<%= typeColors[type] || '#6b7280' %>; border-color:<%= typeColors[type] || '#6b7280' %>;"
+                                                    onclick="toggleTypeSelection('<%= type %>', this)">
+                                                    <i class="fas <%= typeIcons[type] || 'fa-building' %>"></i>
+                                                    <%= typeLabels[type] || type %>
+                                                </button>
+                                                <% }) %>
+                                        </div>
+                                    </div>
+
+                                    <div class="school-list" id="schoolList">
+                                        <% schools.forEach(s=> { %>
+                                            <label class="school-item" data-name="<%= s.full_name.toLowerCase() %>"
+                                                data-type="<%= s.school_type %>">
+                                                <input type="checkbox" name="school_ids" value="<%= s.id %>">
+                                                <span style="font-size:14px; font-weight:600; flex:1;">
+                                                    <%= s.full_name %>
+                                                </span>
+                                                <span
+                                                    style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:12px; background:<%= typeColors[s.school_type] ? typeColors[s.school_type] + '18' : '#f1f5f9' %>; color:<%= typeColors[s.school_type] || '#6b7280' %>;">
+                                                    <%= typeLabels[s.school_type] || s.school_type || '-' %>
+                                                </span>
+                                            </label>
+                                            <% }) %>
+                                    </div>
+
+                                    <div class="school-count-badge">
+                                        <span><i class="fas fa-check-circle"
+                                                style="color:var(--green); margin-right:6px;"></i>Seçilen Okul
+                                            Sayısı:</span>
+                                        <span class="count" id="selectedSchoolCount">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Footer -->
+                        <div
+                            style="padding:26px 48px; background:#f8fafc; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                            <button type="button" id="btnPrev" class="btn btn-ghost" style="visibility:hidden;">
+                                <i class="fas fa-chevron-left"></i> Önceki Adım
+                            </button>
+                            <div>
+                                <button type="button" id="btnNext" class="btn btn-red" style="padding:14px 32px;">
+                                    Sonraki Adım <i class="fas fa-chevron-right" style="margin-left:10px;"></i>
+                                </button>
+                                <button type="button" id="btnSubmit" class="btn btn-navy"
+                                    style="display:none; padding:14px 36px; background:var(--green);">
+                                    <i class="fas fa-paper-plane" style="margin-right:10px;"></i> Görevi Yayınla
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <script>
+            (function () {
+                'use strict';
+
+                let currentStep = 1;
+
+                /* ── View switch ── */
+                window.switchView = (mode) => {
+                    document.getElementById('dashboardView').style.display = mode === 'wizard' ? 'none' : 'block';
+                    document.getElementById('wizardView').style.display = mode === 'wizard' ? 'block' : 'none';
+                    if (mode !== 'wizard') gotoStep(1);
+                };
+
+                /* ── Step navigation ── */
+                const gotoStep = (n) => {
+                    currentStep = n;
+                    document.querySelectorAll('.step-pane').forEach((p, i) => p.classList.toggle('active', i + 1 === n));
+                    document.querySelectorAll('.step-item').forEach((it, i) => {
+                        it.classList.toggle('active', i + 1 === n);
+                        it.classList.toggle('completed', i + 1 < n);
+                    });
+                    document.getElementById('btnPrev').style.visibility = n === 1 ? 'hidden' : 'visible';
+                    document.getElementById('btnNext').style.display = n === 4 ? 'none' : 'inline-flex';
+                    document.getElementById('btnSubmit').style.display = n === 4 ? 'inline-flex' : 'none';
+                    document.getElementById('wizardView').scrollIntoView({ behavior: 'smooth' });
+                };
+
+                document.querySelectorAll('.step-item').forEach(item => {
+                    item.addEventListener('click', () => { const s = parseInt(item.dataset.step); if (s) gotoStep(s); });
+                });
+
+                document.getElementById('btnNext').onclick = () => { if (currentStep < 4) gotoStep(currentStep + 1); };
+                document.getElementById('btnPrev').onclick = () => { if (currentStep > 1) gotoStep(currentStep - 1); };
+                document.getElementById('btnSubmit').onclick = () => {
+                    if (!document.getElementById('mainTitle').value) { alert('Lütfen görev başlığını giriniz.'); gotoStep(1); return; }
+                    if (!document.getElementById('deadlinePicker').value) { alert('Lütfen son teslim tarihini belirleyiniz.'); gotoStep(1); return; }
+                    if (!document.querySelectorAll('input[name="school_ids"]:checked').length) { alert('Lütfen en az bir okul seçiniz.'); gotoStep(4); return; }
+                    document.getElementById('taskForm').submit();
+                };
+
+                /* ── CKEditor ── */
+                ClassicEditor.create(document.querySelector('#editor'), {
+                    language: 'tr',
+                    toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'insertTable', 'undo', 'redo']
+                }).catch(err => console.error(err));
+
+                /* ── Flatpickr ── */
+                flatpickr('#deadlinePicker', { enableTime: true, dateFormat: 'Y-m-d H:i', locale: 'tr', minDate: 'today', time_24hr: true });
+
+                /* ── File zone ── */
+                document.getElementById('taskFileInput').addEventListener('change', function () {
+                    const name = this.files[0]?.name || '';
+                    document.getElementById('fileChosenName').textContent = name;
+                    document.getElementById('fileChosen').style.display = name ? 'flex' : 'none';
+                });
+
+                document.getElementById('requiresFileToggle').addEventListener('change', function () {
+                    document.getElementById('mandatoryRow').style.opacity = this.checked ? '1' : '0.4';
+                    document.getElementById('mandatoryRow').style.pointerEvents = this.checked ? 'auto' : 'none';
+                    document.getElementById('fileCountRow').style.display = this.checked ? 'flex' : 'none';
+                    if (!this.checked) document.getElementById('fileMandatoryToggle').checked = false;
+                });
+
+                window.changeFileCount = (delta) => {
+                    const inp = document.getElementById('maxFileCountInput');
+                    const disp = document.getElementById('fileCountDisplay');
+                    let val = Math.min(20, Math.max(1, parseInt(inp.value) + delta));
+                    inp.value = disp.textContent = val;
+                };
+
+                /* ── Field types ── */
+                const FIELD_TYPES = {
+                    text: { label: 'Kısa Yanıt', hasOptions: false },
+                    textarea: { label: 'Paragraf', hasOptions: false },
+                    number: { label: 'Sayı', hasOptions: false },
+                    radio: { label: 'Çoktan Seçmeli', hasOptions: true },
+                    checkbox: { label: 'Onay Kutuları', hasOptions: true },
+                    select: { label: 'Açılır Menü', hasOptions: true },
+                    date: { label: 'Tarih', hasOptions: false },
+                    time: { label: 'Saat', hasOptions: false },
+                    scale: { label: 'Doğrusal Ölçek', hasOptions: false }
+                };
+
+                const buildTypeOptions = (sel) =>
+                    Object.entries(FIELD_TYPES).map(([v, i]) => `<option value="${v}" ${v === sel ? 'selected' : ''}>${i.label}</option>`).join('');
+
+                const buildPreview = (type) => {
+                    const map = { text: 'fa-minus Kısa metin yanıtı', textarea: 'fa-align-left Uzun metin yanıtı (paragraf)', number: 'fa-hashtag Sayısal değer girişi', date: 'fa-calendar-alt Tarih seçici alanı', time: 'fa-clock Saat seçici alanı' };
+                    if (type === 'scale') return `<div class="gf-scale-preview">${[1, 2, 3, 4, 5].map(n => `<div class="gf-scale-dot">${n}</div>`).join('')}</div>`;
+                    if (map[type]) { const [icon, label] = map[type].split(' '); return `<div class="gf-preview"><i class="fas ${icon}"></i> ${map[type].slice(icon.length + 1)}</div>`; }
+                    return '';
+                };
+
+                const buildOptionsEditor = (type, opts = ['Seçenek 1']) => {
+                    const iconClass = type === 'checkbox' ? 'gf-option-icon checkbox-icon' : 'gf-option-icon';
+                    const rows = opts.map((opt, i) => `
+      <div class="gf-option-row">
+        <div class="${iconClass}"></div>
+        <input type="text" class="gf-option-input" value="${opt}" placeholder="Seçenek ${i + 1}" oninput="window.syncOptionsToHidden(this.closest('.gf-question-card'))">
+        <button type="button" class="gf-option-remove" onclick="removeOption(this)"><i class="fas fa-times"></i></button>
+      </div>`).join('');
+                    return `<div class="gf-options-editor" data-type="${type}">${rows}
+      <button type="button" class="gf-add-option-btn" onclick="addOption(this)"><i class="fas fa-plus"></i> Seçenek Ekle</button>
+    </div>`;
+                };
+
+                const updateNumbers = () =>
+                    document.querySelectorAll('#dynamicFields .gf-question-card .gf-q-number').forEach((el, i) => { el.textContent = i + 1; });
+
+                window.syncOptionsToHidden = (card) => {
+                    const h = card.querySelector('.field-options-hidden');
+                    if (!h) return;
+                    h.value = Array.from(card.querySelectorAll('.gf-option-input')).map(i => i.value).filter(v => v.trim()).join(',');
+                };
+
+                window.updateCardPreview = (card) => {
+                    const type = card.querySelector('.gf-type-select').value;
+                    const body = card.querySelector('.gf-card-body');
+                    const h = card.querySelector('.field-options-hidden');
+                    if (FIELD_TYPES[type]?.hasOptions) { body.innerHTML = buildOptionsEditor(type); if (h) h.value = 'Seçenek 1'; }
+                    else { body.innerHTML = buildPreview(type); if (h) h.value = ''; }
+                };
+
+                window.addField = () => {
+                    document.getElementById('emptyState')?.style && (document.getElementById('emptyState').style.display = 'none');
+                    const list = document.getElementById('dynamicFields');
+                    const count = list.querySelectorAll('.gf-question-card').length + 1;
+                    const card = document.createElement('div');
+                    card.className = 'gf-question-card active-q';
+                    card.innerHTML = `
+      <div class="gf-card-header"><div class="gf-card-toprow">
+        <span class="gf-drag-handle"><i class="fas fa-grip-vertical"></i></span>
+        <div class="gf-q-number">${count}</div>
+        <input type="hidden" name="field_ids" value="">
+        <input type="hidden" name="field_options" class="field-options-hidden" value="">
+        <input type="text" name="field_labels" class="gf-question-input" placeholder="Soru başlığını yazın..." required>
+        <select name="field_types" class="gf-type-select" onchange="window.updateCardPreview(this.closest('.gf-question-card'))">
+          ${buildTypeOptions('text')}
+        </select>
+      </div></div>
+      <div class="gf-card-body">${buildPreview('text')}</div>
+      <div class="gf-card-actions">
+        <div class="gf-actions-left">
+          <span class="gf-required-label">Zorunlu</span>
+          <label class="gf-switch" style="transform:scale(.85);">
+            <input type="checkbox" name="field_required" value="${count - 1}"><span class="gf-slider"></span>
+          </label>
+        </div>
+        <div class="gf-actions-right">
+          <button type="button" class="gf-action-btn" onclick="duplicateField(this)"><i class="fas fa-copy"></i></button>
+          <div class="gf-divider"></div>
+          <button type="button" class="gf-action-btn delete" onclick="removeField(this)"><i class="fas fa-trash-alt"></i></button>
+        </div>
+      </div>`;
+                    list.appendChild(card);
+                    card.querySelector('.gf-question-input').focus();
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                };
+
+                window.removeField = (btn) => {
+                    btn.closest('.gf-question-card').remove();
+                    updateNumbers();
+                    const empty = document.getElementById('emptyState');
+                    if (empty && !document.querySelectorAll('#dynamicFields .gf-question-card').length) empty.style.display = 'block';
+                };
+
+                window.duplicateField = (btn) => {
+                    const card = btn.closest('.gf-question-card');
+                    const clone = card.cloneNode(true);
+                    clone.querySelector('input[name="field_ids"]').value = '';
+                    card.after(clone);
+                    updateNumbers();
+                    clone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                };
+
+                window.addOption = (btn) => {
+                    const editor = btn.closest('.gf-options-editor');
+                    const card = btn.closest('.gf-question-card');
+                    const type = editor.dataset.type;
+                    const count = editor.querySelectorAll('.gf-option-row').length + 1;
+                    const iconClass = type === 'checkbox' ? 'gf-option-icon checkbox-icon' : 'gf-option-icon';
+                    const row = document.createElement('div');
+                    row.className = 'gf-option-row';
+                    row.innerHTML = `<div class="${iconClass}"></div>
+      <input type="text" class="gf-option-input" placeholder="Seçenek ${count}" oninput="window.syncOptionsToHidden(this.closest('.gf-question-card'))">
+      <button type="button" class="gf-option-remove" onclick="removeOption(this)"><i class="fas fa-times"></i></button>`;
+                    btn.before(row);
+                    row.querySelector('.gf-option-input').focus();
+                    window.syncOptionsToHidden(card);
+                };
+
+                window.removeOption = (btn) => {
+                    const editor = btn.closest('.gf-options-editor');
+                    if (editor.querySelectorAll('.gf-option-row').length > 1) {
+                        btn.closest('.gf-option-row').remove();
+                        window.syncOptionsToHidden(btn.closest('.gf-question-card'));
+                    }
+                };
+
+                /* ── School picker ── */
+                document.getElementById('schoolSearch').oninput = (e) => {
+                    const term = e.target.value.toLowerCase();
+                    document.querySelectorAll('.school-item').forEach(item => {
+                        item.style.display = item.dataset.name.includes(term) ? 'flex' : 'none';
+                    });
+                };
+
+                const updateSchoolCount = () => {
+                    document.getElementById('selectedSchoolCount').textContent =
+                        document.querySelectorAll('input[name="school_ids"]:checked').length;
+                };
+
+                window.toggleAllSchools = (status) => {
+                    document.querySelectorAll('.school-item').forEach(item => {
+                        if (item.style.display !== 'none') {
+                            item.querySelector('input').checked = status;
+                            item.classList.toggle('selected', status);
+                        }
+                    });
+                    document.querySelectorAll('.type-btn').forEach(btn => { btn.classList.remove('active'); btn.style.background = '#fff'; });
+                    updateSchoolCount();
+                };
+
+                window.toggleTypeSelection = (type, btn) => {
+                    const isActive = btn.classList.contains('active');
+                    btn.classList.toggle('active', !isActive);
+                    btn.style.background = isActive ? '#fff' : btn.style.color;
+                    document.querySelectorAll(`.school-item[data-type="${type}"]`).forEach(item => {
+                        item.querySelector('input').checked = !isActive;
+                        item.classList.toggle('selected', !isActive);
+                    });
+                    updateSchoolCount();
+                };
+
+                document.getElementById('schoolList').addEventListener('change', (e) => {
+                    if (e.target.tagName === 'INPUT') {
+                        e.target.closest('.school-item').classList.toggle('selected', e.target.checked);
+                        updateSchoolCount();
+                    }
+                });
+
+                /* ── Task search/filter ── */
+                window.searchTasks = (term) => {
+                    const lower = term.toLowerCase();
+                    document.querySelectorAll('.task-card').forEach(card => {
+                        card.style.display = (card.dataset.title.includes(lower) || card.dataset.deadline.includes(lower)) ? '' : 'none';
+                    });
+                };
+
+                window.filterTasks = (type) => {
+                    document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
+                    const el = document.getElementById('filter' + type.charAt(0).toUpperCase() + type.slice(1));
+                    if (el) el.classList.add('active-filter');
+                    document.querySelectorAll('.task-card').forEach(card => {
+                        const expired = card.dataset.expired === '1';
+                        card.style.display = type === 'all' ? '' : (type === 'active' ? (expired ? 'none' : '') : (expired ? '' : 'none'));
+                    });
+                };
+
+            })();
+        </script>
+
+        <%- include('../layouts/footer') %>
