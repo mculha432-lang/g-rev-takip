@@ -1,6 +1,5 @@
 <%- include('../layouts/header') %>
 
-    <!-- CSS & JS Assets -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
@@ -9,14 +8,14 @@
     <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
     <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
 
-    <% const safeSchoolTypes=typeof schoolTypes !=='undefined' ? schoolTypes : []; const typeLabels={ 'ilkokul'
-        : 'İlkokul' , 'ortaokul' : 'Ortaokul' , 'lise' : 'Lise' , 'anaokulu' : 'Anaokulu' , 'diger' : 'Diğer Kurumlar'
-        , 'rehabilitasyon' : 'Rehabilitasyon' , 'surucu_kursu' : 'Sürücü Kursu' , 'kurs' : 'Kurs' , 'yurt' : 'Yurt' };
-        const typeIcons={ 'ilkokul' : 'fa-child' , 'ortaokul' : 'fa-book-reader' , 'lise' : 'fa-graduation-cap'
-        , 'anaokulu' : 'fa-baby' , 'diger' : 'fa-building' , 'rehabilitasyon' : 'fa-hands-helping' , 'surucu_kursu'
-        : 'fa-car' , 'kurs' : 'fa-chalkboard-teacher' , 'yurt' : 'fa-bed' }; const typeColors={ 'ilkokul' : '#3b82f6'
-        , 'ortaokul' : '#8b5cf6' , 'lise' : '#ef4444' , 'anaokulu' : '#f59e0b' , 'diger' : '#6b7280' , 'rehabilitasyon'
-        : '#10b981' , 'surucu_kursu' : '#f97316' , 'kurs' : '#06b6d4' , 'yurt' : '#ec4899' }; %>
+    <% const safeSchoolTypes=typeof schoolTypes !=='undefined' ? schoolTypes : []; const typeLabels={ ilkokul: 'İlkokul'
+        , ortaokul: 'Ortaokul' , lise: 'Lise' , anaokulu: 'Anaokulu' , diger: 'Diğer Kurumlar' ,
+        rehabilitasyon: 'Rehabilitasyon' , surucu_kursu: 'Sürücü Kursu' , kurs: 'Kurs' , yurt: 'Yurt' }; const
+        typeIcons={ ilkokul: 'fa-child' , ortaokul: 'fa-book-reader' , lise: 'fa-graduation-cap' , anaokulu: 'fa-baby' ,
+        diger: 'fa-building' , rehabilitasyon: 'fa-hands-helping' , surucu_kursu: 'fa-car' ,
+        kurs: 'fa-chalkboard-teacher' , yurt: 'fa-bed' }; const typeColors={ ilkokul: '#3b82f6' , ortaokul: '#8b5cf6' ,
+        lise: '#ef4444' , anaokulu: '#f59e0b' , diger: '#6b7280' , rehabilitasyon: '#10b981' , surucu_kursu: '#f97316' ,
+        kurs: '#06b6d4' , yurt: '#ec4899' }; %>
 
         <style>
             :root {
@@ -47,8 +46,6 @@
                 --r-lg: 16px;
                 --r-xl: 20px;
                 --font: 'Plus Jakarta Sans', sans-serif;
-
-                /* Google Form style extras */
                 --gf-purple: #673ab7;
                 --gf-purple-light: #ede7f6;
                 --gf-purple-border: #b39ddb;
@@ -56,6 +53,7 @@
                 --gf-hover: #f3e8ff;
             }
 
+            /* ── Base ── */
             .tp {
                 font-family: var(--font);
                 color: var(--text-1);
@@ -68,13 +66,13 @@
             }
 
             /* ── Layout ── */
-            .tp .edit-container {
+            .edit-container {
                 max-width: 960px;
                 margin: 0 auto;
                 min-height: 80vh;
             }
 
-            .tp .edit-panel {
+            .edit-panel {
                 background: var(--surface);
                 border-radius: var(--r-xl);
                 border: 1px solid var(--border);
@@ -85,7 +83,7 @@
             }
 
             /* ── Header ── */
-            .tp .edit-header {
+            .edit-header {
                 padding: 24px 36px;
                 border-bottom: 1px solid var(--border-lt);
                 display: flex;
@@ -94,13 +92,13 @@
                 background: #fff;
             }
 
-            .tp .edit-header-info {
+            .edit-header-info {
                 display: flex;
                 align-items: center;
                 gap: 14px;
             }
 
-            .tp .edit-header-icon {
+            .edit-header-icon {
                 width: 48px;
                 height: 48px;
                 background: var(--navy);
@@ -111,14 +109,14 @@
                 font-size: 20px;
             }
 
-            .tp .edit-header h1 {
+            .edit-header h1 {
                 font-size: 20px;
                 font-weight: 800;
                 margin: 0;
                 color: var(--navy);
             }
 
-            .tp .edit-header p {
+            .edit-header p {
                 font-size: 13px;
                 color: var(--text-3);
                 margin-top: 4px;
@@ -126,7 +124,7 @@
             }
 
             /* ── Step Nav ── */
-            .tp .step-nav {
+            .step-nav {
                 display: flex;
                 background: #f8fafc;
                 border-bottom: 1px solid var(--border);
@@ -135,7 +133,7 @@
                 overflow-x: auto;
             }
 
-            .tp .step-item {
+            .step-item {
                 display: flex;
                 align-items: center;
                 gap: 12px;
@@ -149,12 +147,12 @@
                 white-space: nowrap;
             }
 
-            .tp .step-item.active {
+            .step-item.active {
                 color: var(--red);
                 border-bottom-color: var(--red);
             }
 
-            .tp .step-icon {
+            .step-icon {
                 width: 28px;
                 height: 28px;
                 border-radius: 8px;
@@ -165,33 +163,33 @@
                 font-weight: 800;
             }
 
-            .tp .step-item.active .step-icon {
+            .step-item.active .step-icon {
                 background: var(--red);
                 color: #fff;
             }
 
-            /* ── Content ── */
-            .tp .step-content {
+            /* ── Step Content ── */
+            .step-content {
                 flex: 1;
                 padding: 40px 52px;
                 background: #fff;
             }
 
-            .tp .step-pane {
+            .step-pane {
                 display: none;
             }
 
-            .tp .step-pane.active {
+            .step-pane.active {
                 display: block;
                 animation: fadeUp .3s ease;
             }
 
-            /* ── Form Elements ── */
-            .tp .form-group {
+            /* ── Form ── */
+            .form-group {
                 margin-bottom: 28px;
             }
 
-            .tp .form-label {
+            .form-label {
                 display: block;
                 font-size: 11px;
                 font-weight: 800;
@@ -201,7 +199,7 @@
                 letter-spacing: .8px;
             }
 
-            .tp .form-control {
+            .form-control {
                 width: 100%;
                 padding: 14px 18px;
                 border: 2px solid var(--border);
@@ -213,26 +211,26 @@
                 box-sizing: border-box;
             }
 
-            .tp .form-control:focus {
+            .form-control:focus {
                 outline: none;
                 border-color: var(--blue);
                 background: #fff;
                 box-shadow: 0 0 0 5px rgba(37, 99, 235, .07);
             }
 
-            /* ── Advanced Components ── */
-            .tp .chip-box {
+            /* ── School Chips ── */
+            .chip-box {
                 display: flex;
                 flex-wrap: wrap;
                 gap: 8px;
-                margin-bottom: 20px;
                 padding: 18px;
                 background: var(--border-lt);
                 border-radius: 14px;
                 border: 1px solid var(--border);
+                margin-bottom: 20px;
             }
 
-            .tp .school-chip {
+            .school-chip {
                 display: inline-flex;
                 align-items: center;
                 gap: 8px;
@@ -245,7 +243,7 @@
                 color: var(--text-1);
             }
 
-            .tp .chip-remove {
+            .chip-remove {
                 background: var(--red-muted);
                 color: var(--red);
                 border: none;
@@ -259,7 +257,7 @@
             }
 
             /* ── Footer ── */
-            .tp .edit-footer {
+            .edit-footer {
                 padding: 28px 52px;
                 background: #f8fafc;
                 border-top: 1px solid var(--border);
@@ -281,6 +279,7 @@
                 transition: all .2s;
                 border: none;
                 font-family: inherit;
+                text-decoration: none;
             }
 
             .btn-red {
@@ -314,30 +313,18 @@
                 color: var(--text-1);
             }
 
-            @keyframes fadeUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(12px);
-                }
-
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
+            .btn-sm {
+                padding: 8px 16px;
+                font-size: 13px;
             }
 
-            /* ═══════════════════════════════════════════════
-        GOOGLE FORM STYLE — STEP 3 ONLY
-        ═══════════════════════════════════════════════ */
-
-            /* Accent bar at top of pane-3 */
+            /* ── Google Form Cards ── */
             #pane-3 {
                 background: #fafafa;
                 margin: -40px -52px;
-                padding: 40px 52px 40px;
+                padding: 40px 52px;
             }
 
-            /* Section header card (like Google Form title bar) */
             .gf-section-header {
                 background: #fff;
                 border-radius: 12px;
@@ -361,7 +348,6 @@
                 font-weight: 500;
             }
 
-            /* Generic Google-Form card */
             .gf-card {
                 background: #fff;
                 border-radius: 12px;
@@ -370,14 +356,12 @@
                 padding: 24px 28px;
                 margin-bottom: 16px;
                 transition: box-shadow .18s;
-                position: relative;
             }
 
             .gf-card:hover {
                 box-shadow: 0 4px 18px rgba(0, 0, 0, .11);
             }
 
-            /* Left accent stripe when focused/active */
             .gf-card.focused {
                 border-left: 4px solid var(--gf-purple);
                 padding-left: 24px;
@@ -400,7 +384,7 @@
                 font-size: 14px;
             }
 
-            /* File upload area */
+            /* File */
             .gf-file-zone {
                 border: 2px dashed #c5b8e8;
                 border-radius: 10px;
@@ -444,9 +428,25 @@
                 color: var(--green);
                 margin-top: 10px;
                 display: none;
+                align-items: center;
+                gap: 6px;
             }
 
-            /* Toggle switches (Google-style) */
+            .gf-existing-file {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 14px;
+                background: var(--blue-muted);
+                border: 1px solid var(--blue-border);
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--blue);
+                margin-bottom: 14px;
+            }
+
+            /* Toggle */
             .gf-toggle-row {
                 display: flex;
                 align-items: center;
@@ -503,7 +503,7 @@
                 transition: .25s;
             }
 
-            .gf-slider:before {
+            .gf-slider::before {
                 content: "";
                 position: absolute;
                 height: 20px;
@@ -520,144 +520,11 @@
                 background: var(--gf-purple);
             }
 
-            .gf-switch input:checked+.gf-slider:before {
+            .gf-switch input:checked+.gf-slider::before {
                 transform: translateX(22px);
             }
 
-            /* ═══ Enhanced Question Cards (Google Form Style) ═══ */
-            .gf-question-list { display: flex; flex-direction: column; gap: 16px; }
-            .gf-question-card {
-                background: #fff; border-radius: 12px; box-shadow: var(--gf-card-shadow);
-                border: 1px solid rgba(0,0,0,.06); overflow: hidden;
-                transition: box-shadow .18s, border-color .18s; animation: fadeUp .3s ease;
-            }
-            .gf-question-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.11); }
-            .gf-question-card.active-q { border-left: 4px solid var(--gf-purple); }
-
-            .gf-card-header { padding: 20px 24px 0; display: flex; flex-direction: column; gap: 16px; }
-            .gf-card-toprow { display: flex; align-items: center; gap: 12px; }
-            .gf-drag-handle { color: #ccc; cursor: grab; font-size: 14px; flex-shrink: 0; padding: 4px; user-select: none; }
-            .gf-drag-handle:hover { color: var(--gf-purple); }
-            .gf-q-number {
-                width: 28px; height: 28px; background: var(--gf-purple); color: #fff;
-                border-radius: 8px; font-size: 12px; font-weight: 800; display: grid; place-items: center; flex-shrink: 0;
-            }
-            .gf-question-input {
-                flex: 1; border: none; border-bottom: 2px solid #e0e0e0; border-radius: 0;
-                background: transparent; font-family: inherit; font-size: 16px; font-weight: 700;
-                color: var(--navy); padding: 10px 4px; transition: border-color .2s; box-sizing: border-box;
-            }
-            .gf-question-input:focus { outline: none; border-bottom-color: var(--gf-purple); background: transparent; box-shadow: none; }
-            .gf-question-input::placeholder { color: #bbb; font-weight: 500; }
-
-            .gf-type-select {
-                appearance: none; background: var(--gf-purple-light); border: 1.5px solid var(--gf-purple-border);
-                border-radius: 8px; color: var(--gf-purple); font-family: inherit; font-size: 13px;
-                font-weight: 700; padding: 10px 34px 10px 14px; cursor: pointer; flex-shrink: 0; min-width: 170px;
-                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23673ab7'/%3E%3C/svg%3E");
-                background-repeat: no-repeat; background-position: right 12px center; transition: all .18s;
-            }
-            .gf-type-select:focus { outline: none; box-shadow: 0 0 0 3px rgba(103,58,183,.18); }
-
-            .gf-card-body { padding: 16px 24px; }
-            .gf-preview {
-                padding: 14px 18px; background: #fafafa; border-radius: 8px; border: 1px dashed #e2e8f0;
-                color: var(--text-3); font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 10px;
-            }
-            .gf-preview i { font-size: 16px; color: var(--gf-purple); }
-
-            .gf-options-editor { display: flex; flex-direction: column; gap: 10px; }
-            .gf-option-row { display: flex; align-items: center; gap: 10px; animation: fadeUp .2s ease; }
-            .gf-option-icon { width: 20px; height: 20px; border: 2px solid #c5b8e8; border-radius: 50%; flex-shrink: 0; }
-            .gf-option-icon.checkbox-icon { border-radius: 4px; }
-            .gf-option-input {
-                flex: 1; border: none; border-bottom: 1.5px solid #e0e0e0; padding: 8px 4px;
-                font-family: inherit; font-size: 14px; color: var(--navy); background: transparent; transition: border-color .2s;
-            }
-            .gf-option-input:focus { outline: none; border-bottom-color: var(--gf-purple); }
-            .gf-option-input::placeholder { color: #ccc; }
-            .gf-option-remove {
-                background: none; border: none; color: #ccc; cursor: pointer; width: 28px; height: 28px;
-                border-radius: 50%; display: grid; place-items: center; font-size: 14px; transition: all .15s;
-            }
-            .gf-option-remove:hover { background: #fef2f2; color: var(--red); }
-            .gf-add-option-btn {
-                display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px;
-                background: transparent; border: none; color: var(--gf-purple); font-family: inherit;
-                font-size: 13px; font-weight: 700; cursor: pointer; border-radius: 6px; transition: all .15s;
-                margin-top: 4px; width: fit-content;
-            }
-            .gf-add-option-btn:hover { background: var(--gf-purple-light); }
-
-            .gf-scale-preview { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-            .gf-scale-dot {
-                width: 36px; height: 36px; border: 2px solid var(--gf-purple-border); border-radius: 50%;
-                display: grid; place-items: center; font-size: 13px; font-weight: 700; color: var(--gf-purple);
-                background: #fff; transition: all .15s;
-            }
-            .gf-scale-dot:hover { background: var(--gf-purple-light); }
-
-            .gf-card-actions {
-                padding: 12px 24px; border-top: 1px solid var(--border-lt); display: flex;
-                align-items: center; justify-content: space-between; background: #fcfcfd;
-            }
-            .gf-actions-left { display: flex; align-items: center; gap: 6px; }
-            .gf-actions-right { display: flex; align-items: center; gap: 8px; }
-            .gf-action-btn {
-                background: none; border: none; color: #999; cursor: pointer; width: 36px; height: 36px;
-                border-radius: 8px; display: grid; place-items: center; font-size: 16px; transition: all .15s;
-            }
-            .gf-action-btn:hover { background: #f1f5f9; color: var(--text-1); }
-            .gf-action-btn.delete:hover { background: #fef2f2; color: var(--red); }
-            .gf-required-label { font-size: 12px; font-weight: 700; color: var(--text-3); margin-right: 6px; }
-            .gf-divider { width: 1px; height: 24px; background: var(--border); margin: 0 6px; }
-
-            /* ── Common Utilities ── */
-            .tp .btn-primary { background: var(--red); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: background .2s; }
-            .tp .btn-primary:hover { background: var(--red-dark); }
-            .tp .btn-secondary { background: #f1f5f9; color: var(--text-2); border: 1px solid var(--border); padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all .2s; }
-            .tp .btn-secondary:hover { background: var(--border); }
-
-            /* CKEditor Tweaks */
-            .ck-editor__editable {
-                min-height: 350px !important;
-                font-family: var(--font) !important;
-                font-size: 15px !important;
-                line-height: 1.7 !important;
-                color: var(--navy) !important;
-                padding: 24px 32px !important;
-                border-bottom-left-radius: var(--r-md) !important;
-                border-bottom-right-radius: var(--r-md) !important;
-                border-color: var(--border) !important;
-            }
-            .ck-editor__editable:focus { border-color: var(--blue) !important; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08) !important; }
-            .ck-toolbar {
-                border-top-left-radius: var(--r-md) !important;
-                border-top-right-radius: var(--r-md) !important;
-                background: #f8fafc !important;
-                border-color: var(--border) !important;
-                padding: 8px 12px !important;
-            }
-
-            .gf-add-btn {
-                display: flex; align-items: center; justify-content: center; gap: 10px;
-                width: 100%; padding: 18px; background: #fff; border: 2px dashed #c5b8e8;
-                border-radius: 12px; color: var(--gf-purple); font-family: inherit; font-size: 14px;
-                font-weight: 700; cursor: pointer; transition: all .2s; margin-top: 4px;
-            }
-            .gf-add-btn:hover { background: var(--gf-hover); border-style: solid; }
-
-            .gf-existing-file {
-                display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px;
-                background: var(--blue-muted); border: 1px solid var(--blue-border); border-radius: 8px;
-                font-size: 13px; font-weight: 600; color: var(--blue); margin-bottom: 14px; text-decoration: none;
-            }
-
-            .gf-empty { text-align: center; padding: 40px 20px; color: var(--text-3); }
-            .gf-empty i { font-size: 40px; margin-bottom: 12px; opacity: .4; display: block; }
-            .gf-empty p { font-size: 14px; margin: 0; font-weight: 500; }
-
-            /* File count stepper */
+            /* Stepper */
             .gf-stepper {
                 display: flex;
                 align-items: center;
@@ -704,7 +571,402 @@
                 text-align: center;
             }
 
-            /* Type buttons */
+            /* Question Cards */
+            .gf-question-list {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .gf-question-card {
+                background: #fff;
+                border-radius: 12px;
+                box-shadow: var(--gf-card-shadow);
+                border: 1px solid rgba(0, 0, 0, .06);
+                overflow: hidden;
+                transition: box-shadow .18s, border-color .18s;
+                animation: fadeUp .3s ease;
+            }
+
+            .gf-question-card:hover {
+                box-shadow: 0 4px 18px rgba(0, 0, 0, .11);
+            }
+
+            .gf-question-card.active-q {
+                border-left: 4px solid var(--gf-purple);
+            }
+
+            .gf-card-header {
+                padding: 20px 24px 0;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .gf-card-toprow {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .gf-drag-handle {
+                color: #ccc;
+                cursor: grab;
+                font-size: 14px;
+                flex-shrink: 0;
+                padding: 4px;
+                user-select: none;
+            }
+
+            .gf-drag-handle:hover {
+                color: var(--gf-purple);
+            }
+
+            .gf-q-number {
+                width: 28px;
+                height: 28px;
+                background: var(--gf-purple);
+                color: #fff;
+                border-radius: 8px;
+                font-size: 12px;
+                font-weight: 800;
+                display: grid;
+                place-items: center;
+                flex-shrink: 0;
+            }
+
+            .gf-question-input {
+                flex: 1;
+                border: none;
+                border-bottom: 2px solid #e0e0e0;
+                border-radius: 0;
+                background: transparent;
+                font-family: inherit;
+                font-size: 16px;
+                font-weight: 700;
+                color: var(--navy);
+                padding: 10px 4px;
+                transition: border-color .2s;
+                box-sizing: border-box;
+            }
+
+            .gf-question-input:focus {
+                outline: none;
+                border-bottom-color: var(--gf-purple);
+            }
+
+            .gf-question-input::placeholder {
+                color: #bbb;
+                font-weight: 500;
+            }
+
+            .gf-type-select {
+                appearance: none;
+                background: var(--gf-purple-light);
+                border: 1.5px solid var(--gf-purple-border);
+                border-radius: 8px;
+                color: var(--gf-purple);
+                font-family: inherit;
+                font-size: 13px;
+                font-weight: 700;
+                padding: 10px 34px 10px 14px;
+                cursor: pointer;
+                flex-shrink: 0;
+                min-width: 170px;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23673ab7'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 12px center;
+                transition: all .18s;
+            }
+
+            .gf-type-select:focus {
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(103, 58, 183, .18);
+            }
+
+            .gf-card-body {
+                padding: 16px 24px;
+            }
+
+            .gf-preview {
+                padding: 14px 18px;
+                background: #fafafa;
+                border-radius: 8px;
+                border: 1px dashed #e2e8f0;
+                color: var(--text-3);
+                font-size: 13px;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .gf-preview i {
+                font-size: 16px;
+                color: var(--gf-purple);
+            }
+
+            .gf-options-editor {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .gf-option-row {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                animation: fadeUp .2s ease;
+            }
+
+            .gf-option-icon {
+                width: 20px;
+                height: 20px;
+                border: 2px solid #c5b8e8;
+                border-radius: 50%;
+                flex-shrink: 0;
+            }
+
+            .gf-option-icon.checkbox-icon {
+                border-radius: 4px;
+            }
+
+            .gf-option-input {
+                flex: 1;
+                border: none;
+                border-bottom: 1.5px solid #e0e0e0;
+                padding: 8px 4px;
+                font-family: inherit;
+                font-size: 14px;
+                color: var(--navy);
+                background: transparent;
+                transition: border-color .2s;
+            }
+
+            .gf-option-input:focus {
+                outline: none;
+                border-bottom-color: var(--gf-purple);
+            }
+
+            .gf-option-input::placeholder {
+                color: #ccc;
+            }
+
+            .gf-option-remove {
+                background: none;
+                border: none;
+                color: #ccc;
+                cursor: pointer;
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                font-size: 14px;
+                transition: all .15s;
+            }
+
+            .gf-option-remove:hover {
+                background: #fef2f2;
+                color: var(--red);
+            }
+
+            .gf-add-option-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 14px;
+                background: transparent;
+                border: none;
+                color: var(--gf-purple);
+                font-family: inherit;
+                font-size: 13px;
+                font-weight: 700;
+                cursor: pointer;
+                border-radius: 6px;
+                transition: all .15s;
+                margin-top: 4px;
+            }
+
+            .gf-add-option-btn:hover {
+                background: var(--gf-purple-light);
+            }
+
+            .gf-scale-preview {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            .gf-scale-dot {
+                width: 36px;
+                height: 36px;
+                border: 2px solid var(--gf-purple-border);
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                font-size: 13px;
+                font-weight: 700;
+                color: var(--gf-purple);
+                background: #fff;
+                transition: all .15s;
+            }
+
+            .gf-scale-dot:hover {
+                background: var(--gf-purple-light);
+            }
+
+            .gf-card-actions {
+                padding: 12px 24px;
+                border-top: 1px solid var(--border-lt);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background: #fcfcfd;
+            }
+
+            .gf-actions-left {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .gf-actions-right {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .gf-action-btn {
+                background: none;
+                border: none;
+                color: #999;
+                cursor: pointer;
+                width: 36px;
+                height: 36px;
+                border-radius: 8px;
+                display: grid;
+                place-items: center;
+                font-size: 16px;
+                transition: all .15s;
+            }
+
+            .gf-action-btn:hover {
+                background: #f1f5f9;
+                color: var(--text-1);
+            }
+
+            .gf-action-btn.delete:hover {
+                background: #fef2f2;
+                color: var(--red);
+            }
+
+            .gf-required-label {
+                font-size: 12px;
+                font-weight: 700;
+                color: var(--text-3);
+                margin-right: 6px;
+            }
+
+            .gf-divider {
+                width: 1px;
+                height: 24px;
+                background: var(--border);
+                margin: 0 6px;
+            }
+
+            .gf-add-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                width: 100%;
+                padding: 18px;
+                background: #fff;
+                border: 2px dashed #c5b8e8;
+                border-radius: 12px;
+                color: var(--gf-purple);
+                font-family: inherit;
+                font-size: 14px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all .2s;
+                margin-top: 4px;
+            }
+
+            .gf-add-btn:hover {
+                background: var(--gf-hover);
+                border-style: solid;
+            }
+
+            .gf-empty {
+                text-align: center;
+                padding: 40px 20px;
+                color: var(--text-3);
+            }
+
+            .gf-empty i {
+                font-size: 40px;
+                margin-bottom: 12px;
+                opacity: .4;
+                display: block;
+            }
+
+            .gf-empty p {
+                font-size: 14px;
+                margin: 0;
+                font-weight: 500;
+            }
+
+            /* ── School picker (edit) ── */
+            .school-picker {
+                border: 2px solid var(--border);
+                border-radius: 12px;
+                overflow: hidden;
+                background: #f8fafc;
+            }
+
+            .school-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px 14px;
+                border-radius: 8px;
+                cursor: pointer;
+                border: 1px solid transparent;
+                transition: all .15s;
+            }
+
+            .school-item:hover {
+                background: #f1f5f9;
+            }
+
+            .school-item.selected {
+                background: var(--red-muted);
+                border-color: var(--red-border);
+            }
+
+            .school-count-badge {
+                position: sticky;
+                bottom: 0;
+                padding: 12px 18px;
+                background: linear-gradient(to top, #fff 80%, transparent);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-size: 13px;
+                font-weight: 700;
+                color: var(--text-2);
+            }
+
+            .school-count-badge .count {
+                color: var(--red);
+                font-size: 18px;
+                font-weight: 800;
+            }
+
+            /* ── Type buttons ── */
             .type-btn-group {
                 display: flex;
                 flex-wrap: wrap;
@@ -712,6 +974,7 @@
                 margin-top: 12px;
                 padding-top: 12px;
                 border-top: 1px solid var(--border-lt);
+                width: 100%;
             }
 
             .type-btn {
@@ -741,44 +1004,43 @@
                 font-size: 11px;
             }
 
-            /* School count badge */
-            .school-count-badge {
-                position: sticky;
-                bottom: 0;
-                padding: 12px 18px;
-                background: linear-gradient(to top, #fff 80%, transparent);
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                font-size: 13px;
-                font-weight: 700;
-                color: var(--text-2);
+            /* ── CKEditor ── */
+            .ck-editor__editable {
+                min-height: 350px !important;
+                font-family: var(--font) !important;
+                font-size: 15px !important;
+                line-height: 1.7 !important;
+                color: var(--navy) !important;
+                padding: 24px 32px !important;
+                border-bottom-left-radius: var(--r-md) !important;
+                border-bottom-right-radius: var(--r-md) !important;
             }
 
-            .school-count-badge .count {
-                color: var(--red);
-                font-size: 18px;
-                font-weight: 800;
+            .ck-toolbar {
+                border-top-left-radius: var(--r-md) !important;
+                border-top-right-radius: var(--r-md) !important;
+                background: #f8fafc !important;
+                padding: 8px 12px !important;
             }
 
-            /* School item styles for edit */
-            .school-item {
-                transition: all .15s;
-            }
+            @keyframes fadeUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(12px);
+                }
 
-            .school-item:hover {
-                background: #f1f5f9;
-            }
-
-            .school-item.selected {
-                background: var(--red-muted);
-                border-color: var(--red-border) !important;
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
         </style>
 
         <div class="tp page-root">
             <div class="edit-container">
                 <div class="edit-panel">
+
+                    <!-- ── Header ── -->
                     <div class="edit-header">
                         <div class="edit-header-info">
                             <div class="edit-header-icon"><i class="fas fa-edit"></i></div>
@@ -787,11 +1049,12 @@
                                 <p>Aşağıdaki adımları takip ederek görev detaylarını güncelleyin.</p>
                             </div>
                         </div>
-                        <a href="/admin/tasks/<%= task.id %>" class="btn btn-ghost btn-sm"><i
-                                class="fas fa-arrow-left"></i>
-                            Geri Dön</a>
+                        <a href="/admin/tasks/<%= task.id %>" class="btn btn-ghost btn-sm">
+                            <i class="fas fa-arrow-left"></i> Geri Dön
+                        </a>
                     </div>
 
+                    <!-- ── Step Nav ── -->
                     <div class="step-nav">
                         <div class="step-item active" data-step="1">
                             <div class="step-icon">1</div> Bilgiler
@@ -807,11 +1070,12 @@
                         </div>
                     </div>
 
+                    <!-- ── Form ── -->
                     <form id="editForm" action="/admin/tasks/<%= task.id %>/update" method="POST"
                         enctype="multipart/form-data" class="step-content">
                         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
-                        <!-- ─── Step 1: Info ─── -->
+                        <!-- Step 1: Bilgiler -->
                         <div class="step-pane active" id="pane-1">
                             <div class="form-group">
                                 <label class="form-label">Görev Başlığı / Konusu</label>
@@ -824,7 +1088,7 @@
                             </div>
                         </div>
 
-                        <!-- ─── Step 2: Content ─── -->
+                        <!-- Step 2: Resmî Yazı -->
                         <div class="step-pane" id="pane-2">
                             <div class="form-group">
                                 <label class="form-label">Görev Açıklama Metni</label>
@@ -832,30 +1096,24 @@
                             </div>
                         </div>
 
-                        <!-- ─── Step 3: Form & Ekler — Google Form Style ─── -->
+                        <!-- Step 3: Form & Ekler -->
                         <div class="step-pane" id="pane-3">
-
-                            <!-- Title card -->
                             <div class="gf-section-header">
                                 <h3><i class="fas fa-wpforms"
-                                        style="color:var(--gf-purple); margin-right:10px;"></i>Form &
-                                    Ekler</h3>
+                                        style="color:var(--gf-purple); margin-right:10px;"></i>Form & Ekler</h3>
                                 <p>Okulların dolduracağı alanları ve dosya ayarlarını yapılandırın.</p>
                             </div>
 
-                            <!-- File upload card -->
-                            <div class="gf-card" id="fileCard">
+                            <!-- Ek Dosya -->
+                            <div class="gf-card">
                                 <div class="gf-card-label"><i class="fas fa-paperclip"></i> Ek Dosya (İsteğe Bağlı)
                                 </div>
-
                                 <% if (task.file_path) { %>
-                                    <div class="gf-existing-file">
-                                        <i class="fas fa-file-alt"></i>
-                                        Mevcut: <%= task.file_path %>
+                                    <div class="gf-existing-file"><i class="fas fa-file-alt"></i> Mevcut: <%=
+                                            task.file_path %>
                                     </div>
                                     <% } %>
-
-                                        <div class="gf-file-zone" id="fileZone"
+                                        <div class="gf-file-zone"
                                             onclick="document.getElementById('taskFileInput').click()">
                                             <input type="file" name="task_file" id="taskFileInput">
                                             <div class="gf-file-icon"><i class="fas fa-cloud-upload-alt"></i></div>
@@ -866,11 +1124,10 @@
                                             </div>
                                         </div>
                                         <div class="gf-file-chosen" id="fileChosen"><i class="fas fa-check-circle"></i>
-                                            <span id="fileChosenName"></span>
-                                        </div>
+                                            <span id="fileChosenName"></span></div>
                             </div>
 
-                            <!-- File settings card -->
+                            <!-- Dosya Ayarları -->
                             <div class="gf-card">
                                 <div class="gf-card-label"><i class="fas fa-cog"></i> Dosya Yükleme Ayarları</div>
 
@@ -899,10 +1156,9 @@
                                     </label>
                                 </div>
 
-                                <!-- File count stepper -->
                                 <div class="gf-stepper" id="fileCountRow"
-                                    style="<%= task.requires_file ? '' : 'display: none;' %>">
-                                    <label><i class="fas fa-copy" style="margin-right: 6px;"></i> Maksimum Dosya
+                                    style="<%= task.requires_file ? '' : 'display:none;' %>">
+                                    <label><i class="fas fa-copy" style="margin-right:6px;"></i> Maksimum Dosya
                                         Sayısı</label>
                                     <button type="button" class="gf-stepper-btn"
                                         onclick="changeFileCount(-1)">−</button>
@@ -915,68 +1171,96 @@
                                 </div>
                             </div>
 
-                            <!-- Dynamic question cards -->
-                            <div class="gf-card" style="padding: 24px 28px 20px;">
-                                <div class="gf-card-label" style="margin-bottom:6px;"><i class="fas fa-list-ul"></i> Veri Giriş Formu</div>
-                                <p style="font-size:12px; color:var(--text-3); margin:0 0 20px; font-weight:500;">Okulların dolduracağı soruları ekleyin. Her soru için alan tipini seçebilir, seçenekler ekleyebilir ve zorunluluk belirleyebilirsiniz.</p>
+                            <!-- Sorular -->
+                            <div class="gf-card" style="padding:24px 28px 20px;">
+                                <div class="gf-card-label" style="margin-bottom:6px;"><i class="fas fa-list-ul"></i>
+                                    Veri Giriş Formu</div>
+                                <p style="font-size:12px; color:var(--text-3); margin:0 0 20px; font-weight:500;">
+                                    Okulların dolduracağı soruları ekleyin.</p>
 
                                 <div class="gf-question-list" id="dynamicFields">
-                                    <% taskFields.forEach((field, idx) => { %>
-                                        <div class="gf-question-card active-q" data-index="<%= idx %>" data-saved-options="<%= (field.field_options || '').replace(/"/g, '&quot;') %>">
+                                    <% taskFields.forEach((field, idx)=> { %>
+                                        <div class="gf-question-card active-q"
+                                            data-saved-options="<%= (field.field_options || '').replace(/" /g, '&quot;'
+                                            ) %>">
                                             <div class="gf-card-header">
                                                 <div class="gf-card-toprow">
-                                                    <span class="gf-drag-handle" title="Sürükle"><i class="fas fa-grip-vertical"></i></span>
-                                                    <div class="gf-q-number"><%= idx + 1 %></div>
+                                                    <span class="gf-drag-handle"><i
+                                                            class="fas fa-grip-vertical"></i></span>
+                                                    <div class="gf-q-number">
+                                                        <%= idx + 1 %>
+                                                    </div>
                                                     <input type="hidden" name="field_ids" value="<%= field.id %>">
-                                                    <input type="hidden" name="field_options" class="field-options-hidden" value="<%= (field.field_options || '').replace(/"/g, '&quot;') %>">
-                                                    <input type="text" name="field_labels" class="gf-question-input" value="<%= field.field_label %>" placeholder="Soru başlığını yazın..." required>
-                                                    <select name="field_types" class="gf-type-select" onchange="window.updateCardPreview(this.closest('.gf-question-card'))">
-                                                        <option value="text" <%= field.field_type==='text' ? 'selected' : '' %>>Kısa Yanıt</option>
-                                                        <option value="textarea" <%= field.field_type==='textarea' ? 'selected' : '' %>>Paragraf</option>
-                                                        <option value="number" <%= field.field_type==='number' ? 'selected' : '' %>>Sayı</option>
-                                                        <option value="radio" <%= field.field_type==='radio' ? 'selected' : '' %>>Çoktan Seçmeli</option>
-                                                        <option value="checkbox" <%= field.field_type==='checkbox' ? 'selected' : '' %>>Onay Kutuları</option>
-                                                        <option value="select" <%= field.field_type==='select' ? 'selected' : '' %>>Açılır Menü</option>
-                                                        <option value="date" <%= field.field_type==='date' ? 'selected' : '' %>>Tarih</option>
-                                                        <option value="time" <%= field.field_type==='time' ? 'selected' : '' %>>Saat</option>
-                                                        <option value="scale" <%= field.field_type==='scale' ? 'selected' : '' %>>Doğrusal Ölçek</option>
+                                                    <input type="hidden" name="field_options"
+                                                        class="field-options-hidden"
+                                                        value="<%= (field.field_options || '').replace(/" /g, '&quot;' )
+                                                        %>">
+                                                    <input type="text" name="field_labels" class="gf-question-input"
+                                                        value="<%= field.field_label %>"
+                                                        placeholder="Soru başlığını yazın..." required>
+                                                    <select name="field_types" class="gf-type-select"
+                                                        onchange="window.updateCardPreview(this.closest('.gf-question-card'))">
+                                                        <option value="text" <%=field.field_type==='text' ? 'selected'
+                                                            : '' %>>Kısa Yanıt</option>
+                                                        <option value="textarea" <%=field.field_type==='textarea'
+                                                            ? 'selected' : '' %>>Paragraf</option>
+                                                        <option value="number" <%=field.field_type==='number'
+                                                            ? 'selected' : '' %>>Sayı</option>
+                                                        <option value="radio" <%=field.field_type==='radio' ? 'selected'
+                                                            : '' %>>Çoktan Seçmeli</option>
+                                                        <option value="checkbox" <%=field.field_type==='checkbox'
+                                                            ? 'selected' : '' %>>Onay Kutuları</option>
+                                                        <option value="select" <%=field.field_type==='select'
+                                                            ? 'selected' : '' %>>Açılır Menü</option>
+                                                        <option value="date" <%=field.field_type==='date' ? 'selected'
+                                                            : '' %>>Tarih</option>
+                                                        <option value="time" <%=field.field_type==='time' ? 'selected'
+                                                            : '' %>>Saat</option>
+                                                        <option value="scale" <%=field.field_type==='scale' ? 'selected'
+                                                            : '' %>>Doğrusal Ölçek</option>
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div class="gf-card-body" id="cardBody-<%= idx %>"></div>
+                                            <div class="gf-card-body"></div>
                                             <div class="gf-card-actions">
                                                 <div class="gf-actions-left">
                                                     <span class="gf-required-label">Zorunlu</span>
                                                     <label class="gf-switch" style="transform:scale(.85);">
-                                                        <input type="checkbox" name="field_required" value="<%= idx %>" <%= field.is_required ? 'checked' : '' %>>
+                                                        <input type="checkbox" name="field_required" value="<%= idx %>"
+                                                            <%=field.is_required ? 'checked' : '' %>>
                                                         <span class="gf-slider"></span>
                                                     </label>
                                                 </div>
                                                 <div class="gf-actions-right">
-                                                    <button type="button" class="gf-action-btn" onclick="duplicateField(this)" title="Kopyala"><i class="fas fa-copy"></i></button>
+                                                    <button type="button" class="gf-action-btn"
+                                                        onclick="duplicateField(this)"><i
+                                                            class="fas fa-copy"></i></button>
                                                     <div class="gf-divider"></div>
-                                                    <button type="button" class="gf-action-btn delete" onclick="removeField(this)" title="Sil"><i class="fas fa-trash-alt"></i></button>
+                                                    <button type="button" class="gf-action-btn delete"
+                                                        onclick="removeField(this)"><i
+                                                            class="fas fa-trash-alt"></i></button>
                                                 </div>
                                             </div>
                                         </div>
-                                    <% }) %>
+                                        <% }) %>
 
-                                    <% if (!taskFields || taskFields.length===0) { %>
-                                        <div class="gf-empty" id="emptyState">
-                                            <i class="fas fa-clipboard-list"></i>
-                                            <p>Henüz soru eklenmemiş.<br><span style="font-size:12px; color:#bbb;">Aşağıdaki butona tıklayarak Google Form benzeri sorular oluşturun.</span></p>
-                                        </div>
-                                    <% } %>
+                                            <% if (!taskFields || taskFields.length===0) { %>
+                                                <div class="gf-empty" id="emptyState">
+                                                    <i class="fas fa-clipboard-list"></i>
+                                                    <p>Henüz soru eklenmemiş.<br><span
+                                                            style="font-size:12px; color:#bbb;">Aşağıdaki butona
+                                                            tıklayarak soru oluşturun.</span></p>
+                                                </div>
+                                                <% } %>
                                 </div>
                             </div>
 
                             <button type="button" class="gf-add-btn" onclick="addField()">
                                 <i class="fas fa-plus-circle"></i> Yeni Soru / Veri Alanı Ekle
                             </button>
+                        </div>
 
-                        </div><!-- /pane-3 -->
-
-                        <!-- ─── Step 4: Schools ─── -->
+                        <!-- Step 4: Okullar -->
                         <div class="step-pane" id="pane-4">
                             <div style="margin-bottom:20px;">
                                 <h4
@@ -996,8 +1280,9 @@
                                             <input type="hidden" name="remove_school_ids" value=""
                                                 id="remove-input-<%= s.id %>">
                                             <button type="button" class="chip-remove"
-                                                onclick="removeAssignedSchool('<%= s.id %>')"><i
-                                                    class="fas fa-times"></i></button>
+                                                onclick="removeAssignedSchool('<%= s.id %>')">
+                                                <i class="fas fa-times"></i>
+                                            </button>
                                         </div>
                                         <% }) %>
                                             <% if (assignedIds.length===0) { %>
@@ -1007,26 +1292,21 @@
                                 </div>
                             </div>
 
-                            <div class="school-picker"
-                                style="border: 2px solid var(--border); border-radius: 12px; overflow: hidden; background: #f8fafc;">
+                            <div class="school-picker">
                                 <div
-                                    style="padding:15px; border-bottom:1px solid var(--border); background:#fff; display:flex; gap:12px; align-items:center; flex-wrap: wrap;">
+                                    style="padding:15px; border-bottom:1px solid var(--border); background:#fff; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
                                     <i class="fas fa-plus-circle" style="color:var(--blue);"></i>
                                     <input type="text" id="schoolSearch" class="form-control"
-                                        style="border:none; padding:5px; background:transparent; flex: 1;"
+                                        style="border:none; padding:5px; background:transparent; flex:1;"
                                         placeholder="Yeni okul eklemek için ara...">
-                                    <button type="button" class="btn btn-sm"
-                                        style="background:var(--navy);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;"
+                                    <button type="button" class="btn btn-sm btn-navy"
                                         onclick="toggleAllNewSchools(true)">Tümünü Seç</button>
-                                    <button type="button" class="btn btn-sm"
-                                        style="background:transparent;color:var(--text-2);border:2px solid var(--border);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;"
+                                    <button type="button" class="btn btn-sm btn-ghost"
                                         onclick="toggleAllNewSchools(false)">Temizle</button>
-
-                                    <!-- Quick type buttons -->
-                                    <div class="type-btn-group" style="width:100%;">
+                                    <div class="type-btn-group">
                                         <% safeSchoolTypes.forEach(type=> { %>
                                             <button type="button" class="type-btn" data-type="<%= type %>"
-                                                style="color: <%= typeColors[type] || '#6b7280' %>; border-color: <%= typeColors[type] || '#6b7280' %>;"
+                                                style="color:<%= typeColors[type] || '#6b7280' %>; border-color:<%= typeColors[type] || '#6b7280' %>;"
                                                 onclick="toggleTypeSelection('<%= type %>', this)">
                                                 <i class="fas <%= typeIcons[type] || 'fa-building' %>"></i>
                                                 <%= typeLabels[type] || type %>
@@ -1034,427 +1314,311 @@
                                             <% }) %>
                                     </div>
                                 </div>
-                                <div style="max-height: 380px; overflow-y: auto; padding: 10px;" id="schoolList">
+
+                                <div style="max-height:380px; overflow-y:auto; padding:10px;" id="schoolList">
                                     <% schools.forEach(s=> {
                                         if (!assignedIds.includes(s.id)) { %>
-                                        <label
-                                            style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 8px; cursor: pointer; border: 1px solid transparent;"
-                                            class="school-item" data-name="<%= s.full_name.toLowerCase() %>"
+                                        <label class="school-item" data-name="<%= s.full_name.toLowerCase() %>"
                                             data-type="<%= s.school_type %>">
                                             <input type="checkbox" name="school_ids" value="<%= s.id %>"
-                                                style="width:18px;height:18px; accent-color: var(--red);">
+                                                style="width:18px; height:18px; accent-color:var(--red);">
                                             <span style="font-size:14px; font-weight:600; flex:1;">
                                                 <%= s.full_name %>
                                             </span>
                                             <span
-                                                style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:12px; background: <%= typeColors[s.school_type] ? typeColors[s.school_type] + '18' : '#f1f5f9' %>; color: <%= typeColors[s.school_type] || '#6b7280' %>;">
+                                                style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:12px; background:<%= typeColors[s.school_type] ? typeColors[s.school_type] + '18' : '#f1f5f9' %>; color:<%= typeColors[s.school_type] || '#6b7280' %>;">
                                                 <%= typeLabels[s.school_type] || s.school_type || '-' %>
                                             </span>
                                         </label>
-                                        <% }}) %>
+                                        <% } }) %>
                                 </div>
+
                                 <div class="school-count-badge">
                                     <span><i class="fas fa-check-circle"
-                                            style="color: var(--green); margin-right: 6px;"></i>Yeni Eklenecek
+                                            style="color:var(--green); margin-right:6px;"></i>Yeni Eklenecek
                                         Okul:</span>
                                     <span class="count" id="newSchoolCount">0</span>
                                 </div>
                             </div>
                         </div>
-
                     </form>
 
+                    <!-- ── Footer ── -->
                     <div class="edit-footer">
-                        <button type="button" id="btnPrev" class="btn btn-ghost" style="visibility:hidden"><i
-                                class="fas fa-chevron-left"></i> Geri Dön</button>
+                        <button type="button" id="btnPrev" class="btn btn-ghost" style="visibility:hidden;">
+                            <i class="fas fa-chevron-left"></i> Geri Dön
+                        </button>
                         <div>
-                            <button type="button" id="btnNext" class="btn btn-red">Sonraki <i
-                                    class="fas fa-chevron-right" style="margin-left:10px;"></i></button>
+                            <button type="button" id="btnNext" class="btn btn-red">
+                                Sonraki <i class="fas fa-chevron-right" style="margin-left:10px;"></i>
+                            </button>
                             <button type="button" id="btnSubmit" class="btn btn-navy"
-                                style="display:none; background:var(--green); border-color:var(--green);">Değişiklikleri
-                                Kaydet <i class="fas fa-check-circle" style="margin-left:10px;"></i></button>
+                                style="display:none; background:var(--green);">
+                                Değişiklikleri Kaydet <i class="fas fa-check-circle" style="margin-left:10px;"></i>
+                            </button>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
 
-        <!-- ═══ SCRIPT 1: Page Navigation, CKEditor, File Upload, Schools ═══ -->
         <script>
             (function () {
-                /* ── Step navigation ── */
-                var currentStep = 1;
+                'use strict';
 
-                var gotoStep = function(n) {
+                /* ── Step navigation ── */
+                let currentStep = 1;
+
+                const gotoStep = (n) => {
                     currentStep = n;
-                    document.querySelectorAll('.step-pane').forEach(function(p, i) { p.classList.toggle('active', (i + 1) === n); });
-                    document.querySelectorAll('.step-item').forEach(function(it, i) { it.classList.toggle('active', (i + 1) === n); });
+                    document.querySelectorAll('.step-pane').forEach((p, i) => p.classList.toggle('active', i + 1 === n));
+                    document.querySelectorAll('.step-item').forEach((it, i) => it.classList.toggle('active', i + 1 === n));
                     document.getElementById('btnPrev').style.visibility = n === 1 ? 'hidden' : 'visible';
                     document.getElementById('btnNext').style.display = n === 4 ? 'none' : 'inline-flex';
                     document.getElementById('btnSubmit').style.display = n === 4 ? 'inline-flex' : 'none';
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 };
 
-                document.querySelectorAll('.step-item').forEach(function(item) {
-                    item.addEventListener('click', function() { gotoStep(parseInt(item.dataset.step)); });
+                document.querySelectorAll('.step-item').forEach(item => {
+                    item.addEventListener('click', () => { const s = parseInt(item.dataset.step); if (s) gotoStep(s); });
                 });
-                document.getElementById('btnNext').onclick = function() { if (currentStep < 4) gotoStep(currentStep + 1); };
-                document.getElementById('btnPrev').onclick = function() { if (currentStep > 1) gotoStep(currentStep - 1); };
-                document.getElementById('btnSubmit').onclick = function() { document.getElementById('editForm').submit(); };
+                document.getElementById('btnNext').onclick = () => { if (currentStep < 4) gotoStep(currentStep + 1); };
+                document.getElementById('btnPrev').onclick = () => { if (currentStep > 1) gotoStep(currentStep - 1); };
+                document.getElementById('btnSubmit').onclick = () => document.getElementById('editForm').submit();
 
                 /* ── CKEditor ── */
-                try {
-                    ClassicEditor.create(document.querySelector('#editor'), {
-                        language: 'tr',
-                        toolbar: {
-                            items: [
-                                'heading', '|',
-                                'bold', 'italic', 'link', '|',
-                                'bulletedList', 'numberedList', 'blockQuote', '|',
-                                'insertTable', 'mediaEmbed', '|',
-                                'undo', 'redo'
-                            ],
-                            shouldNotGroupWhenFull: true
-                        }
-                    }).catch(function(err) { console.error('CKEditor error:', err); });
-                } catch(e) { console.error('CKEditor init error:', e); }
+                ClassicEditor.create(document.querySelector('#editor'), {
+                    language: 'tr',
+                    toolbar: { items: ['heading', '|', 'bold', 'italic', 'link', '|', 'bulletedList', 'numberedList', 'blockQuote', '|', 'insertTable', 'undo', 'redo'], shouldNotGroupWhenFull: true }
+                }).catch(err => console.error(err));
 
                 /* ── Flatpickr ── */
-                try {
-                    flatpickr('#deadlinePicker', { enableTime: true, dateFormat: 'Y-m-d H:i', locale: 'tr', time_24hr: true });
-                } catch(e) { console.error('Flatpickr error:', e); }
+                flatpickr('#deadlinePicker', { enableTime: true, dateFormat: 'Y-m-d H:i', locale: 'tr', time_24hr: true });
 
                 /* ── File zone ── */
-                var fileInput = document.getElementById('taskFileInput');
-                if (fileInput) {
-                    fileInput.addEventListener('change', function () {
-                        var name = this.files[0] ? this.files[0].name : '';
-                        var chosen = document.getElementById('fileChosen');
-                        var chosenN = document.getElementById('fileChosenName');
-                        if (name) { chosenN.textContent = name; chosen.style.display = 'flex'; }
-                        else { chosen.style.display = 'none'; }
-                    });
-                }
+                document.getElementById('taskFileInput').addEventListener('change', function () {
+                    const name = this.files[0]?.name || '';
+                    document.getElementById('fileChosenName').textContent = name;
+                    document.getElementById('fileChosen').style.display = name ? 'flex' : 'none';
+                });
 
-                /* ── Toggle: requires_file ── */
-                var rfToggle = document.getElementById('requiresFileToggle');
-                if (rfToggle) {
-                    rfToggle.addEventListener('change', function () {
-                        var row = document.getElementById('mandatoryRow');
-                        var countRow = document.getElementById('fileCountRow');
-                        row.style.opacity = this.checked ? '1' : '0.4';
-                        row.style.pointerEvents = this.checked ? 'auto' : 'none';
-                        countRow.style.display = this.checked ? 'flex' : 'none';
-                        if (!this.checked) document.getElementById('fileMandatoryToggle').checked = false;
-                    });
-                }
+                document.getElementById('requiresFileToggle').addEventListener('change', function () {
+                    document.getElementById('mandatoryRow').style.opacity = this.checked ? '1' : '0.4';
+                    document.getElementById('mandatoryRow').style.pointerEvents = this.checked ? 'auto' : 'none';
+                    document.getElementById('fileCountRow').style.display = this.checked ? 'flex' : 'none';
+                    if (!this.checked) document.getElementById('fileMandatoryToggle').checked = false;
+                });
 
-                /* ── File count stepper ── */
-                window.changeFileCount = function(delta) {
-                    var inp = document.getElementById('maxFileCountInput');
-                    var disp = document.getElementById('fileCountDisplay');
-                    var val = parseInt(inp.value) + delta;
-                    if (val < 1) val = 1;
-                    if (val > 20) val = 20;
-                    inp.value = val;
-                    disp.textContent = val;
+                window.changeFileCount = (delta) => {
+                    const inp = document.getElementById('maxFileCountInput');
+                    const disp = document.getElementById('fileCountDisplay');
+                    const val = Math.min(20, Math.max(1, parseInt(inp.value) + delta));
+                    inp.value = disp.textContent = val;
+                };
+
+                /* ── Field types ── */
+                const FIELD_TYPES = {
+                    text: { label: 'Kısa Yanıt', hasOptions: false },
+                    textarea: { label: 'Paragraf', hasOptions: false },
+                    number: { label: 'Sayı', hasOptions: false },
+                    radio: { label: 'Çoktan Seçmeli', hasOptions: true },
+                    checkbox: { label: 'Onay Kutuları', hasOptions: true },
+                    select: { label: 'Açılır Menü', hasOptions: true },
+                    date: { label: 'Tarih', hasOptions: false },
+                    time: { label: 'Saat', hasOptions: false },
+                    scale: { label: 'Doğrusal Ölçek', hasOptions: false }
+                };
+
+                const buildTypeOptions = (sel) =>
+                    Object.entries(FIELD_TYPES).map(([v, i]) => `<option value="${v}" ${v === sel ? 'selected' : ''}>${i.label}</option>`).join('');
+
+                const buildPreview = (type) => {
+                    const map = { text: 'fa-minus Kısa metin yanıtı', textarea: 'fa-align-left Uzun metin yanıtı (paragraf)', number: 'fa-hashtag Sayısal değer girişi', date: 'fa-calendar-alt Tarih seçici alanı', time: 'fa-clock Saat seçici alanı' };
+                    if (type === 'scale') return `<div class="gf-scale-preview">${[1, 2, 3, 4, 5].map(n => `<div class="gf-scale-dot">${n}</div>`).join('')}</div>`;
+                    if (map[type]) { const parts = map[type].split(' '); return `<div class="gf-preview"><i class="fas ${parts[0]}"></i> ${parts.slice(1).join(' ')}</div>`; }
+                    return '';
+                };
+
+                const buildOptionsEditor = (type, opts = ['Seçenek 1']) => {
+                    const iconClass = type === 'checkbox' ? 'gf-option-icon checkbox-icon' : 'gf-option-icon';
+                    const rows = opts.map((opt, i) => `
+      <div class="gf-option-row">
+        <div class="${iconClass}"></div>
+        <input type="text" class="gf-option-input" value="${opt}" placeholder="Seçenek ${i + 1}" oninput="window.syncOptionsToHidden(this.closest('.gf-question-card'))">
+        <button type="button" class="gf-option-remove" onclick="removeOption(this)"><i class="fas fa-times"></i></button>
+      </div>`).join('');
+                    return `<div class="gf-options-editor" data-type="${type}">${rows}
+      <button type="button" class="gf-add-option-btn" onclick="addOption(this)"><i class="fas fa-plus"></i> Seçenek Ekle</button>
+    </div>`;
+                };
+
+                const updateNumbers = () =>
+                    document.querySelectorAll('#dynamicFields .gf-question-card .gf-q-number').forEach((el, i) => { el.textContent = i + 1; });
+
+                window.syncOptionsToHidden = (card) => {
+                    const h = card.querySelector('.field-options-hidden');
+                    if (!h) return;
+                    h.value = Array.from(card.querySelectorAll('.gf-option-input')).map(i => i.value).filter(v => v.trim()).join(',');
+                };
+
+                window.updateCardPreview = (card) => {
+                    const type = card.querySelector('.gf-type-select').value;
+                    const body = card.querySelector('.gf-card-body');
+                    const h = card.querySelector('.field-options-hidden');
+                    if (FIELD_TYPES[type]?.hasOptions) { body.innerHTML = buildOptionsEditor(type); if (h) h.value = 'Seçenek 1'; }
+                    else { body.innerHTML = buildPreview(type); if (h) h.value = ''; }
+                };
+
+                /* Initialize existing cards with saved options */
+                document.querySelectorAll('#dynamicFields .gf-question-card').forEach(card => {
+                    const type = card.querySelector('.gf-type-select').value;
+                    const body = card.querySelector('.gf-card-body');
+                    const saved = card.dataset.savedOptions || '';
+                    if (FIELD_TYPES[type]?.hasOptions) {
+                        const opts = saved ? saved.split(',').map(o => o.trim()).filter(Boolean) : ['Seçenek 1'];
+                        body.innerHTML = buildOptionsEditor(type, opts);
+                    } else {
+                        body.innerHTML = buildPreview(type);
+                    }
+                });
+
+                window.addField = () => {
+                    const empty = document.getElementById('emptyState');
+                    if (empty) empty.style.display = 'none';
+                    const list = document.getElementById('dynamicFields');
+                    const count = list.querySelectorAll('.gf-question-card').length + 1;
+                    const card = document.createElement('div');
+                    card.className = 'gf-question-card active-q';
+                    card.innerHTML = `
+      <div class="gf-card-header"><div class="gf-card-toprow">
+        <span class="gf-drag-handle"><i class="fas fa-grip-vertical"></i></span>
+        <div class="gf-q-number">${count}</div>
+        <input type="hidden" name="field_ids" value="">
+        <input type="hidden" name="field_options" class="field-options-hidden" value="">
+        <input type="text" name="field_labels" class="gf-question-input" placeholder="Soru başlığını yazın..." required>
+        <select name="field_types" class="gf-type-select" onchange="window.updateCardPreview(this.closest('.gf-question-card'))">
+          ${buildTypeOptions('text')}
+        </select>
+      </div></div>
+      <div class="gf-card-body">${buildPreview('text')}</div>
+      <div class="gf-card-actions">
+        <div class="gf-actions-left">
+          <span class="gf-required-label">Zorunlu</span>
+          <label class="gf-switch" style="transform:scale(.85);"><input type="checkbox" name="field_required" value="1"><span class="gf-slider"></span></label>
+        </div>
+        <div class="gf-actions-right">
+          <button type="button" class="gf-action-btn" onclick="duplicateField(this)"><i class="fas fa-copy"></i></button>
+          <div class="gf-divider"></div>
+          <button type="button" class="gf-action-btn delete" onclick="removeField(this)"><i class="fas fa-trash-alt"></i></button>
+        </div>
+      </div>`;
+                    list.appendChild(card);
+                    card.querySelector('.gf-question-input').focus();
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                };
+
+                window.removeField = (btn) => {
+                    btn.closest('.gf-question-card').remove();
+                    updateNumbers();
+                    const empty = document.getElementById('emptyState');
+                    if (empty && !document.querySelectorAll('#dynamicFields .gf-question-card').length) empty.style.display = 'block';
+                };
+
+                window.duplicateField = (btn) => {
+                    const card = btn.closest('.gf-question-card');
+                    const clone = card.cloneNode(true);
+                    clone.querySelector('input[name="field_ids"]').value = '';
+                    card.after(clone);
+                    updateNumbers();
+                    clone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                };
+
+                window.addOption = (btn) => {
+                    const editor = btn.closest('.gf-options-editor');
+                    const card = btn.closest('.gf-question-card');
+                    const type = editor.dataset.type;
+                    const count = editor.querySelectorAll('.gf-option-row').length + 1;
+                    const iconClass = type === 'checkbox' ? 'gf-option-icon checkbox-icon' : 'gf-option-icon';
+                    const row = document.createElement('div');
+                    row.className = 'gf-option-row';
+                    row.innerHTML = `<div class="${iconClass}"></div>
+      <input type="text" class="gf-option-input" placeholder="Seçenek ${count}" oninput="window.syncOptionsToHidden(this.closest('.gf-question-card'))">
+      <button type="button" class="gf-option-remove" onclick="removeOption(this)"><i class="fas fa-times"></i></button>`;
+                    btn.before(row);
+                    row.querySelector('.gf-option-input').focus();
+                    window.syncOptionsToHidden(card);
+                };
+
+                window.removeOption = (btn) => {
+                    const editor = btn.closest('.gf-options-editor');
+                    if (editor.querySelectorAll('.gf-option-row').length > 1) {
+                        btn.closest('.gf-option-row').remove();
+                        window.syncOptionsToHidden(btn.closest('.gf-question-card'));
+                    }
                 };
 
                 /* ── Schools ── */
-                var updateNewSchoolCount = function() {
-                    var count = document.querySelectorAll('#schoolList input[name="school_ids"]:checked').length;
-                    var el = document.getElementById('newSchoolCount');
-                    if (el) el.textContent = count;
+                const updateNewSchoolCount = () => {
+                    const el = document.getElementById('newSchoolCount');
+                    if (el) el.textContent = document.querySelectorAll('#schoolList input[name="school_ids"]:checked').length;
                 };
 
-                window.removeAssignedSchool = function(id) {
-                    var chip = document.getElementById('assigned-' + id);
-                    var input = document.getElementById('remove-input-' + id);
-                    if (chip && input) {
-                        chip.style.opacity = '0.4';
-                        chip.style.backgroundColor = '#fee2e2';
-                        input.value = id;
-                        chip.querySelector('button').innerHTML = '<i class="fas fa-undo"></i>';
-                        chip.querySelector('button').onclick = function() { window.undoRemove(id); };
-                    }
+                window.removeAssignedSchool = (id) => {
+                    const chip = document.getElementById('assigned-' + id);
+                    const input = document.getElementById('remove-input-' + id);
+                    if (!chip || !input) return;
+                    chip.style.opacity = '0.4'; chip.style.backgroundColor = '#fee2e2'; input.value = id;
+                    chip.querySelector('button').innerHTML = '<i class="fas fa-undo"></i>';
+                    chip.querySelector('button').onclick = () => window.undoRemove(id);
                 };
 
-                window.undoRemove = function(id) {
-                    var chip = document.getElementById('assigned-' + id);
-                    var input = document.getElementById('remove-input-' + id);
-                    if (chip && input) {
-                        chip.style.opacity = '1';
-                        chip.style.backgroundColor = '#fff';
-                        input.value = '';
-                        chip.querySelector('button').innerHTML = '<i class="fas fa-times"></i>';
-                        chip.querySelector('button').onclick = function() { window.removeAssignedSchool(id); };
-                    }
+                window.undoRemove = (id) => {
+                    const chip = document.getElementById('assigned-' + id);
+                    const input = document.getElementById('remove-input-' + id);
+                    if (!chip || !input) return;
+                    chip.style.opacity = '1'; chip.style.backgroundColor = '#fff'; input.value = '';
+                    chip.querySelector('button').innerHTML = '<i class="fas fa-times"></i>';
+                    chip.querySelector('button').onclick = () => window.removeAssignedSchool(id);
                 };
 
-                window.toggleAllNewSchools = function(status) {
-                    document.querySelectorAll('#schoolList .school-item').forEach(function(item) {
+                window.toggleAllNewSchools = (status) => {
+                    document.querySelectorAll('#schoolList .school-item').forEach(item => {
                         if (item.style.display !== 'none') {
-                            var cb = item.querySelector('input');
-                            cb.checked = status;
+                            item.querySelector('input').checked = status;
                             item.classList.toggle('selected', status);
                         }
                     });
-                    document.querySelectorAll('.type-btn').forEach(function(btn) {
-                        btn.classList.remove('active');
-                        btn.style.background = '#fff';
+                    document.querySelectorAll('.type-btn').forEach(btn => { btn.classList.remove('active'); btn.style.background = '#fff'; });
+                    updateNewSchoolCount();
+                };
+
+                window.toggleTypeSelection = (type, btn) => {
+                    const isActive = btn.classList.contains('active');
+                    btn.classList.toggle('active', !isActive);
+                    btn.style.background = isActive ? '#fff' : btn.style.color;
+                    document.querySelectorAll(`#schoolList .school-item[data-type="${type}"]`).forEach(item => {
+                        item.querySelector('input').checked = !isActive;
+                        item.classList.toggle('selected', !isActive);
                     });
                     updateNewSchoolCount();
                 };
 
-                window.toggleTypeSelection = function(type, btn) {
-                    var isActive = btn.classList.contains('active');
-                    var color = btn.style.color;
+                document.getElementById('schoolSearch').oninput = (e) => {
+                    const term = e.target.value.toLowerCase();
+                    document.querySelectorAll('.school-item').forEach(item => {
+                        item.style.display = item.dataset.name.includes(term) ? 'flex' : 'none';
+                    });
+                };
 
-                    if (isActive) {
-                        btn.classList.remove('active');
-                        btn.style.background = '#fff';
-                        document.querySelectorAll('#schoolList .school-item[data-type="' + type + '"]').forEach(function(item) {
-                            item.querySelector('input').checked = false;
-                            item.classList.remove('selected');
-                        });
-                    } else {
-                        btn.classList.add('active');
-                        btn.style.background = color;
-                        document.querySelectorAll('#schoolList .school-item[data-type="' + type + '"]').forEach(function(item) {
-                            item.querySelector('input').checked = true;
-                            item.classList.add('selected');
-                        });
+                document.getElementById('schoolList').addEventListener('change', (e) => {
+                    if (e.target.tagName === 'INPUT') {
+                        e.target.closest('.school-item').classList.toggle('selected', e.target.checked);
+                        updateNewSchoolCount();
                     }
-                    updateNewSchoolCount();
-                };
+                });
 
-                var schoolSearch = document.getElementById('schoolSearch');
-                if (schoolSearch) {
-                    schoolSearch.oninput = function(e) {
-                        var term = e.target.value.toLowerCase();
-                        document.querySelectorAll('.school-item').forEach(function(item) {
-                            item.style.display = item.dataset.name.includes(term) ? 'flex' : 'none';
-                        });
-                    };
-                }
-
-                var schoolList = document.getElementById('schoolList');
-                if (schoolList) {
-                    schoolList.addEventListener('change', function(e) {
-                        if (e.target.tagName === 'INPUT') {
-                            e.target.closest('.school-item').classList.toggle('selected', e.target.checked);
-                            updateNewSchoolCount();
-                        }
-                    });
-                }
             })();
-        </script>
-
-        <!-- ═══ SCRIPT 2: Dynamic Question Cards (fully independent) ═══ -->
-        <script>
-        (function() {
-            // ═══ FIELD TYPE DEFINITIONS ═══
-            var FIELD_TYPES = {
-                text:     { label: 'Kısa Yanıt',      icon: 'fa-minus',            hasOptions: false },
-                textarea: { label: 'Paragraf',         icon: 'fa-align-left',       hasOptions: false },
-                number:   { label: 'Sayı',             icon: 'fa-hashtag',          hasOptions: false },
-                radio:    { label: 'Çoktan Seçmeli',   icon: 'fa-dot-circle',       hasOptions: true },
-                checkbox: { label: 'Onay Kutuları',    icon: 'fa-check-square',     hasOptions: true },
-                select:   { label: 'Açılır Menü',      icon: 'fa-caret-square-down',hasOptions: true },
-                date:     { label: 'Tarih',            icon: 'fa-calendar-alt',     hasOptions: false },
-                time:     { label: 'Saat',             icon: 'fa-clock',            hasOptions: false },
-                scale:    { label: 'Doğrusal Ölçek',   icon: 'fa-sliders-h',        hasOptions: false }
-            };
-
-            function buildTypeOptions(selectedType) {
-                var html = '';
-                for (var val in FIELD_TYPES) {
-                    var info = FIELD_TYPES[val];
-                    html += '<option value="' + val + '"' + (val === selectedType ? ' selected' : '') + '>' + info.label + '</option>';
-                }
-                return html;
-            }
-
-            function buildPreview(type) {
-                switch(type) {
-                    case 'text':     return '<div class="gf-preview"><i class="fas fa-minus"></i> Kısa metin yanıtı</div>';
-                    case 'textarea': return '<div class="gf-preview"><i class="fas fa-align-left"></i> Uzun metin yanıtı (paragraf)</div>';
-                    case 'number':   return '<div class="gf-preview"><i class="fas fa-hashtag"></i> Sayısal değer girişi</div>';
-                    case 'date':     return '<div class="gf-preview"><i class="fas fa-calendar-alt"></i> Tarih seçici alanı</div>';
-                    case 'time':     return '<div class="gf-preview"><i class="fas fa-clock"></i> Saat seçici alanı</div>';
-                    case 'scale':
-                        var dots = '';
-                        for (var n = 1; n <= 5; n++) dots += '<div class="gf-scale-dot">' + n + '</div>';
-                        return '<div class="gf-scale-preview">' + dots + '</div>';
-                    case 'radio':
-                    case 'checkbox':
-                    case 'select':
-                        return '';
-                    default:
-                        return '<div class="gf-preview"><i class="fas fa-minus"></i> ' + type + '</div>';
-                }
-            }
-
-            function buildOptionsEditor(type, opts) {
-                var info = FIELD_TYPES[type];
-                if (!info || !info.hasOptions) return '';
-                var iconClass = (type === 'checkbox') ? 'gf-option-icon checkbox-icon' : 'gf-option-icon';
-                var options = (opts && opts.length) ? opts : ['Seçenek 1'];
-                var html = '<div class="gf-options-editor" data-type="' + type + '">';
-                for (var i = 0; i < options.length; i++) {
-                    html += '<div class="gf-option-row">';
-                    html += '<div class="' + iconClass + '"></div>';
-                    html += '<input type="text" class="gf-option-input" value="' + options[i] + '" placeholder="Seçenek ' + (i+1) + '" oninput="syncOptionsToHidden(this.closest(\'.gf-question-card\'))">';
-                    html += '<button type="button" class="gf-option-remove" onclick="removeOption(this)" title="Sil"><i class="fas fa-times"></i></button>';
-                    html += '</div>';
-                }
-                html += '<button type="button" class="gf-add-option-btn" onclick="addOption(this)"><i class="fas fa-plus"></i> Seçenek Ekle</button>';
-                html += '</div>';
-                return html;
-            }
-
-            function updateNumbers() {
-                var nums = document.querySelectorAll('#dynamicFields .gf-question-card .gf-q-number');
-                for (var i = 0; i < nums.length; i++) {
-                    nums[i].textContent = i + 1;
-                }
-            }
-
-            // ═══ GLOBAL FUNCTIONS ═══
-            window.syncOptionsToHidden = function(card) {
-                if (!card) return;
-                var hiddenInput = card.querySelector('.field-options-hidden');
-                if (!hiddenInput) return;
-                var optInputs = card.querySelectorAll('.gf-option-input');
-                var values = [];
-                for (var i = 0; i < optInputs.length; i++) {
-                    if (optInputs[i].value.trim() !== '') values.push(optInputs[i].value);
-                }
-                hiddenInput.value = values.join(',');
-            };
-
-            window.updateCardPreview = function(card) {
-                if (!card) return;
-                var typeSelect = card.querySelector('.gf-type-select');
-                if (!typeSelect) return;
-                var type = typeSelect.value;
-                var bodyEl = card.querySelector('.gf-card-body');
-                if (!bodyEl) return;
-                var info = FIELD_TYPES[type];
-                var hiddenInput = card.querySelector('.field-options-hidden');
-
-                if (info && info.hasOptions) {
-                    bodyEl.innerHTML = buildOptionsEditor(type, ['Seçenek 1']);
-                    if (hiddenInput) hiddenInput.value = 'Seçenek 1';
-                } else {
-                    bodyEl.innerHTML = buildPreview(type);
-                    if (hiddenInput) hiddenInput.value = '';
-                }
-            };
-
-            window.addField = function() {
-                var empty = document.getElementById('emptyState');
-                if (empty) empty.style.display = 'none';
-                var list = document.getElementById('dynamicFields');
-                var count = list.querySelectorAll('.gf-question-card').length + 1;
-                var card = document.createElement('div');
-                card.className = 'gf-question-card active-q';
-                card.innerHTML =
-                    '<div class="gf-card-header">' +
-                        '<div class="gf-card-toprow">' +
-                            '<span class="gf-drag-handle" title="Sürükle"><i class="fas fa-grip-vertical"></i></span>' +
-                            '<div class="gf-q-number">' + count + '</div>' +
-                            '<input type="hidden" name="field_ids" value="">' +
-                            '<input type="hidden" name="field_options" class="field-options-hidden" value="">' +
-                            '<input type="text" name="field_labels" class="gf-question-input" placeholder="Soru başlığını yazın..." required>' +
-                            '<select name="field_types" class="gf-type-select" onchange="updateCardPreview(this.closest(\'.gf-question-card\'))">' +
-                                buildTypeOptions('text') +
-                            '</select>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="gf-card-body">' + buildPreview('text') + '</div>' +
-                    '<div class="gf-card-actions">' +
-                        '<div class="gf-actions-left">' +
-                            '<span class="gf-required-label">Zorunlu</span>' +
-                            '<label class="gf-switch" style="transform:scale(.85);"><input type="checkbox" name="field_required" value="1"><span class="gf-slider"></span></label>' +
-                        '</div>' +
-                        '<div class="gf-actions-right">' +
-                            '<button type="button" class="gf-action-btn" onclick="duplicateField(this)" title="Kopyala"><i class="fas fa-copy"></i></button>' +
-                            '<div class="gf-divider"></div>' +
-                            '<button type="button" class="gf-action-btn delete" onclick="removeField(this)" title="Sil"><i class="fas fa-trash-alt"></i></button>' +
-                        '</div>' +
-                    '</div>';
-                list.appendChild(card);
-                card.querySelector('.gf-question-input').focus();
-                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            };
-
-            window.removeField = function(btn) {
-                btn.closest('.gf-question-card').remove();
-                updateNumbers();
-                var empty = document.getElementById('emptyState');
-                if (empty && document.querySelectorAll('#dynamicFields .gf-question-card').length === 0) {
-                    empty.style.display = 'block';
-                }
-            };
-
-            window.duplicateField = function(btn) {
-                var card = btn.closest('.gf-question-card');
-                var clone = card.cloneNode(true);
-                clone.querySelector('input[name="field_ids"]').value = '';
-                card.parentNode.insertBefore(clone, card.nextSibling);
-                updateNumbers();
-                clone.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            };
-
-            window.addOption = function(btn) {
-                var editor = btn.closest('.gf-options-editor');
-                var card = btn.closest('.gf-question-card');
-                var type = editor.dataset.type;
-                var iconClass = (type === 'checkbox') ? 'gf-option-icon checkbox-icon' : 'gf-option-icon';
-                var count = editor.querySelectorAll('.gf-option-row').length + 1;
-                var row = document.createElement('div');
-                row.className = 'gf-option-row';
-                row.innerHTML =
-                    '<div class="' + iconClass + '"></div>' +
-                    '<input type="text" class="gf-option-input" value="" placeholder="Seçenek ' + count + '" oninput="syncOptionsToHidden(this.closest(\'.gf-question-card\'))">' +
-                    '<button type="button" class="gf-option-remove" onclick="removeOption(this)" title="Sil"><i class="fas fa-times"></i></button>';
-                btn.before(row);
-                row.querySelector('.gf-option-input').focus();
-                window.syncOptionsToHidden(card);
-            };
-
-            window.removeOption = function(btn) {
-                var editor = btn.closest('.gf-options-editor');
-                var card = btn.closest('.gf-question-card');
-                if (editor.querySelectorAll('.gf-option-row').length > 1) {
-                    btn.closest('.gf-option-row').remove();
-                    window.syncOptionsToHidden(card);
-                }
-            };
-
-            // ═══ INITIALIZE EXISTING CARDS ON PAGE LOAD ═══
-            var cards = document.querySelectorAll('#dynamicFields .gf-question-card');
-            for (var c = 0; c < cards.length; c++) {
-                var card = cards[c];
-                var typeSelect = card.querySelector('.gf-type-select');
-                if (!typeSelect) continue;
-                var type = typeSelect.value;
-                var bodyEl = card.querySelector('.gf-card-body');
-                if (!bodyEl) continue;
-                var info = FIELD_TYPES[type];
-                var savedOptions = card.getAttribute('data-saved-options') || '';
-
-                if (info && info.hasOptions) {
-                    var opts = savedOptions ? savedOptions.split(',').map(function(o) { return o.trim(); }).filter(function(o) { return o; }) : ['Seçenek 1'];
-                    bodyEl.innerHTML = buildOptionsEditor(type, opts);
-                } else {
-                    bodyEl.innerHTML = buildPreview(type);
-                }
-            }
-
-            console.log('[TaskEdit] Dynamic question card system initialized. Cards found:', cards.length);
-        })();
         </script>
 
         <%- include('../layouts/footer') %>
