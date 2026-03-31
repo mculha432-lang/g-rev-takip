@@ -1063,6 +1063,15 @@
                 font-size: 11px;
             }
 
+            /* Özellik filtre butonları için ayrı ayraç çizgisi */
+            .feature-filter-divider {
+                width: 1px;
+                height: 24px;
+                background: var(--border);
+                align-self: center;
+                margin: 0 4px;
+            }
+
             .school-count-badge {
                 position: sticky;
                 bottom: 0;
@@ -1080,6 +1089,21 @@
                 color: var(--red);
                 font-size: 18px;
                 font-weight: 800;
+            }
+
+            /* Seçili okul ayıraç etiketi */
+            .school-list-separator {
+                display: none;
+                font-size: 10px;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: .8px;
+                color: var(--text-3);
+                padding: 6px 16px 2px;
+            }
+
+            .school-list-separator.visible {
+                display: block;
             }
 
             /* ── Buttons ── */
@@ -1296,7 +1320,7 @@
                                                 <div
                                                     style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:var(--text-2); margin-bottom:8px;">
                                                     <span>Tamamlanma Oranı</span><span>%<%= t.completion_rate || 0 %>
-                                                            </span>
+                                                    </span>
                                                 </div>
                                                 <div
                                                     style="height:7px; background:var(--border-lt); border-radius:10px; overflow:hidden;">
@@ -1371,7 +1395,8 @@
 
                                 <div class="gf-card focused">
                                     <div class="gf-card-label"><i class="fas fa-heading"></i> Görev Başlığı / Konusu
-                                        <span style="color:var(--red);">*</span></div>
+                                        <span style="color:var(--red);">*</span>
+                                    </div>
                                     <input type="text" name="title" id="mainTitle" class="form-control"
                                         placeholder="Örn: 2024 Yılı Taşımalı Eğitim Veri Girişi" required
                                         style="font-size:15px;">
@@ -1511,6 +1536,8 @@
                                             onclick="toggleAllSchools(true)">Tümünü Seç</button>
                                         <button type="button" class="btn btn-ghost btn-sm"
                                             onclick="toggleAllSchools(false)">Temizle</button>
+
+                                        <!-- Okul Türü Filtre Butonları -->
                                         <div class="type-btn-group" id="typeButtonGroup">
                                             <% safeSchoolTypes.forEach(type=> { %>
                                                 <button type="button" class="type-btn" data-type="<%= type %>"
@@ -1520,20 +1547,58 @@
                                                     <%= typeLabels[type] || type %>
                                                 </button>
                                                 <% }) %>
+
+                                                    <!-- Ayraç -->
+                                                    <div class="feature-filter-divider"></div>
+
+                                                    <!-- Kantin Filtresi (sadece listeler, toplu seçim yapmaz) -->
+                                                    <button type="button" class="type-btn" id="filterCanteen"
+                                                        style="color:#ea580c; border-color:#ea580c;"
+                                                        onclick="toggleFeatureFilter('canteen', this)"
+                                                        title="Kantini olan okulları filtrele">
+                                                        <i class="fas fa-utensils"></i> Kantin
+                                                    </button>
+
+                                                    <!-- Pansiyon Filtresi (sadece listeler, toplu seçim yapmaz) -->
+                                                    <button type="button" class="type-btn" id="filterPension"
+                                                        style="color:#059669; border-color:#059669;"
+                                                        onclick="toggleFeatureFilter('pension', this)"
+                                                        title="Pansiyonu olan okulları filtrele">
+                                                        <i class="fas fa-bed"></i> Pansiyon
+                                                    </button>
                                         </div>
                                     </div>
 
                                     <div class="school-list" id="schoolList">
                                         <% schools.forEach(s=> { %>
                                             <label class="school-item" data-name="<%= s.full_name.toLowerCase() %>"
-                                                data-type="<%= s.school_type %>">
+                                                data-type="<%= s.school_type %>"
+                                                data-canteen="<%= s.has_canteen ? '1' : '0' %>"
+                                                data-pension="<%= s.has_pension ? '1' : '0' %>">
                                                 <input type="checkbox" name="school_ids" value="<%= s.id %>">
                                                 <span style="font-size:14px; font-weight:600; flex:1;">
                                                     <%= s.full_name %>
                                                 </span>
-                                                <span
-                                                    style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:12px; background:<%= typeColors[s.school_type] ? typeColors[s.school_type] + '18' : '#f1f5f9' %>; color:<%= typeColors[s.school_type] || '#6b7280' %>;">
-                                                    <%= typeLabels[s.school_type] || s.school_type || '-' %>
+                                                <span style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
+                                                    <% if(s.has_canteen) { %>
+                                                        <span
+                                                            style="font-size:10px; padding:2px 7px; border-radius:8px; background:#fff7ed; color:#ea580c; border:1px solid #fed7aa;"
+                                                            title="Kantini Var">
+                                                            <i class="fas fa-utensils"></i>
+                                                        </span>
+                                                        <% } %>
+                                                            <% if(s.has_pension) { %>
+                                                                <span
+                                                                    style="font-size:10px; padding:2px 7px; border-radius:8px; background:#ecfdf5; color:#059669; border:1px solid #a7f3d0;"
+                                                                    title="Pansiyonu Var">
+                                                                    <i class="fas fa-bed"></i>
+                                                                </span>
+                                                                <% } %>
+                                                                    <span
+                                                                        style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:12px; background:<%= typeColors[s.school_type] ? typeColors[s.school_type] + '18' : '#f1f5f9' %>; color:<%= typeColors[s.school_type] || '#6b7280' %>;">
+                                                                        <%= typeLabels[s.school_type] || s.school_type
+                                                                            || '-' %>
+                                                                    </span>
                                                 </span>
                                             </label>
                                             <% }) %>
@@ -1771,19 +1836,48 @@
                     }
                 };
 
-                /* ── School picker ── */
-                document.getElementById('schoolSearch').oninput = (e) => {
-                    const term = e.target.value.toLowerCase();
+                /* ══════════════════════════════════════════
+                   OKUL SEÇİCİ — GELİŞTİRİLMİŞ
+                ══════════════════════════════════════════ */
+
+                // Aktif özellik filtreleri (kantin / pansiyon)
+                const activeFeatureFilters = new Set();
+
+                /**
+                 * Seçili okulları listenin en üstüne taşır.
+                 * Kısa bir smooth animasyon efekti için seçili öğelere geçici class eklenir.
+                 */
+                const reorderSchools = () => {
+                    const list = document.getElementById('schoolList');
+                    const items = Array.from(list.querySelectorAll('.school-item'));
+                    const selected = items.filter(i => i.querySelector('input').checked);
+                    const unselected = items.filter(i => !i.querySelector('input').checked);
+                    [...selected, ...unselected].forEach(item => list.appendChild(item));
+                };
+
+                /**
+                 * Tüm görünürlük filtrelerini (arama metni + tip + özellik) birleştirerek uygular.
+                 */
+                const applyVisibility = () => {
+                    const term = document.getElementById('schoolSearch').value.toLowerCase();
                     document.querySelectorAll('.school-item').forEach(item => {
-                        item.style.display = item.dataset.name.includes(term) ? 'flex' : 'none';
+                        const nameMatch = item.dataset.name.includes(term);
+                        const canteenOk = !activeFeatureFilters.has('canteen') || item.dataset.canteen === '1';
+                        const pensionOk = !activeFeatureFilters.has('pension') || item.dataset.pension === '1';
+                        item.style.display = (nameMatch && canteenOk && pensionOk) ? 'flex' : 'none';
                     });
                 };
 
+                // Arama kutusu
+                document.getElementById('schoolSearch').oninput = applyVisibility;
+
+                // Seçili okul sayacını güncelle
                 const updateSchoolCount = () => {
                     document.getElementById('selectedSchoolCount').textContent =
                         document.querySelectorAll('input[name="school_ids"]:checked').length;
                 };
 
+                // Tümünü seç / temizle
                 window.toggleAllSchools = (status) => {
                     document.querySelectorAll('.school-item').forEach(item => {
                         if (item.style.display !== 'none') {
@@ -1791,10 +1885,16 @@
                             item.classList.toggle('selected', status);
                         }
                     });
-                    document.querySelectorAll('.type-btn').forEach(btn => { btn.classList.remove('active'); btn.style.background = '#fff'; });
+                    // Tip butonlarını sıfırla
+                    document.querySelectorAll('.type-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                        btn.style.background = '#fff';
+                    });
                     updateSchoolCount();
+                    reorderSchools();
                 };
 
+                // Okul türü filtresi (filtreler + toplu seçer)
                 window.toggleTypeSelection = (type, btn) => {
                     const isActive = btn.classList.contains('active');
                     btn.classList.toggle('active', !isActive);
@@ -1804,12 +1904,33 @@
                         item.classList.toggle('selected', !isActive);
                     });
                     updateSchoolCount();
+                    reorderSchools();
                 };
 
+                /**
+                 * Kantin / Pansiyon özellik filtresi.
+                 * Sadece listeyi daraltır — toplu seçim YAPMAZ.
+                 */
+                window.toggleFeatureFilter = (feature, btn) => {
+                    const isActive = activeFeatureFilters.has(feature);
+                    if (isActive) {
+                        activeFeatureFilters.delete(feature);
+                        btn.classList.remove('active');
+                        btn.style.background = '#fff';
+                    } else {
+                        activeFeatureFilters.add(feature);
+                        btn.classList.add('active');
+                        btn.style.background = btn.style.color;
+                    }
+                    applyVisibility();
+                };
+
+                // Tekil checkbox değişikliği
                 document.getElementById('schoolList').addEventListener('change', (e) => {
                     if (e.target.tagName === 'INPUT') {
                         e.target.closest('.school-item').classList.toggle('selected', e.target.checked);
                         updateSchoolCount();
+                        reorderSchools();
                     }
                 });
 
