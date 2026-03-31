@@ -45,13 +45,11 @@
     }
     .btn-back:hover { background: var(--gray-200); color: var(--gray-800); }
 
-    /* Alert banners */
     .alert { padding: 14px 20px; border-radius: 10px; margin-bottom: 20px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
     .alert-success { background: #ecfdf5; color: #059669; border: 1px solid #d1fae5; }
     .alert-danger  { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
     .alert-warning { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
 
-    /* Task card */
     .task-card {
         background: var(--white); border-radius: 16px;
         border: 1px solid var(--gray-200); padding: 28px;
@@ -78,7 +76,6 @@
         display: flex; align-items: center; justify-content: center;
     }
 
-    /* Status badge */
     .badge {
         display: inline-flex; align-items: center; gap: 6px;
         padding: 8px 18px; border-radius: 20px;
@@ -90,7 +87,6 @@
     .badge-rejected      { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
     .badge-pending_approval { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
 
-    /* Section cards */
     .section-card {
         background: var(--white); border-radius: 16px;
         border: 1px solid var(--gray-200); margin-bottom: 24px;
@@ -108,7 +104,6 @@
     }
     .section-body { padding: 24px; }
 
-    /* Rejection note */
     .rejection-box {
         background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px;
         padding: 18px; margin-bottom: 20px;
@@ -116,7 +111,6 @@
     .rejection-box h4 { color: #dc2626; font-size: 15px; margin: 0 0 8px 0; }
     .rejection-box p  { color: #7f1d1d; font-size: 14px; margin: 0; }
 
-    /* Form fields */
     .field-group { margin-bottom: 20px; }
     .field-label { font-weight: 600; font-size: 14px; color: var(--gray-800); margin-bottom: 8px; display: block; }
     .field-label .required { color: var(--red); margin-left: 4px; }
@@ -130,7 +124,6 @@
     textarea.form-control { min-height: 120px; resize: vertical; }
     select.form-control { cursor: pointer; appearance: auto; }
 
-    /* Checkbox / radio group */
     .options-group { display: flex; flex-direction: column; gap: 10px; }
     .option-item {
         display: flex; align-items: center; gap: 10px;
@@ -142,7 +135,6 @@
     .option-item input { accent-color: var(--red); width: 18px; height: 18px; cursor: pointer; margin: 0; }
     .option-item label { cursor: pointer; font-size: 14px; color: var(--gray-800); width: 100%; margin: 0; }
 
-    /* Submit buttons */
     .form-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 30px; justify-content: flex-end; }
     .btn-save {
         padding: 14px 28px; background: #f8fafc; color: #475569;
@@ -158,7 +150,6 @@
     }
     .btn-submit:hover { background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(227, 30, 36, 0.4); }
 
-    /* File upload area */
     .file-upload-area {
         display: block;
         border: 2px dashed #94a3b8; border-radius: 12px;
@@ -170,7 +161,6 @@
     .file-upload-area i { font-size: 40px; color: var(--gray-400); margin-bottom: 12px; display: block; }
     .file-upload-area p { color: var(--gray-600); font-size: 15px; margin: 0; font-weight: 500; }
 
-    /* Messages */
     .messages-box {
         background: var(--gray-50); border: 1px solid var(--gray-200);
         border-radius: 12px; height: 350px; overflow-y: auto;
@@ -197,7 +187,6 @@
     }
     .btn-send:hover { background: #2563eb; }
 
-    /* Existing response display */
     .response-display {
         background: var(--gray-50); border: 1px solid var(--gray-200);
         border-radius: 12px; padding: 20px;
@@ -245,7 +234,7 @@
 <% if (typeof error !== 'undefined' && error) { %>
     <div class="alert alert-danger">
         <i class="fas fa-exclamation-circle"></i>
-        <%= error === 'missing_file' ? 'Lütfen bir dosya yükleyin.' : 
+        <%= error === 'missing_file' ? 'Lütfen bir dosya yükleyin.' :
             error === 'already_submitted' ? 'Bu görev zaten onaya gönderilmiş veya tamamlanmış. Değişiklik yapmak için yöneticiden İade istemeniz gerekmektedir.' :
             error === 'deadline_passed' ? 'Bu görevin süresi dolmuştur. İşlem yapmak için yönetici tarafından İade (Tekrar düzenleme izni) verilmesi gerekmektedir.' :
             error === 'empty_message' ? 'Mesaj boş olamaz.' : 'Bir hata oluştu, lütfen tekrar deneyin.' %>
@@ -264,7 +253,7 @@
     <div class="task-title"><i class="fas fa-clipboard-list" style="color:var(--red); margin-right:10px;"></i><%= task.title %></div>
 
     <% if (task.description) { %>
-        <div class="task-desc"><%= task.description %></div>
+        <div class="task-desc"><%- task.description %></div>
     <% } %>
 
     <div class="task-meta">
@@ -319,7 +308,7 @@
 </div>
 <% } %>
 
-<!-- Yanıt Formu (Onay bekliyor veya tamamlanmış değilse VE süre geçmemişse göster) -->
+<!-- Yanıt Formu -->
 <% if (task.status !== 'completed' && task.status !== 'pending_approval' && !isDeadlinePassed) { %>
 <div class="section-card">
     <div class="section-header">
@@ -328,7 +317,6 @@
     </div>
     <div class="section-body">
 
-        <!-- Mevcut yanıt dosyası var mı? -->
         <% if (task.response_file) { %>
         <div class="response-display" style="margin-bottom: 20px;">
             <p><strong><i class="fas fa-paperclip"></i> Mevcut Yanıt Dosyası:</strong></p>
@@ -341,7 +329,6 @@
         <form action="/okul/tasks/<%= task.id %>/response" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
-            <!-- Form Alanları -->
             <% if (taskFields && taskFields.length > 0) { %>
                 <% taskFields.forEach(field => { %>
                 <div class="field-group">
@@ -416,13 +403,11 @@
                 <% }) %>
             <% } %>
 
-            <!-- Yanıt Notu -->
             <div class="field-group">
                 <label class="field-label">Yanıt Notu <span style="font-size:12px; color:var(--gray-400); font-weight:400;">(isteğe bağlı)</span></label>
                 <textarea name="response_note" class="form-control" placeholder="Açıklamalarınızı buraya yazabilirsiniz..."><%= task.response_note || '' %></textarea>
             </div>
 
-            <!-- Dosya Yükleme -->
             <% if (task.requires_file) { %>
             <div class="field-group">
                 <label class="field-label">
@@ -435,7 +420,6 @@
                     <span style="float: right; color: var(--red); font-weight: 700;">Max: <%= task.max_file_count || 1 %> Dosya</span>
                 </label>
 
-                <!-- Mevcut yanıt dosyaları listesi -->
                 <% if (task.files && task.files.length > 0) { %>
                 <div class="existing-files" style="margin-bottom: 15px;">
                     <p style="font-size: 12px; color: var(--gray-600); margin-bottom: 8px; font-weight: 600;">Yüklü Dosyalar:</p>
@@ -471,9 +455,9 @@
                     const listDiv = document.getElementById('selected-files-list');
                     const container = document.getElementById('file-items-container');
                     const maxFiles = <%= task.max_file_count || 1 %>;
-                    
+
                     container.innerHTML = '';
-                    
+
                     if (input.files && input.files.length > 0) {
                         if (input.files.length > maxFiles) {
                             alert(`En fazla ${maxFiles} dosya yükleyebilirsiniz. Şu an ${input.files.length} dosya seçtiniz.`);
@@ -506,20 +490,21 @@
         </form>
     </div>
 </div>
-<!-- Görev tamamlandı veya onaya gönderildi - sadece mevcut yanıtı göster -->
+<% } else { %>
+<!-- Görev tamamlandı veya onaya gönderildi -->
 <div class="section-card">
     <div class="section-header">
-        <i class="fas fa-lock"></i> 
+        <i class="fas fa-lock"></i>
         <%= task.status === 'pending_approval' ? 'Onay Bekleyen Yanıt' : 'Tamamlanan Yanıt' %>
     </div>
     <div class="section-body">
         <% if (task.status === 'pending_approval') { %>
             <div class="alert alert-warning" style="margin-bottom: 24px;">
-                <i class="fas fa-info-circle"></i> 
+                <i class="fas fa-info-circle"></i>
                 <strong>Bilgi:</strong> Yanıtınız yönetici onayına sunulmuştur. Değişiklik yapmak isterseniz lütfen mesaj kısmından yöneticiye ulaşarak iade isteyiniz.
             </div>
         <% } %>
-        
+
         <% if (task.response_note) { %>
         <div class="response-display" style="margin-bottom:16px;">
             <p><strong>Notunuz:</strong></p>
@@ -580,13 +565,11 @@
 </div>
 
 <script>
-    // Mesaj kutusunu en alta kaydır
     const messagesBox = document.getElementById('messagesBox');
     if (messagesBox) {
         messagesBox.scrollTop = messagesBox.scrollHeight;
     }
 
-    // Seçilen dosya adını göster
     function updateFileName(input) {
         const nameDiv = document.getElementById('selected-file-name');
         if (input.files && input.files[0]) {
