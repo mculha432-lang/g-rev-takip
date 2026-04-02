@@ -200,5 +200,4 @@
             };
 
             renderCalendar();
-        })();
-    </script>
+        })();

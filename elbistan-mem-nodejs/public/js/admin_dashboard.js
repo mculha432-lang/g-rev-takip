@@ -152,5 +152,4 @@
             };
 
             render();
-        })();
-    </script>
+// End of admin_dashboard.js

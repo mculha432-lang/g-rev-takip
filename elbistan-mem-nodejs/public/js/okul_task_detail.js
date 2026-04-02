@@ -11,4 +11,3 @@
                                                                 nameDiv.style.display = 'none';
                                                             }
                                                         }
-                                                    </script>

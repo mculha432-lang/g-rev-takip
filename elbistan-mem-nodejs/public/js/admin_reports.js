@@ -236,5 +236,4 @@
 
                     updateDateBoxes();
                     renderCalendar();
-                })();
-            </script>
+                })();

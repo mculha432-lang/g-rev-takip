@@ -251,5 +251,4 @@
                     }
                 });
 
-            })();
-        </script>
+// End of admin_task_edit.js

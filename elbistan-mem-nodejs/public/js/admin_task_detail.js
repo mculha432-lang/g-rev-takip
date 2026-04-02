@@ -187,5 +187,4 @@
         if (statusTh) { sortDir.status = -1; sortRows('status', statusTh); }
       });
 
-    })();
-  </script>
+// End of admin_task_detail.js
