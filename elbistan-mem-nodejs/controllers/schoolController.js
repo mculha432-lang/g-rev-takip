@@ -10,10 +10,13 @@ const schoolController = {
             let sql = "SELECT * FROM users WHERE role = 'school'";
             let params = [];
 
-            // Arama filtresi
+            // Arama filtresi (sanitize edilmiş)
             if (search) {
-                sql += " AND (full_name LIKE ? OR username LIKE ?)";
-                params.push(`%${search}%`, `%${search}%`);
+                const sanitizedSearch = search.replace(/[<>"';\\]/g, '').trim().substring(0, 100);
+                if (sanitizedSearch) {
+                    sql += " AND (full_name LIKE ? OR username LIKE ?)";
+                    params.push(`%${sanitizedSearch}%`, `%${sanitizedSearch}%`);
+                }
             }
 
             // Tür filtresi
@@ -189,3 +192,4 @@ const schoolController = {
 };
 
 module.exports = schoolController;
+
