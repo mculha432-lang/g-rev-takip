@@ -1,0 +1,623 @@
+        :root {
+            --red: #dc2626;
+            --red-dark: #b91c1c;
+            --red-light: #fef2f2;
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-400: #9ca3af;
+            --gray-600: #4b5563;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
+        .dashboard-container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* Modern White Header */
+        .page-header-compact {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 16px 22px;
+            background: var(--white);
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .page-header-compact h1 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-header-compact h1 i {
+            color: var(--red) !important;
+        }
+
+        .header-date {
+            font-size: 13px;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+
+        /* Clean Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 500px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            position: relative;
+            overflow: hidden;
+            border-bottom: 4px solid transparent;
+        }
+
+        .stat-card::before {
+            display: none;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1), 0 5px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Color Variations - Arka Plan ve Alt Kenarlık */
+        .stat-card.blue { border-bottom-color: #3b82f6; background: linear-gradient(to bottom right, #ffffff, #f0f7ff); }
+        .stat-card.red { border-bottom-color: #ef4444; background: linear-gradient(to bottom right, #ffffff, #fff5f5); }
+        .stat-card.yellow { border-bottom-color: #f59e0b; background: linear-gradient(to bottom right, #ffffff, #fffdf0); }
+        .stat-card.green { border-bottom-color: #10b981; background: linear-gradient(to bottom right, #ffffff, #f0fff4); }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--gray-900);
+            line-height: 1;
+            letter-spacing: -1px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--gray-500);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        /* Color Variations - Ikonlar */
+        .stat-card.blue .stat-icon { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .stat-card.red .stat-icon { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .stat-card.yellow .stat-icon { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+        .stat-card.green .stat-icon { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+
+        /* Main Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .main-grid>div,
+        .stats-grid>div {
+            min-width: 0;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-card {
+            background: var(--white);
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .section-card::before {
+            display: none;
+        }
+
+        .section-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--gray-200);
+            background: var(--gray-50);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-body {
+            padding: 20px;
+        }
+
+        .section-title {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: var(--red);
+            background: var(--red-light);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Task List */
+        .task-list-container {
+            padding: 0;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--gray-100);
+            transition: all 0.2s;
+            text-decoration: none;
+            color: inherit;
+            border-left: 3px solid transparent;
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .task-item:hover {
+            background: var(--gray-50);
+        }
+
+        /* Status Colors & Borders */
+        .task-item.status-pending {
+            border-left-color: #ef4444;
+        }
+
+        .task-item.status-pending .task-icon-box {
+            background: #fef2f2;
+            color: #ef4444;
+            border: 1px solid #fecaca;
+        }
+
+        .task-item.status-in_progress {
+            border-left-color: #eab308;
+        }
+
+        .task-item.status-in_progress .task-icon-box {
+            background: #fef3c7;
+            color: #d97706;
+            border: 1px solid #fde68a;
+        }
+
+        .task-item.status-completed {
+            border-left-color: #22c55e;
+        }
+
+        .task-item.status-completed .task-icon-box {
+            background: #d1fae5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+
+        .task-item.status-rejected {
+            border-left-color: #f97316;
+            background: #fff7ed;
+        }
+
+        .task-item.status-rejected .task-icon-box {
+            background: #ffedd5;
+            color: #ea580c;
+            border: 1px solid #fed7aa;
+        }
+
+        .badge-rejected {
+            display: inline-block;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: white;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            margin-left: 8px;
+            text-transform: uppercase;
+            animation: pulse-orange 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-orange {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .task-icon-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+
+        .task-meta {
+            font-size: 12px;
+            color: var(--gray-500);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badge-new {
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* Status Indicator Dots */
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 10px;
+            flex-shrink: 0;
+        }
+
+        .status-dot.dot-pending {
+            background: #ef4444;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+            animation: pulse-red 1.5s ease-in-out infinite;
+        }
+
+        .status-dot.dot-in_progress {
+            background: #eab308;
+            box-shadow: 0 0 8px rgba(234, 179, 8, 0.5);
+            animation: pulse-yellow 1.5s ease-in-out infinite;
+        }
+
+        .status-dot.dot-completed {
+            background: #22c55e;
+            box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+        }
+
+        @keyframes pulse-red {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes pulse-yellow {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.9;
+            }
+        }
+
+        /* Calendar Widget - Clean White Theme */
+        .calendar-widget {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 0;
+            border: 1px solid var(--gray-200);
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+
+        .cal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .cal-month {
+            font-weight: 700;
+            color: var(--gray-800);
+            font-size: 15px;
+        }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            text-align: center;
+            padding: 15px;
+        }
+
+        .cal-day-name {
+            font-size: 11px;
+            color: var(--gray-500);
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .cal-day {
+            font-size: 12px;
+            color: var(--gray-700);
+            padding: 8px 0;
+            border-radius: 8px;
+            cursor: default;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .cal-day:hover {
+            background: var(--gray-100);
+        }
+
+        .cal-today {
+            color: var(--white);
+            font-weight: 700;
+            background: var(--red);
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+        }
+
+        .has-event {
+            background: var(--red) !important;
+            color: white !important;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+        .has-event:hover {
+            background: var(--red-dark) !important;
+        }
+
+        /* Custom Tooltip */
+        .cal-tooltip {
+            position: fixed;
+            background: #1e293b;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
+            max-width: 220px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(5px);
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .cal-tooltip.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .cal-tooltip::before {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid #1e293b;
+        }
+
+        .cal-tooltip .tooltip-title {
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #fbbf24;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cal-tooltip .tooltip-tasks {
+            line-height: 1.5;
+        }
+
+        /* Announcement */
+        .announcement-card {
+            background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%);
+            border: none;
+            border-left: 5px solid #E31E24;
+            border-radius: 16px;
+            padding: 18px 22px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(227, 30, 36, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .announcement-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #E31E24 0%, #ff6b6b 50%, #E31E24 100%);
+            animation: announcement-shimmer 2s ease-in-out infinite;
+        }
+
+        @keyframes announcement-shimmer {
+
+            0%,
+            100% {
+                opacity: 0.7;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .announcement-title {
+            color: #E31E24;
+            font-weight: 800;
+            font-size: 15px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .announcement-title i {
+            font-size: 16px;
+        }
+
+        .announcement-text {
+            color: #64748b;
+            font-size: 13px;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .page-header-compact {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+                padding: 14px 18px;
+            }
+
+            .page-header-compact h1 {
+                font-size: 14px;
+            }
+
+            .stat-value {
+                font-size: 22px;
+            }
+
+            .stat-card {
+                padding: 16px;
+                gap: 12px;
+            }
+
+            .stat-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+
+            .task-item {
+                padding: 12px 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-container {
+                padding: 0;
+            }
+
+            .stat-value {
+                font-size: 20px;
+            }
+
+            .cal-grid {
+                padding: 10px;
+                gap: 2px;
+            }
+
+            .cal-day {
+                font-size: 11px;
+                padding: 5px 0;
+            }
+        }
