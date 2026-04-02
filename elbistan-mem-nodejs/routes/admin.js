@@ -100,6 +100,16 @@ router.get('/reports/school-performance/excel', async (req, res) => {
     }
 });
 
+router.get('/reports/school-performance/pdf', async (req, res) => {
+    try {
+        const result = await reports.generateSchoolPerformancePDF();
+        res.download(result.filePath, result.fileName);
+    } catch (error) {
+        console.error('Rapor hatası:', error);
+        res.redirect('/admin/reports?status=error');
+    }
+});
+
 // Tek görev detay raporu (form cevapları dahil)
 router.get('/reports/task-detail/:id/excel', async (req, res) => {
     try {
