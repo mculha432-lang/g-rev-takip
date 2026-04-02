@@ -451,7 +451,7 @@ async function generateTaskSummaryPDF() {
         const tasks = db.prepare('SELECT * FROM tasks ORDER BY id DESC').all();
 
         // Tablo çizelgesi
-        const colWidths = [28, contentW * 0.38, 70, 65, 65, 65, 55];
+        const colWidths = [22, 218, 60, 50, 50, 50, 45];
         const headers = ['#', 'Görev Adı', 'Son Tarih', 'Atama', 'Tamamlanan', 'Bekleyen', 'Oran'];
         const tableX = marginL;
         let rowY = tableTopY + 18;
@@ -763,7 +763,7 @@ async function generateSchoolPerformancePDF() {
         doc.text('KURUM BAZLI PERFORMANS', marginL, curY);
         curY += 18;
 
-        const colWidths = [28, 60, contentW * 0.34, 60, 52, 52, 52, 52];
+        const colWidths = [22, 50, 213, 50, 40, 40, 40, 40];
         const headers = ['#', 'Kurum Kodu', 'Kurum Adı', 'Türü', 'Atama', 'Tamam', 'Bekl.', 'Oran'];
         const rowH = 20;
         const headerH = 24;
