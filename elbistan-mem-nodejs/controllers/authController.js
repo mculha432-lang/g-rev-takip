@@ -33,16 +33,8 @@ const authController = {
                 });
             }
 
-            // Şifre kontrolü (bcrypt hash veya düz şifre)
-            let passwordValid = false;
-
-            // Önce bcrypt ile dene
-            if (user.password.startsWith('$2')) {
-                passwordValid = bcrypt.compareSync(password, user.password);
-            } else {
-                // Düz şifre kontrolü (eski veriler için)
-                passwordValid = (password === user.password);
-            }
+            // Şifre kontrolü (sadece bcrypt hash)
+            const passwordValid = bcrypt.compareSync(password, user.password);
 
             if (!passwordValid) {
                 return res.render('login', {
@@ -114,3 +106,4 @@ const authController = {
 };
 
 module.exports = authController;
+
