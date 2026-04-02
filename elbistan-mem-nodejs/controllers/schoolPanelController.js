@@ -1,6 +1,7 @@
 const db = require('../config/database');
 const { uploads } = require('../utils/upload');
 const { sendPushNotification } = require('../utils/push');
+const { isDeadlinePassed, canSubmitResponse } = require('../utils/deadline');
 
 const schoolPanelController = {
     uploadMulter: uploads.response.array('response_files', 20),
@@ -174,18 +175,7 @@ const schoolPanelController = {
             `).run(id, userId);
 
             // Süre doldu mu kontrol et? (Yönetici iade etmişse süreye bakma)
-            let isDeadlinePassed = false;
-            if (assignment.deadline) {
-                const deadlineDate = new Date(assignment.deadline);
-                // Eğer sadece tarih varsa (YYYY-MM-DD), gün sonuna kadar izin ver
-                if (assignment.deadline.length <= 10) {
-                    deadlineDate.setHours(23, 59, 59, 999);
-                }
-                
-                if (new Date() > deadlineDate && assignment.status !== 'rejected') {
-                    isDeadlinePassed = true;
-                }
-            }
+            const deadlinePassed = isDeadlinePassed(assignment.deadline) && assignment.status !== 'rejected';
 
             res.render('okul/task_detail', {
                 title: 'Görev Detayı',
@@ -194,7 +184,7 @@ const schoolPanelController = {
                 taskFields,
                 responsesMap,
                 messages,
-                isDeadlinePassed,
+                isDeadlinePassed: deadlinePassed,
                 currentUserId: userId,
                 success: req.query.success,
                 error: req.query.error
@@ -260,16 +250,8 @@ const schoolPanelController = {
             }
 
             // Süre doldu mu kontrol et?
-            if (assignment.deadline) {
-                const deadlineDate = new Date(assignment.deadline);
-                // Gün sonuna kadar izin ver
-                if (assignment.deadline.length <= 10) {
-                    deadlineDate.setHours(23, 59, 59, 999);
-                }
-                
-                if (new Date() > deadlineDate && assignment.status !== 'rejected') {
-                    return res.redirect(`/okul/tasks/${id}?error=deadline_passed`);
-                }
+            if (!canSubmitResponse(assignment.deadline, assignment.status)) {
+                return res.redirect(`/okul/tasks/${id}?error=deadline_passed`);
             }
 
             // Eğer görev zaten onay bekliyor veya tamamlanmış ise düzenlemeye izin verme
