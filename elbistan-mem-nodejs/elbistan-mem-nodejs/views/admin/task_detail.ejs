@@ -661,13 +661,21 @@
     </div>
 
     <div class="card">
-        <div class="card-header">
-            <i class="fas fa-list-ul"></i> Okul Durumları
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-list-ul"></i> Okul Durumları
+            </div>
+            <button type="button" onclick="document.getElementById('bulkApproveForm').submit()" class="btn-approve" style="padding: 6px 12px; background: #059669; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600;">
+                <i class="fas fa-check-double"></i> Seçilenleri Onayla
+            </button>
         </div>
         <div style="overflow-x: auto;">
+         <form id="bulkApproveForm" action="/admin/tasks/<%= task.id %>/approve-bulk" method="POST">
+            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
             <table>
                 <thead>
                     <tr>
+                        <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAllItems" title="Tümünü Seç"></th>
                         <th style="width: 30%;">Okul</th>
                         <th style="width: 10%;">Kurum Kodu</th>
                         <th>Okundu</th>
@@ -680,6 +688,11 @@
                 <tbody>
                     <% assignments.forEach(assignment=> { %>
                         <tr>
+                            <td style="text-align: center;">
+                                <% if (assignment.status === 'pending_approval') { %>
+                                    <input type="checkbox" name="assignmentIds" value="<%= assignment.id %>" class="bulk-cb" style="width: 16px; height: 16px; cursor: pointer;">
+                                <% } %>
+                            </td>
                             <td>
                                 <div class="badge-school-name">
                                     <%= assignment.full_name %>
@@ -789,6 +802,7 @@
                         <% }) %>
                 </tbody>
             </table>
+         </form>
         </div>
     </div>
 
@@ -870,8 +884,13 @@
 
     <!-- Verileri Client Side'a Aktar -->
     <script>
-        const messagesMap = <% - messagesMap %>;
+        const messagesMap = <%- JSON.stringify(messagesMap || {}) %>;
         const currentUserId = "<%= currentUserId %>";
+
+        document.getElementById('selectAllItems')?.addEventListener('change', function(e) {
+            const checkboxes = document.querySelectorAll('.bulk-cb');
+            checkboxes.forEach(cb => cb.checked = e.target.checked);
+        });
     </script>
 
     <script>
