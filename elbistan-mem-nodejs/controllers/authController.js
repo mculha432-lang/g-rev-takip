@@ -33,16 +33,8 @@ const authController = {
                 });
             }
 
-            // Şifre kontrolü (bcrypt hash veya düz şifre)
-            let passwordValid = false;
-
-            // Önce bcrypt ile dene
-            if (user.password.startsWith('$2')) {
-                passwordValid = bcrypt.compareSync(password, user.password);
-            } else {
-                // Düz şifre kontrolü (eski veriler için)
-                passwordValid = (password === user.password);
-            }
+            // Şifre kontrolü (sadece bcrypt hash)
+            const passwordValid = bcrypt.compareSync(password, user.password);
 
             if (!passwordValid) {
                 return res.render('login', {
@@ -60,6 +52,13 @@ const authController = {
                 school_type: user.school_type,
                 is_manager: user.is_manager || 0
             };
+
+            // "Beni Hatırla" seçiliyse session süresini 7 güne uzat
+            if (req.body.remember) {
+                req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 gün
+            } else {
+                req.session.cookie.maxAge = 24 * 60 * 60 * 1000; // 24 saat (varsayılan)
+            }
 
             // Log kaydı ekle
             try {
@@ -114,3 +113,4 @@ const authController = {
 };
 
 module.exports = authController;
+

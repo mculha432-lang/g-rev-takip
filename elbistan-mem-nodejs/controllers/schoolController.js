@@ -10,10 +10,13 @@ const schoolController = {
             let sql = "SELECT * FROM users WHERE role = 'school'";
             let params = [];
 
-            // Arama filtresi
+            // Arama filtresi (sanitize edilmiş)
             if (search) {
-                sql += " AND (full_name LIKE ? OR username LIKE ?)";
-                params.push(`%${search}%`, `%${search}%`);
+                const sanitizedSearch = search.replace(/[<>"';\\]/g, '').trim().substring(0, 100);
+                if (sanitizedSearch) {
+                    sql += " AND (full_name LIKE ? OR username LIKE ?)";
+                    params.push(`%${sanitizedSearch}%`, `%${sanitizedSearch}%`);
+                }
             }
 
             // Tür filtresi
@@ -185,7 +188,28 @@ const schoolController = {
             console.error('Yönetici yetkilendirme hatası:', error);
             res.redirect('/admin/schools?status=error');
         }
+    },
+
+    // Şifre Sıfırla (Kurum Kodunu şifre yapar)
+    resetPassword: (req, res) => {
+        try {
+            const { id } = req.params;
+            const school = db.prepare("SELECT username FROM users WHERE id = ? AND role = 'school'").get(id);
+
+            if (!school) {
+                return res.redirect('/admin/schools?status=not_found');
+            }
+
+            const newPassword = bcrypt.hashSync(school.username, 10);
+            db.prepare('UPDATE users SET password = ? WHERE id = ?').run(newPassword, id);
+
+            res.redirect('/admin/schools?status=password_reset');
+        } catch (error) {
+            console.error('Şifre sıfırlama hatası:', error);
+            res.redirect('/admin/schools?status=error');
+        }
     }
 };
 
 module.exports = schoolController;
+

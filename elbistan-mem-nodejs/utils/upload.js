@@ -34,15 +34,60 @@ function fileFilter(req, file, cb) {
     }
 }
 
+// Türkçe karakterleri temizle ve dosya adı için güvenli hale getir
+function sanitizeFilename(text) {
+    if (!text) return '';
+    const chars = {
+        'ç': 'c', 'Ç': 'C', 'ğ': 'g', 'Ğ': 'G', 'ı': 'i', 'İ': 'I',
+        'ö': 'o', 'Ö': 'O', 'ş': 's', 'Ş': 'S', 'ü': 'u', 'Ü': 'U'
+    };
+    return text.toString()
+        .replace(/[çÇğĞıİöÖşŞüÜ]/g, match => chars[match] || match)
+        .replace(/[^a-zA-Z0-9]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+        .substring(0, 100);
+}
+
 // Benzersiz dosya adı oluştur
-function generateFilename(file) {
+function generateFilename(file, req, subDir) {
+    const ext = path.extname(file.originalname);
+    
+    // Okul yanıtı ise özel isimlendirme: Okul-Gorev.ext
+    if (subDir === 'responses' && req && req.params.id) {
+        try {
+            const db = require('../config/database');
+            const assignmentId = req.params.id;
+            const schoolName = req.session.user ? req.session.user.full_name : 'okul';
+            
+            let taskTitle = 'gorev';
+            const task = db.prepare(`
+                SELECT t.title 
+                FROM task_assignments ta 
+                JOIN tasks t ON ta.task_id = t.id 
+                WHERE ta.id = ?
+            `).get(assignmentId);
+            
+            if (task && task.title) {
+                taskTitle = task.title;
+            }
+            
+            const cleanSchool = sanitizeFilename(schoolName);
+            const cleanTask = sanitizeFilename(taskTitle);
+            
+            // Aynı isimli dosyaların çakışmaması için kısa bir zaman damgası ekleyebiliriz
+            // Ancak kullanıcı tam olarak "okul ismi ve görev ismi" dediği için sadece onları kullanıyoruz.
+            // Eğer aynı okul aynı göreve tekrar dosya yüklerse üzerine yazılmış olacak.
+            return `${cleanSchool}_${cleanTask}${ext}`;
+        } catch (error) {
+            console.error('Dosya adı oluşturma hatası:', error);
+        }
+    }
+
+    // Varsayılan benzersiz dosya adı (tasks, system vb. için)
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2, 8);
-    const ext = path.extname(file.originalname);
-    const safeName = file.originalname
-        .replace(ext, '')
-        .replace(/[^a-zA-Z0-9_-]/g, '_')
-        .substring(0, 50);
+    const safeName = sanitizeFilename(file.originalname.replace(ext, ''));
     return `${timestamp}_${random}_${safeName}${ext}`;
 }
 
@@ -54,7 +99,7 @@ function createStorage(subDir) {
             cb(null, uploadDir);
         },
         filename: (req, file, cb) => {
-            cb(null, generateFilename(file));
+            cb(null, generateFilename(file, req, subDir));
         }
     });
 }
@@ -102,6 +147,7 @@ function deleteFile(subDir, filename) {
 module.exports = {
     uploads,
     deleteFile,
+    sanitizeFilename,
     ALLOWED_EXTENSIONS,
     MAX_FILE_SIZE,
     ensureUploadDir

@@ -7,6 +7,14 @@ const db = require('../config/database');
 
 const notificationMiddleware = (req, res, next) => {
     try {
+        // Statik dosya isteklerinde DB sorgusu yapma (performans)
+        const staticExts = /\.(css|js|png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|eot|map|json|webmanifest)$/i;
+        if (staticExts.test(req.path)) {
+            res.locals.unreadMessageCount = 0;
+            res.locals.unreadMessages = [];
+            return next();
+        }
+
         // Kullanıcı giriş yapmamışsa atla
         if (!req.session || !req.session.user) {
             res.locals.unreadMessageCount = 0;
@@ -29,8 +37,8 @@ const notificationMiddleware = (req, res, next) => {
             const unreadCount = db.prepare(`
                 SELECT COUNT(*) as count 
                 FROM task_messages tm
-                JOIN users u ON tm.sender_id = u.id
-                WHERE u.role != 'admin' 
+                JOIN task_assignments ta ON tm.assignment_id = ta.id
+                WHERE tm.sender_id = ta.user_id
                 AND tm.is_read = 0
             `).get().count;
 
@@ -48,7 +56,7 @@ const notificationMiddleware = (req, res, next) => {
                 JOIN users u ON tm.sender_id = u.id
                 JOIN task_assignments ta ON tm.assignment_id = ta.id
                 JOIN tasks t ON ta.task_id = t.id
-                WHERE u.role != 'admin' 
+                WHERE tm.sender_id = ta.user_id
                 AND tm.is_read = 0
                 ORDER BY tm.created_at DESC
                 LIMIT 5
@@ -65,9 +73,8 @@ const notificationMiddleware = (req, res, next) => {
                 SELECT COUNT(*) as count 
                 FROM task_messages tm
                 JOIN task_assignments ta ON tm.assignment_id = ta.id
-                JOIN users u ON tm.sender_id = u.id
                 WHERE ta.user_id = ? 
-                AND u.role = 'admin'
+                AND tm.sender_id != ta.user_id
                 AND tm.is_read = 0
             `).get(userId).count;
 
@@ -86,7 +93,7 @@ const notificationMiddleware = (req, res, next) => {
                 JOIN users u ON tm.sender_id = u.id
                 JOIN tasks t ON ta.task_id = t.id
                 WHERE ta.user_id = ? 
-                AND u.role = 'admin'
+                AND tm.sender_id != ta.user_id
                 AND tm.is_read = 0
                 ORDER BY tm.created_at DESC
                 LIMIT 5

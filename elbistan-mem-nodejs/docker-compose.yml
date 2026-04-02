@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: elbistan-mem-app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - TZ=Europe/Istanbul
+    volumes:
+      - ./database:/app/database
+      - ./logs:/app/logs
+      - ./backups:/app/backups
+      - ./public/uploads:/app/public/uploads
+      - ./public/reports:/app/public/reports

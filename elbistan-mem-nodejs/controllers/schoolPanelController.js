@@ -1,9 +1,10 @@
 const db = require('../config/database');
 const { uploads } = require('../utils/upload');
 const { sendPushNotification } = require('../utils/push');
+const { isDeadlinePassed, canSubmitResponse } = require('../utils/deadline');
 
 const schoolPanelController = {
-    uploadMulter: uploads.response.single('response_file'),
+    uploadMulter: uploads.response.array('response_files', 20),
 
     // Okul Dashboard
     dashboard: (req, res) => {
@@ -29,15 +30,30 @@ const schoolPanelController = {
             `).all(userId);
 
             // İstatistikler
-            const totalTasks = myTasks.length;
+            let totalTasks = 0;
             let completedTasks = 0;
             let pendingTasks = 0;
             let inProgressTasks = 0;
 
+            const now = new Date();
+
             myTasks.forEach(task => {
-                if (task.status === 'completed') completedTasks++;
-                else if (task.status === 'in_progress') inProgressTasks++;
-                else pendingTasks++;
+                let isExpired = false;
+                if (task.deadline && task.status !== 'completed' && task.status !== 'rejected') {
+                    const dDate = new Date(task.deadline);
+                    if (task.deadline.length <= 10) dDate.setHours(23, 59, 59, 999);
+                    if (now > dDate) isExpired = true;
+                }
+
+                if (task.status === 'completed') {
+                    completedTasks++;
+                    totalTasks++;
+                } else if (!isExpired) {
+                    // Sadece süresi dolmamış aktif görevleri sayılara ekle
+                    totalTasks++;
+                    if (task.status === 'in_progress') inProgressTasks++;
+                        else pendingTasks++;
+                }
             });
 
             // Son duyuru
@@ -84,23 +100,23 @@ const schoolPanelController = {
 
             // Atamayı bul
             let assignment = db.prepare(`
-                SELECT ta.*, t.id as task_id, t.title, t.description, t.deadline, t.file_path as task_file, t.requires_file
+                SELECT ta.*, t.id as task_id, t.title, t.description, t.deadline, t.file_path as task_file, t.requires_file, t.is_file_mandatory, t.max_file_count
                 FROM task_assignments ta 
                 JOIN tasks t ON ta.task_id = t.id 
                 WHERE ta.id = ? AND ta.user_id = ?
             `).get(id, userId);
 
+            // ... (keep the same checking logic) ...
+
             // Atama ID değil, task ID mi gelmiş kontrol et
             if (!assignment) {
                 const taskCheck = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
                 if (taskCheck) {
-                    // Bu görev için atama var mı?
                     let existingAssignment = db.prepare(
                         'SELECT * FROM task_assignments WHERE task_id = ? AND user_id = ?'
                     ).get(id, userId);
 
                     if (!existingAssignment) {
-                        // Atama oluştur
                         const result = db.prepare(
                             "INSERT INTO task_assignments (task_id, user_id, status) VALUES (?, ?, 'pending')"
                         ).run(id, userId);
@@ -114,6 +130,10 @@ const schoolPanelController = {
             if (!assignment) {
                 return res.status(404).send('Görev bulunamadı');
             }
+
+            // Atanan tüm dosyaları getir
+            const assignmentFiles = db.prepare('SELECT * FROM task_assignment_files WHERE assignment_id = ?').all(id);
+            assignment.files = assignmentFiles;
 
             // Okundu olarak işaretle
             if (!assignment.is_read) {
@@ -150,9 +170,12 @@ const schoolPanelController = {
                 UPDATE task_messages 
                 SET is_read = 1 
                 WHERE assignment_id = ?
-                AND sender_id IN (SELECT id FROM users WHERE role = 'admin')
+                AND sender_id != ?
                 AND is_read = 0
-            `).run(id);
+            `).run(id, userId);
+
+            // Süre doldu mu kontrol et? (Yönetici iade etmişse süreye bakma)
+            const deadlinePassed = isDeadlinePassed(assignment.deadline) && assignment.status !== 'rejected';
 
             res.render('okul/task_detail', {
                 title: 'Görev Detayı',
@@ -161,6 +184,7 @@ const schoolPanelController = {
                 taskFields,
                 responsesMap,
                 messages,
+                isDeadlinePassed: deadlinePassed,
                 currentUserId: userId,
                 success: req.query.success,
                 error: req.query.error
@@ -172,7 +196,7 @@ const schoolPanelController = {
     },
 
     // Mesaj Gönder
-    sendMessage: (req, res) => {
+    sendMessage: async (req, res) => {
         try {
             const { id } = req.params; // assignment_id
             const { message } = req.body;
@@ -190,17 +214,17 @@ const schoolPanelController = {
 
             db.prepare('INSERT INTO task_messages (assignment_id, sender_id, message) VALUES (?, ?, ?)').run(id, userId, message.trim());
 
-            // Tüm yöneticilere mesaj bildirimi gönder
+            // Tüm yöneticilere (admin ve manager) mesaj bildirimi gönder
             const senderName = req.session.user.full_name || 'Bir Okul';
-            const admins = db.prepare('SELECT id FROM users WHERE role = ?').all('admin');
-            admins.forEach(admin => {
-                sendPushNotification(admin.id, {
+            const admins = db.prepare("SELECT id FROM users WHERE role = 'admin' OR is_manager = 1").all();
+            for (const admin of admins) {
+                await sendPushNotification(admin.id, {
                     title: '💬 Yeni Mesaj: ' + senderName,
                     body: message.trim().length > 50 ? message.trim().substring(0, 50) + '...' : message.trim(),
-                    url: `/admin/tasks/${req.params.id || id}#messages`,
-                    tag: 'school-msg-' + id + '-' + Date.now()
+                    url: `/admin/tasks/${req.params.id || id}`,
+                    tag: 'school-msg-' + id + '-' + admin.id
                 });
-            });
+            }
 
             res.redirect(`/okul/tasks/${id}?success=message_sent#messages`);
         } catch (error) {
@@ -210,7 +234,7 @@ const schoolPanelController = {
     },
 
     // Yanıt Gönder
-    uploadResponse: (req, res) => {
+    uploadResponse: async (req, res) => {
         try {
             const { id } = req.params;
             const { response_note, status } = req.body;
@@ -218,18 +242,57 @@ const schoolPanelController = {
 
             // Mevcut atamayı kontrol et
             const assignment = db.prepare(
-                'SELECT ta.*, t.requires_file, t.id as task_id FROM task_assignments ta JOIN tasks t ON ta.task_id = t.id WHERE ta.id = ? AND ta.user_id = ?'
+                'SELECT ta.*, t.requires_file, t.is_file_mandatory, t.id as task_id FROM task_assignments ta JOIN tasks t ON ta.task_id = t.id WHERE ta.id = ? AND ta.user_id = ?'
             ).get(id, userId);
 
             if (!assignment) {
                 return res.status(404).send('Görev bulunamadı');
             }
 
-            // Dosya yolu
-            let filePath = assignment.response_file;
-            if (req.file) {
-                filePath = req.file.filename;
+            // Süre doldu mu kontrol et?
+            if (!canSubmitResponse(assignment.deadline, assignment.status)) {
+                return res.redirect(`/okul/tasks/${id}?error=deadline_passed`);
             }
+
+            // Eğer görev zaten onay bekliyor veya tamamlanmış ise düzenlemeye izin verme
+            if (['pending_approval', 'completed'].includes(assignment.status)) {
+                return res.redirect(`/okul/tasks/${id}?error=already_submitted`);
+            }
+
+            // Çoklu dosya desteği
+            const files = req.files || [];
+            const maxFiles = assignment.max_file_count || 1;
+
+            if (files.length > maxFiles) {
+                return res.redirect(`/okul/tasks/${id}?error=too_many_files`);
+            }
+
+            // Eğer yeni dosyalar geldiyse, mevcut dosyaları silebiliriz (veya üzerine ekleyebiliriz)
+            // Kullanıcı kolaylığı açısından "yeni yükleme eskilerini siler" mantığı daha güvenli.
+            if (files.length > 0) {
+                // Eski dosyaları DB'den ve diskten sil (opsiyonel ama temizlik iyidir)
+                const oldFiles = db.prepare('SELECT file_path FROM task_assignment_files WHERE assignment_id = ?').all(id);
+                const { deleteFile } = require('../utils/upload');
+                oldFiles.forEach(f => deleteFile('responses', f.file_path));
+                
+                db.prepare('DELETE FROM task_assignment_files WHERE assignment_id = ?').run(id);
+
+                // Yeni dosyaları ekle
+                const insertFileStmt = db.prepare(
+                    'INSERT INTO task_assignment_files (assignment_id, file_path, original_name, file_size) VALUES (?, ?, ?, ?)'
+                );
+                
+                files.forEach(file => {
+                    insertFileStmt.run(id, file.filename, file.originalname, file.size);
+                });
+
+                // Geriye dönük uyumluluk için response_file sütununa ilk dosyanın adını yaz
+                db.prepare('UPDATE task_assignments SET response_file = ? WHERE id = ?').run(files[0].filename, id);
+            }
+
+            // Dosya kontrolü için güncel filePath (en az bir dosya var mı?)
+            const currentFilesCount = db.prepare('SELECT COUNT(*) as count FROM task_assignment_files WHERE assignment_id = ?').get(id).count;
+            const hasFiles = currentFilesCount > 0;
 
             // Zorunlu dosya kontrolü
             const validStatus = ['in_progress', 'completed'].includes(status) ? status : 'in_progress';
@@ -240,14 +303,14 @@ const schoolPanelController = {
                 finalStatus = 'pending_approval';
             }
 
-            if (finalStatus === 'pending_approval' && assignment.requires_file && !filePath) {
+            if (finalStatus === 'pending_approval' && assignment.requires_file && assignment.is_file_mandatory && !hasFiles) {
                 return res.redirect(`/okul/tasks/${id}?error=missing_file`);
             }
 
             // Güncelle
             db.prepare(
-                'UPDATE task_assignments SET status = ?, response_note = ?, response_file = ? WHERE id = ?'
-            ).run(finalStatus, response_note, filePath, id);
+                'UPDATE task_assignments SET status = ?, response_note = ? WHERE id = ?'
+            ).run(finalStatus, response_note, id);
 
             // Form alanı cevaplarını kaydet
             const taskFields = db.prepare('SELECT id FROM task_fields WHERE task_id = ?').all(assignment.task_id);
@@ -280,15 +343,15 @@ const schoolPanelController = {
             // Eğer görev onay bekliyor durumuna geçtiyse yöneticilere bildirim gönder
             if (finalStatus === 'pending_approval') {
                 const schoolName = req.session.user.full_name || 'Bir Okul';
-                const admins = db.prepare('SELECT id FROM users WHERE role = ?').all('admin');
-                admins.forEach(admin => {
-                    sendPushNotification(admin.id, {
+                const admins = db.prepare("SELECT id FROM users WHERE role = 'admin' OR is_manager = 1").all();
+                for (const admin of admins) {
+                    await sendPushNotification(admin.id, {
                         title: '✅ Görev Onaya Gönderildi',
                         body: `${schoolName} bir görevi tamamlayıp onayınıza sundu.`,
                         url: `/admin/tasks/${assignment.task_id}`,
                         tag: 'approval-' + assignment.task_id + '-' + id
                     });
-                });
+                }
             }
 
             res.redirect(`/okul/tasks/${id}?success=updated`);

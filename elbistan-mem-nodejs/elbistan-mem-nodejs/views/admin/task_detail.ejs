@@ -732,14 +732,26 @@
                                         <% } %>
                             </td>
                             <td>
-                                <% if(assignment.response_file) { %>
-                                    <a href="/uploads/responses/<%= assignment.response_file %>" target="_blank"
-                                        class="btn-view-file">
-                                        <i class="fas fa-paperclip"></i> İncele
-                                    </a>
-                                    <% } else { %>
-                                        <span style="color: #cbd5e1;">-</span>
-                                        <% } %>
+                                <% if(assignment.files && assignment.files.length> 0) { %>
+                                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                                        <% assignment.files.forEach(function(file) { %>
+                                            <a href="/uploads/responses/<%= file.file_path %>" target="_blank"
+                                                class="btn-view-file"
+                                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;"
+                                                title="<%= file.original_name %>">
+                                                <i class="fas fa-paperclip"></i>
+                                                <%= file.original_name || 'İncele' %>
+                                            </a>
+                                            <% }); %>
+                                    </div>
+                                    <% } else if(assignment.response_file) { %>
+                                        <a href="/uploads/responses/<%= assignment.response_file %>" target="_blank"
+                                            class="btn-view-file">
+                                            <i class="fas fa-paperclip"></i> İncele
+                                        </a>
+                                        <% } else { %>
+                                            <span style="color: #cbd5e1;">-</span>
+                                            <% } %>
                             </td>
                             <td>
                                 <div style="display: flex; gap: 5px;">
@@ -858,7 +870,7 @@
 
     <!-- Verileri Client Side'a Aktar -->
     <script>
-        const messagesMap = <%- messagesMap %>;
+        const messagesMap = <% - messagesMap %>;
         const currentUserId = "<%= currentUserId %>";
     </script>
 

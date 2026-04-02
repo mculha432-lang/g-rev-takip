@@ -3,7 +3,7 @@ const { uploads } = require('../utils/upload');
 const { sendPushNotification } = require('../utils/push');
 
 const schoolPanelController = {
-    uploadMulter: uploads.response.single('response_file'),
+    uploadMulter: uploads.response.array('response_files', 20), // Max 20 files as safeguard
 
     // Okul Dashboard
     dashboard: (req, res) => {
@@ -161,6 +161,7 @@ const schoolPanelController = {
                 taskFields,
                 responsesMap,
                 messages,
+                uploadedFiles: db.prepare('SELECT * FROM task_assignment_files WHERE assignment_id = ?').all(id),
                 currentUserId: userId,
                 success: req.query.success,
                 error: req.query.error
@@ -225,29 +226,79 @@ const schoolPanelController = {
                 return res.status(404).send('Görev bulunamadı');
             }
 
-            // Dosya yolu
-            let filePath = assignment.response_file;
-            if (req.file) {
-                filePath = req.file.filename;
+            // Dosya yolları
+            const files = req.files || [];
+
+            // Atamaya ait mevcut dosyaları getir
+            const currentFiles = db.prepare('SELECT * FROM task_assignment_files WHERE assignment_id = ?').all(id);
+
+            // Dinamik dosya tipi ve sayısı kontrolü
+            const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(assignment.task_id);
+            const allowedTypes = task.allowed_file_types ? task.allowed_file_types.split(',').map(t => t.trim().toLowerCase()) : [];
+            const maxFiles = task.max_file_count || 1;
+
+            // Eğer yeni dosyalar yüklendiyse kontrol et
+            if (files.length > 0) {
+                // Toplam dosya sayısı (mevcutları silip yenilerini mi ekliyoruz yoksa ekleme mi yapıyoruz?)
+                // Tasarım kararı: Mevcutları silip yenileriyle değiştirelim (daha basit yönetim)
+                // Ama kullanıcı sadece not güncelliyor olabilir, bu durumda dosyalar kalmalı.
+                // Eğer yeni dosya varsa, eskileri silelim ve yenileri kaydedelim.
+
+                // 1. Sayı kontrolü
+                if (files.length > maxFiles) {
+                    return res.redirect(`/okul/tasks/${id}?error=max_file_limit`);
+                }
+
+                // 2. Tip kontrolü (Extra backend safety)
+                const path = require('path');
+                for (const file of files) {
+                    const ext = path.extname(file.originalname).toLowerCase();
+                    if (allowedTypes.length > 0 && !allowedTypes.includes(ext)) {
+                        return res.redirect(`/okul/tasks/${id}?error=invalid_file_type`);
+                    }
+                }
             }
 
-            // Zorunlu dosya kontrolü
             const validStatus = ['in_progress', 'completed'].includes(status) ? status : 'in_progress';
 
             // Onay mekanizması: Okul "completed" gönderirse, durumu "pending_approval" yap
             let finalStatus = validStatus;
-            if (validStatus === 'completed') {
+            if (status === 'completed') {
                 finalStatus = 'pending_approval';
             }
 
-            if (finalStatus === 'pending_approval' && assignment.requires_file && !filePath) {
+            // Zorunlu dosya kontrolü
+            const isCompleted = status === 'completed';
+            if (isCompleted && assignment.requires_file && files.length === 0 && currentFiles.length === 0) {
                 return res.redirect(`/okul/tasks/${id}?error=missing_file`);
             }
 
             // Güncelle
             db.prepare(
-                'UPDATE task_assignments SET status = ?, response_note = ?, response_file = ? WHERE id = ?'
-            ).run(finalStatus, response_note, filePath, id);
+                'UPDATE task_assignments SET status = ?, response_note = ? WHERE id = ?'
+            ).run(finalStatus, response_note, id);
+
+            // Yeni dosyalar varsa eskileri sil ve yenileri ekle
+            if (files.length > 0) {
+                const { deleteFile } = require('../utils/upload');
+
+                // Eskileri sil
+                currentFiles.forEach(f => {
+                    deleteFile('responses', f.file_path);
+                });
+                db.prepare('DELETE FROM task_assignment_files WHERE assignment_id = ?').run(id);
+
+                // Yenileri ekle
+                const insertFileStmt = db.prepare(
+                    'INSERT INTO task_assignment_files (assignment_id, file_path, original_name) VALUES (?, ?, ?)'
+                );
+                files.forEach(file => {
+                    insertFileStmt.run(id, file.filename, file.originalname);
+                });
+
+                // Geriye dönük uyumluluk için response_file sütununa ilk dosyanın adını yazalım (opsiyonel)
+                db.prepare('UPDATE task_assignments SET response_file = ? WHERE id = ?').run(files[0].filename, id);
+            }
 
             // Form alanı cevaplarını kaydet
             const taskFields = db.prepare('SELECT id FROM task_fields WHERE task_id = ?').all(assignment.task_id);

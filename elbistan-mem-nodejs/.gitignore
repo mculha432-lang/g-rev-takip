@@ -1,0 +1,38 @@
+# Bağımlılıklar
+node_modules/
+
+# Ortam Değişkenleri (GİZLİ ANAHTARLAR)
+.env
+.env.local
+.env.production
+
+# Veritabanı
+database/*.db
+database.sqlite
+*.sqlite
+
+# Log Dosyaları
+logs/
+*.log
+
+# Yedekler
+backups/
+
+# Oluşturulan Raporlar
+public/reports/
+
+# Yüklenen Dosyalar (production verisi)
+public/uploads/responses/
+public/uploads/tasks/
+public/uploads/system/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS dosyaları
+Thumbs.db
+.DS_Store

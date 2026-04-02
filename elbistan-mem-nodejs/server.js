@@ -1,6 +1,9 @@
 // Environment variables yükle
 require('dotenv').config();
 
+// Timezone'u Türkiye'ye ayarla
+process.env.TZ = 'Europe/Istanbul';
+
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
@@ -75,8 +78,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 // HTTP Request Logger
 app.use(requestLogger);
 
-// Session Ayarları (Güvenli)
+// Session Ayarları (Güvenli — SQLite Store ile kalıcı)
+const SQLiteStore = require('connect-sqlite3')(session);
+
 app.use(session({
+    store: new SQLiteStore({
+        db: 'sessions.db',
+        dir: path.join(__dirname, 'database'),
+        concurrentDB: true
+    }),
     secret: process.env.SESSION_SECRET || 'elbistan-ilce-mem-secret-key-2024-secure',
     resave: false,
     saveUninitialized: false,
@@ -173,30 +183,40 @@ app.use((err, req, res, next) => {
 });
 
 // Sunucuyu başlat
-app.listen(PORT, () => {
-    logger.info(`Sunucu başlatıldı: http://localhost:${PORT}`);
-    console.log(`
-╔═══════════════════════════════════════════════════╗
-║                                                   ║
-║   🏫 Elbistan İlçe MEM Görev Takip Sistemi        ║
-║   ─────────────────────────────────────           ║
-║   Sunucu çalışıyor: http://localhost:${PORT}        ║
-║   Admin Girişi: admin / admin123                  ║
-║   Ortam: ${process.env.NODE_ENV || 'development'}                           ║
-║                                                   ║
-╚═══════════════════════════════════════════════════╝
-    `);
+if (require.main === module) {
+    app.listen(PORT, () => {
+        logger.info(`Sunucu başlatıldı: http://localhost:${PORT}`);
+        
+        console.log(`
+    ╔═══════════════════════════════════════════════════╗
+    ║                                                   ║
+    ║   🏫 Elbistan İlçe MEM Görev Takip Sistemi        ║
+    ║   ─────────────────────────────────────           ║
+    ║   Sunucu çalışıyor: http://localhost:${PORT}        ║
+    ║   Admin Girişi: admin / admin123                  ║
+    ║   Ortam: ${process.env.NODE_ENV || 'development'}                           ║
+    ║                                                   ║
+    ╚═══════════════════════════════════════════════════╝
+        `);
 
-    // Otomatik yedekleme sistemini başlat
-    try {
-        const backup = require('./utils/backup');
-        backup.startAutoBackup(); // Her gece 03:00'da
-        backup.initialBackup();   // Başlangıç yedeği al
-        logger.info('Yedekleme sistemi başlatıldı');
-    } catch (error) {
-        logger.error('Yedekleme sistemi başlatılamadı:', error);
-    }
+        // Otomatik yedekleme sistemini başlat
+        try {
+            const backup = require('./utils/backup');
+            backup.startAutoBackup(); // Her gece 03:00'da
+            backup.initialBackup();   // Başlangıç yedeği al
+            logger.info('Yedekleme sistemi başlatıldı');
+        } catch (error) {
+            logger.error('Yedekleme sistemi başlatılamadı:', error);
+        }
 
-});
+        // Görev hatırlatma sistemini başlat
+        try {
+            const deadlineReminder = require('./utils/deadlineReminder');
+            deadlineReminder.startDeadlineReminders();
+        } catch (error) {
+            logger.error('Görev hatırlatma sistemi başlatılamadı:', error);
+        }
+    });
+}
 
 module.exports = app;

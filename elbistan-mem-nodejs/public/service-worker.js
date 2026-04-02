@@ -1,8 +1,7 @@
-const CACHE = 'v3';
+const CACHE = 'v4';
 
-// ===== SERVICE WORKER: INSTALL =====
 self.addEventListener('install', e => {
-    self.skipWaiting(); // Yeni SW'yi hemen aktif et
+    self.skipWaiting();
     e.waitUntil(
         caches.open(CACHE).then(c => {
             return c.addAll(['/login']);
@@ -10,31 +9,26 @@ self.addEventListener('install', e => {
     );
 });
 
-// ===== SERVICE WORKER: ACTIVATE =====
 self.addEventListener('activate', e => {
     e.waitUntil(
         caches.keys().then(keys => {
             return Promise.all(
                 keys.map(key => {
-                    if (key !== CACHE) {
-                        return caches.delete(key);
-                    }
+                    if (key !== CACHE) return caches.delete(key);
                 })
             );
-        }).then(() => self.clients.claim()) // Tüm sekmelerin kontrolünü al
+        }).then(() => self.clients.claim())
     );
 });
 
-// ===== FETCH: Önbellek Stratejisi =====
 self.addEventListener('fetch', e => {
-    // Sadece GET isteklerini önbellekle
     if (e.request.method !== 'GET') return;
-
-    // Yalnızca http/https şemalarını işleme al
     if (!e.request.url.startsWith('http')) return;
-
-    // Push/API isteklerini önbellekleme (bildirimlerin çalışmasını engelleyebilir)
     if (e.request.url.includes('/push/') || e.request.url.includes('/api/')) return;
+
+    // DÜZELTME: Dış kaynak isteklerini (wikipedia vb.) önbellekleme — 404 hatasını önler
+    const url = new URL(e.request.url);
+    if (url.origin !== self.location.origin) return;
 
     e.respondWith(
         fetch(e.request)
@@ -42,26 +36,21 @@ self.addEventListener('fetch', e => {
                 if (!response || response.status !== 200 || response.type !== 'basic') {
                     return response;
                 }
-
                 const responseToCache = response.clone();
                 caches.open(CACHE).then(cache => {
                     cache.put(e.request, responseToCache);
                 });
                 return response;
             })
-            .catch(() => {
-                return caches.match(e.request);
-            })
+            .catch(() => caches.match(e.request))
     );
 });
 
-// ===== PUSH NOTIFICATION: Anlık Bildirim Yakalayıcı =====
-// Bu event uygulama KAPALI olsa bile çalışır (Android Chrome'da)
 self.addEventListener('push', e => {
     let payload = {
         title: 'E-GTS Bildirim',
         body: 'Yeni bir bildiriminiz var.',
-        icon: '/icons/icon-192.png',
+        icon: '/icons/mem-logo.jpg',
         url: '/',
         tag: 'general'
     };
@@ -72,11 +61,8 @@ self.addEventListener('push', e => {
             payload = { ...payload, ...data };
         }
     } catch (err) {
-        // text olarak dene
         try {
-            if (e.data) {
-                payload.body = e.data.text();
-            }
+            if (e.data) payload.body = e.data.text();
         } catch (e2) {
             console.error('Push data parse error:', err);
         }
@@ -84,31 +70,29 @@ self.addEventListener('push', e => {
 
     const options = {
         body: payload.body,
-        icon: payload.icon || '/icons/icon-192.png',
-        badge: '/icons/icon-192.png',
+        icon: payload.icon || '/icons/mem-logo.jpg',
+        badge: '/icons/mem-logo.jpg',
         image: payload.image || undefined,
-        vibrate: [200, 100, 200, 100, 200], // Daha belirgin titreşim
-        tag: payload.tag || 'egts-notification', // Aynı tag'li bildirimler gruplanır
-        renotify: true, // Aynı tag olsa bile yeniden bildir (ses/titreşim)
-        requireInteraction: true, // Kullanıcı müdahale edene kadar kaybolmasın
-        silent: false, // Ses çalsın
+        vibrate: [200, 100, 200, 100, 200],
+        tag: payload.tag || 'egts-notification',
+        renotify: true,
+        requireInteraction: true,
+        silent: false,
         data: {
             url: payload.url || '/',
             timestamp: Date.now()
         },
         actions: payload.actions || [
-            { action: 'open', title: '📂 Aç' },
+            { action: 'open',    title: '📂 Aç'   },
             { action: 'dismiss', title: '✕ Kapat' }
         ]
     };
 
-    // waitUntil ile SW'nin push işlemi bitene kadar ayakta kalmasını sağla
     e.waitUntil(
         self.registration.showNotification(payload.title, options)
     );
 });
 
-// ===== NOTIFICATION CLICK: Bildirime Tıklanınca =====
 self.addEventListener('notificationclick', e => {
     e.notification.close();
 
@@ -116,31 +100,22 @@ self.addEventListener('notificationclick', e => {
     const notificationData = e.notification.data || {};
     const targetUrl = notificationData.url || '/';
 
-    // "Kapat" aksiyonuna tıklandıysa sadece kapat
-    if (action === 'dismiss') {
-        return;
-    }
+    if (action === 'dismiss') return;
 
-    // Mevcut bir pencere/sekme varsa onu öne getir, yoksa yeni aç
     e.waitUntil(
         self.clients.matchAll({ type: 'window', includeUncontrolled: true })
             .then(clientList => {
-                // Zaten açık olan aynı origin'deki bir sekmeyi bul
                 for (const client of clientList) {
                     if (client.url.includes(self.registration.scope) && 'focus' in client) {
-                        // Mevcut sekmeyi hedef URL'ye yönlendir ve öne getir
                         client.navigate(targetUrl);
                         return client.focus();
                     }
                 }
-                // Hiç açık sekme yoksa yeni pencere aç
                 return self.clients.openWindow(targetUrl);
             })
     );
 });
 
-// ===== NOTIFICATION CLOSE: Bildirim Kapatılınca (opsiyonel loglama) =====
 self.addEventListener('notificationclose', e => {
-    // İsteğe bağlı: Kapatılan bildirimleri logla
     console.log('[SW] Bildirim kapatıldı:', e.notification.tag);
 });

@@ -18,6 +18,24 @@ const db = new Database(dbPath);
 // WAL modu için performans
 db.pragma('journal_mode = WAL');
 
+// Schema versiyon kontrolü
+function getSchemaVersion() {
+    try {
+        db.exec(`CREATE TABLE IF NOT EXISTS schema_version (version INTEGER NOT NULL DEFAULT 0)`);
+        const row = db.prepare('SELECT version FROM schema_version').get();
+        if (!row) {
+            db.prepare('INSERT INTO schema_version (version) VALUES (0)').run();
+            return 0;
+        }
+        return row.version;
+    } catch (e) { return 0; }
+}
+
+function setSchemaVersion(v) {
+    db.prepare('UPDATE schema_version SET version = ?').run(v);
+    console.log(`✓ Schema versiyonu güncellendi: v${v}`);
+}
+
 // Tabloları oluştur
 function initDatabase() {
     // Kullanıcılar tablosu
@@ -42,6 +60,9 @@ function initDatabase() {
             deadline DATE,
             file_path TEXT,
             requires_file INTEGER DEFAULT 0,
+            is_file_mandatory INTEGER DEFAULT 1,
+            allowed_file_types TEXT,
+            max_file_count INTEGER DEFAULT 1,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     `);
@@ -63,18 +84,33 @@ function initDatabase() {
         )
     `);
 
-    // Mevcut tabloya rejection_note sütununu ekle (eğer yoksa)
-    try {
-        db.exec(`ALTER TABLE task_assignments ADD COLUMN rejection_note TEXT`);
-    } catch (e) {
-        // Sütun zaten var, hata görmezden gel
-    }
+    // Çoklu dosya desteği için yeni tablo
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS task_assignment_files (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            assignment_id INTEGER NOT NULL,
+            file_path TEXT NOT NULL,
+            original_name TEXT,
+            file_size INTEGER,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (assignment_id) REFERENCES task_assignments(id) ON DELETE CASCADE
+        )
+    `);
 
-    // Kurum Yöneticisi özelliği - is_manager sütunu
-    try {
-        db.exec(`ALTER TABLE users ADD COLUMN is_manager INTEGER DEFAULT 0`);
-    } catch (e) {
-        // Sütun zaten var
+    // ─── Schema Migration'ları (versiyon kontrolü ile) ───
+    const schemaVersion = getSchemaVersion();
+
+    if (schemaVersion < 1) {
+        // v1: tasks tablosuna ek sütunlar + users is_manager + rejection_note
+        const migrations = [
+            `ALTER TABLE tasks ADD COLUMN is_file_mandatory INTEGER DEFAULT 1`,
+            `ALTER TABLE tasks ADD COLUMN allowed_file_types TEXT`,
+            `ALTER TABLE tasks ADD COLUMN max_file_count INTEGER DEFAULT 1`,
+            `ALTER TABLE task_assignments ADD COLUMN rejection_note TEXT`,
+            `ALTER TABLE users ADD COLUMN is_manager INTEGER DEFAULT 0`
+        ];
+        migrations.forEach(sql => { try { db.exec(sql); } catch (e) { /* sütun zaten var */ } });
+        setSchemaVersion(1);
     }
 
     // Duyurular tablosu
@@ -163,6 +199,7 @@ function initDatabase() {
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
     `);
+
 
     // Varsayılan admin kullanıcısını ekle
     const adminExists = db.prepare('SELECT id FROM users WHERE username = ?').get('admin');

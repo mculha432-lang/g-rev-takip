@@ -563,11 +563,44 @@ async function generateLoginActivityExcel(startDate, endDate) {
     return { fileName, filePath };
 }
 
+// ==================== OTOMATİK TEMİZLİK ====================
+
+// 1 günden eski raporları sil
+function cleanOldReports() {
+    if (!fs.existsSync(REPORTS_DIR)) return;
+    
+    fs.readdir(REPORTS_DIR, (err, files) => {
+        if (err) return console.error('Rapor dizini okunamadı:', err);
+        
+        const now = Date.now();
+        const ONE_DAY = 24 * 60 * 60 * 1000;
+        
+        files.forEach(file => {
+            const filePath = path.join(REPORTS_DIR, file);
+            fs.stat(filePath, (err, stats) => {
+                if (err) return;
+                
+                // 1 günden eskiyse sil
+                if (now - stats.mtimeMs > ONE_DAY) {
+                    fs.unlink(filePath, err => {
+                        if (!err) console.log(`✓ Eski rapor silindi: ${file}`);
+                    });
+                }
+            });
+        });
+    });
+}
+
+// Günde bir kez çalıştır (ve başlatırken)
+setInterval(cleanOldReports, 24 * 60 * 60 * 1000);
+setTimeout(cleanOldReports, 5000); // Başlangıçtan 5 saniye sonra ilk temizlik
+
 module.exports = {
     generateTaskSummaryExcel,
     generateSchoolPerformanceExcel,
     generateTaskDetailExcel,
     generateTaskSummaryPDF,
     generateLoginActivityExcel,
+    cleanOldReports,
     REPORTS_DIR
 };

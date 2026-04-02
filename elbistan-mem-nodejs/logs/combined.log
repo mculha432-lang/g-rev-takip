@@ -6472,3 +6472,37 @@ Or, if you meant to create an async function, pass `async: true` as an option.
 [2026-03-16 03:31:09] INFO: GET /okul/dashboard - 304 - 6ms - IP: ::1
 [2026-03-16 03:31:49] INFO: GET /okul/dashboard - 200 - 9ms - IP: ::1
 [2026-03-16 03:31:50] INFO: GET /okul/dashboard - 304 - 6ms - IP: ::1
+[2026-03-23 13:51:11] INFO: Sunucu başlatıldı: http://localhost:3000
+[2026-03-23 13:51:11] INFO: Yedekleme sistemi başlatıldı
+[2026-03-23 13:53:56] INFO: GET /admin - 302 - 12ms - IP: ::1
+[2026-03-24 12:32:22] INFO: Sunucu başlatıldı: http://localhost:3000
+[2026-03-24 12:32:23] INFO: Yedekleme sistemi başlatıldı
+[2026-03-24 12:34:00] WARN: CSRF token hatası: POST /login - IP: ::1
+[2026-03-24 12:34:00] WARN: POST /login - 403 - 28ms - IP: ::1
+[2026-03-24 12:34:00] INFO: GET /okul/dashboard - 302 - 2ms - IP: ::1
+[2026-03-24 12:34:00] INFO: GET /login - 200 - 6ms - IP: ::1
+[2026-03-24 12:35:11] WARN: CSRF token hatası: POST /login - IP: ::1
+[2026-03-24 12:35:11] WARN: POST /login - 403 - 2ms - IP: ::1
+[2026-03-24 12:35:11] INFO: GET /okul/tasks/1089 - 302 - 1ms - IP: ::1
+[2026-03-24 12:35:11] INFO: GET /login - 200 - 2ms - IP: ::1
+[2026-03-24 12:35:38] WARN: CSRF token hatası: POST /login - IP: ::1
+[2026-03-24 12:35:38] WARN: POST /login - 403 - 2ms - IP: ::1
+[2026-03-28 11:58:53] INFO: Sunucu başlatıldı: http://localhost:3000
+[2026-03-28 11:58:53] INFO: Yedekleme sistemi başlatıldı
+[2026-03-28 11:58:53] INFO: Deadline hatırlatma sistemi başlatıldı (08:00 ve 20:00)
+[2026-03-28 11:59:18] INFO: GET / - 302 - 11ms - IP: ::1
+[2026-03-28 11:59:18] INFO: GET /login - 200 - 20ms - IP: ::1
+[2026-03-28 11:59:18] INFO: GET /login - 200 - 3ms - IP: ::1
+[2026-03-28 11:59:19] WARN: GET /favicon.ico - 404 - 3ms - IP: ::1
+[2026-03-28 11:59:27] INFO: POST /login - 200 - 139ms - IP: ::1
+[2026-03-28 11:59:37] INFO: POST /login - 302 - 121ms - IP: ::1
+[2026-03-28 11:59:37] INFO: GET /admin/dashboard - 200 - 26ms - IP: ::1
+[2026-03-28 11:59:47] INFO: GET /admin/tasks - 200 - 23ms - IP: ::1
+[2026-03-28 12:00:42] INFO: GET /admin/tasks - 200 - 8ms - IP: ::1
+[2026-03-28 12:00:43] WARN: GET /favicon.ico - 404 - 2ms - IP: ::1
+[2026-04-02 14:25:15] INFO: Sunucu başlatıldı: http://localhost:3000
+[2026-04-02 14:25:15] INFO: Yedekleme sistemi başlatıldı
+[2026-04-02 14:25:15] INFO: Deadline hatırlatma sistemi başlatıldı (08:00 ve 20:00)
+[2026-04-02 14:27:02] INFO: GET / - 302 - 3ms - IP: ::ffff:127.0.0.1
+[2026-04-02 14:27:02] INFO: GET /login - 200 - 6ms - IP: ::ffff:127.0.0.1
+[2026-04-02 14:27:02] INFO: GET /admin/tasks - 302 - 1ms - IP: ::ffff:127.0.0.1

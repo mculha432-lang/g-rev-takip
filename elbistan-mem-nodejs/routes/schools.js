@@ -24,4 +24,7 @@ router.post('/:id/delete', schoolController.delete);
 // Kurum Yöneticisi Yap / Kaldır
 router.post('/:id/toggle-manager', schoolController.toggleManager);
 
+// Şifre Sıfırla
+router.post('/:id/reset-password', schoolController.resetPassword);
+
 module.exports = router;

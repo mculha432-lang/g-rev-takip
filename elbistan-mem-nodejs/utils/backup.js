@@ -119,7 +119,13 @@ function listBackups() {
 // Yedeği geri yükle
 function restoreBackup(backupFileName) {
     try {
-        const backupPath = path.join(BACKUP_DIR, backupFileName);
+        // Path traversal koruması - sadece güvenli dosya adlarına izin ver
+        const safeName = path.basename(backupFileName);
+        if (!/^(backup_[\w\-]+\.(zip|db)|pre_restore_\d+\.db)$/.test(safeName)) {
+            return { success: false, error: 'Geçersiz yedek dosya adı' };
+        }
+
+        const backupPath = path.join(BACKUP_DIR, safeName);
 
         if (!fs.existsSync(backupPath)) {
             return { success: false, error: 'Yedek dosyası bulunamadı' };
@@ -180,3 +186,4 @@ module.exports = {
     BACKUP_DIR,
     MAX_BACKUPS
 };
+

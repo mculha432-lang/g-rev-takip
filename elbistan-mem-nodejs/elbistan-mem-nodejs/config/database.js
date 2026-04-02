@@ -42,6 +42,8 @@ function initDatabase() {
             deadline DATE,
             file_path TEXT,
             requires_file INTEGER DEFAULT 0,
+            allowed_file_types TEXT,
+            max_file_count INTEGER DEFAULT 1,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     `);
@@ -63,12 +65,28 @@ function initDatabase() {
         )
     `);
 
-    // Mevcut tabloya rejection_note sütununu ekle (eğer yoksa)
+    // Görev yanıt dosyaları tablosu (Çoklu dosya desteği için)
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS task_assignment_files (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            assignment_id INTEGER NOT NULL,
+            file_path TEXT NOT NULL,
+            original_name TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (assignment_id) REFERENCES task_assignments(id) ON DELETE CASCADE
+        )
+    `);
+
+    // Mevcut tablolara yeni sütunları ekle (eğer yoksa)
+    try {
+        db.exec(`ALTER TABLE tasks ADD COLUMN allowed_file_types TEXT`);
+    } catch (e) {}
+    try {
+        db.exec(`ALTER TABLE tasks ADD COLUMN max_file_count INTEGER DEFAULT 1`);
+    } catch (e) {}
     try {
         db.exec(`ALTER TABLE task_assignments ADD COLUMN rejection_note TEXT`);
-    } catch (e) {
-        // Sütun zaten var, hata görmezden gel
-    }
+    } catch (e) {}
 
     // Duyurular tablosu
     db.exec(`

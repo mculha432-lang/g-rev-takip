@@ -19,26 +19,30 @@ webpush.setVapidDetails(
  */
 async function sendPushNotification(userId, payloadData) {
     try {
+        console.log(`[PUSH] ▶ Push gönderimi başlatılıyor: userId=${userId}, title="${payloadData.title}"`);
+
         const subscriptions = db.prepare('SELECT * FROM push_subscriptions WHERE user_id = ?').all(userId);
         if (!subscriptions || subscriptions.length === 0) {
+            console.warn(`[PUSH] ⚠️ userId=${userId} için push aboneliği bulunamadı! Bildirim GÖNDERİLEMEDİ.`);
             logger.info(`Push: Kullanıcı ${userId} için aktif abonelik bulunamadı.`);
             return;
         }
+
+        console.log(`[PUSH] 📋 ${subscriptions.length} adet push aboneliği bulundu.`);
 
         const payload = JSON.stringify({
             title: payloadData.title || 'E-GTS Bildirim',
             body: payloadData.body || '',
             icon: payloadData.icon || '/icons/icon-192.png',
             url: payloadData.url || '/',
-            tag: payloadData.tag || 'egts-' + Date.now(), // Her bildirim benzersiz tag alır
+            tag: payloadData.tag || 'egts-' + Date.now(),
             timestamp: Date.now()
         });
 
         // Push gönderim seçenekleri
         const pushOptions = {
-            TTL: 86400,       // 24 saat (saniye) - cihaz offline olsa bile 24 saat bekler
-            urgency: 'high',  // Yüksek öncelik - Android Doze modunda bile teslim edilir
-            topic: payloadData.tag || 'egts-notification' // Aynı topic'li bildirimler güncellenir
+            TTL: 86400,       // 24 saat (saniye)
+            urgency: 'high',  // Yüksek öncelik
         };
 
         for (const sub of subscriptions) {
@@ -51,22 +55,25 @@ async function sendPushNotification(userId, payloadData) {
             };
 
             try {
-                await webpush.sendNotification(pushSubscription, payload, pushOptions);
-                logger.info(`Push bildirim gönderildi (User: ${userId}, Endpoint: ${sub.endpoint.substring(0, 50)}...)`);
+                const result = await webpush.sendNotification(pushSubscription, payload, pushOptions);
+                console.log(`[PUSH] ✅ Push GÖNDERİLDİ! userId=${userId}, statusCode=${result.statusCode}`);
+                logger.info(`Push bildirim gönderildi (User: ${userId})`);
             } catch (err) {
-                // Eğer abonelik iptal edilmişse (410 Gone) veritabanından sil
                 if (err.statusCode === 410 || err.statusCode === 404) {
                     db.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').run(sub.endpoint);
+                    console.warn(`[PUSH] 🗑️ Süresi dolmuş abonelik silindi (userId=${userId}, status=${err.statusCode})`);
                     logger.info(`Süresi dolmuş push aboneliği silindi (User: ${userId})`);
                 } else {
+                    console.error(`[PUSH] ❌ Push HATASI! userId=${userId}, status=${err.statusCode}, mesaj=${err.message}`);
+                    console.error(`[PUSH] ❌ Detay:`, err.body || err);
                     logger.error(`Push bildirim hatası (User: ${userId}):`, err.message || err);
                 }
             }
         }
     } catch (error) {
+        console.error(`[PUSH] ❌ GENEL HATA:`, error);
         logger.error(`sendPushNotification genel hata:`, error);
     }
 }
 
 module.exports = { sendPushNotification, publicVapidKey };
-
