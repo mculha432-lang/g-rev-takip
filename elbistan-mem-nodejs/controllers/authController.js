@@ -53,6 +53,13 @@ const authController = {
                 is_manager: user.is_manager || 0
             };
 
+            // "Beni Hatırla" seçiliyse session süresini 7 güne uzat
+            if (req.body.remember) {
+                req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 gün
+            } else {
+                req.session.cookie.maxAge = 24 * 60 * 60 * 1000; // 24 saat (varsayılan)
+            }
+
             // Log kaydı ekle
             try {
                 const ip = req.ip || req.connection.remoteAddress;
