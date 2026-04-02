@@ -376,10 +376,10 @@ async function generateTaskSummaryPDF() {
         doc.text('T.C.', titleCenterX, headerTop + 2, { width: titleW, align: 'center' });
 
         doc.font('ArialBd').fontSize(11).fillColor(hexToRGB(COLORS.dark));
-        doc.text('ELBİSTAN KAYMAKAMLIĞI', titleCenterX, headerTop + 14, { width: titleW, align: 'center' });
+        doc.text('ELBİSTAN İLÇE MİLLİ EĞİTİM MÜDÜRLÜĞÜ', titleCenterX, headerTop + 14, { width: titleW, align: 'center' });
 
         doc.font('Arial').fontSize(9).fillColor(hexToRGB(COLORS.text));
-        doc.text('İlçe Milli Eğitim Müdürlüğü', titleCenterX, headerTop + 29, { width: titleW, align: 'center' });
+        doc.text('Görev Takip Sistemi', titleCenterX, headerTop + 29, { width: titleW, align: 'center' });
 
         doc.font('Arial').fontSize(8).fillColor(hexToRGB(COLORS.muted));
         doc.text('Elektronik Görev Takip Sistemi', titleCenterX, headerTop + 42, { width: titleW, align: 'center' });
