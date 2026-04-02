@@ -72,7 +72,7 @@
                     <div class="c-head-icon bar"><i class="fas fa-chart-bar"></i></div>
                 </div>
                 <div class="chart-box">
-                    <canvas id="schoolTypeChart" data-chart='<%- JSON.stringify(chartData.schoolTypes) %>'></canvas>
+                    <canvas id="schoolTypeChart" data-chart="<%= JSON.stringify(chartData.schoolTypes) %>"></canvas>
                 </div>
             </div>
 
@@ -82,7 +82,7 @@
                     <div class="c-head-icon pie"><i class="fas fa-chart-pie"></i></div>
                 </div>
                 <div class="chart-box" style="display: flex; justify-content: center; align-items: center;">
-                    <canvas id="statusChart" data-chart='<%- JSON.stringify(chartData.statusDist) %>'></canvas>
+                    <canvas id="statusChart" data-chart="<%= JSON.stringify(chartData.statusDist) %>"></canvas>
                 </div>
             </div>
 
@@ -285,7 +285,7 @@
                                     class="fas fa-chevron-right"></i></button>
                         </div>
                     </div>
-                    <div class="cal-grid" id="adminCalendar" data-events='<%- calendarEvents %>'></div>
+                    <div class="cal-grid" id="adminCalendar" data-events="<%= calendarEvents %>"></div>
                     <div class="upcoming-section">
                         <div class="upcoming-label"><i class="fas fa-clock" style="font-size:10px;"></i> Yaklaşan Teslim
                             Tarihleri</div>
