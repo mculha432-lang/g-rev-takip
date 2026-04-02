@@ -443,9 +443,9 @@ async function generateLoginActivityExcel(startDate, endDate) {
 
         // Son giriş tarihi
         const lastLogin = db.prepare(`
-            SELECT created_at FROM logs
-            WHERE user_id = ? AND action = 'Giriş Yaptı' ${dateFilter}
-            ORDER BY created_at DESC LIMIT 1
+            SELECT l.created_at FROM logs l
+            WHERE l.user_id = ? AND l.action = 'Giriş Yaptı' ${dateFilter}
+            ORDER BY l.created_at DESC LIMIT 1
         `).get(school.id, ...params);
 
         const lastLoginStr = lastLogin ? new Date(lastLogin.created_at).toLocaleString('tr-TR') : 'Hiç giriş yapmadı';

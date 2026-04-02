@@ -1,3 +1,4 @@
+(function () {
             const container = document.getElementById('adminCalendar');
             if (!container) return;
 
@@ -152,4 +153,4 @@
             };
 
             render();
-// End of admin_dashboard.js
+})();

@@ -220,7 +220,11 @@
                         }
 
                         if (type !== 'clear') {
-                            event.target.classList.add('active');
+                            try {
+                                if (typeof event !== 'undefined' && event.target) {
+                                    event.target.classList.add('active');
+                                }
+                            } catch(e) {}
                         }
 
                         selectMode = 'start';
