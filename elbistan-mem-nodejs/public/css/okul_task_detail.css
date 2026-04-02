@@ -130,7 +130,113 @@
             background: var(--gray-50);
             border-radius: 12px;
             border: 1px solid var(--gray-200);
+            overflow-x: auto;
         }
+
+        /* ── CKEditor rich content styles ── */
+        .task-desc table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            background: var(--white);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--gray-200);
+        }
+
+        .task-desc table th,
+        .task-desc table td {
+            padding: 12px 16px;
+            border: 1px solid var(--gray-200);
+            font-size: 14px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .task-desc table th {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-color: #475569;
+        }
+
+        .task-desc table tr:nth-child(even) td {
+            background: var(--gray-50);
+        }
+
+        .task-desc table tr:hover td {
+            background: #eff6ff;
+            transition: background 0.15s ease;
+        }
+
+        .task-desc table td:first-child,
+        .task-desc table th:first-child {
+            border-left: none;
+        }
+
+        .task-desc table td:last-child,
+        .task-desc table th:last-child {
+            border-right: none;
+        }
+
+        .task-desc table tr:first-child th,
+        .task-desc table tr:first-child td {
+            border-top: none;
+        }
+
+        .task-desc table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* CKEditor blockquote */
+        .task-desc blockquote {
+            border-left: 4px solid var(--red);
+            margin: 14px 0;
+            padding: 12px 18px;
+            background: var(--red-light);
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+            color: var(--gray-800);
+        }
+
+        /* CKEditor lists */
+        .task-desc ol,
+        .task-desc ul {
+            padding-left: 24px;
+            margin: 10px 0;
+        }
+
+        .task-desc ol li,
+        .task-desc ul li {
+            margin-bottom: 6px;
+        }
+
+        /* CKEditor links */
+        .task-desc a {
+            color: #2563eb;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+
+        .task-desc a:hover {
+            color: #1d4ed8;
+        }
+
+        /* CKEditor headings */
+        .task-desc h2,
+        .task-desc h3,
+        .task-desc h4 {
+            color: var(--gray-900);
+            margin: 16px 0 8px;
+        }
+
+        .task-desc h2 { font-size: 20px; }
+        .task-desc h3 { font-size: 17px; }
+        .task-desc h4 { font-size: 15px; }
 
         .task-meta {
             display: flex;

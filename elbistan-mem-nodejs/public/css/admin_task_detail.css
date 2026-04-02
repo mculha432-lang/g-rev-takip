@@ -210,7 +210,109 @@
       border-radius: var(--r-md);
       padding: 16px 18px;
       margin-bottom: 18px;
+      overflow-x: auto;
     }
+
+    /* ── CKEditor rich content inside task-desc ── */
+    .tp .task-desc table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      background: var(--surface);
+      border-radius: var(--r-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+    }
+
+    .tp .task-desc table th,
+    .tp .task-desc table td {
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .tp .task-desc table th {
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      border-color: #475569;
+    }
+
+    .tp .task-desc table tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    .tp .task-desc table tr:hover td {
+      background: #eff6ff;
+      transition: background 0.15s ease;
+    }
+
+    .tp .task-desc table td:first-child,
+    .tp .task-desc table th:first-child {
+      border-left: none;
+    }
+
+    .tp .task-desc table td:last-child,
+    .tp .task-desc table th:last-child {
+      border-right: none;
+    }
+
+    .tp .task-desc table tr:first-child th,
+    .tp .task-desc table tr:first-child td {
+      border-top: none;
+    }
+
+    .tp .task-desc table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tp .task-desc blockquote {
+      border-left: 4px solid var(--red);
+      margin: 14px 0;
+      padding: 12px 18px;
+      background: var(--red-muted);
+      border-radius: 0 var(--r-sm) var(--r-sm) 0;
+      font-style: italic;
+      color: var(--text-2);
+    }
+
+    .tp .task-desc ol,
+    .tp .task-desc ul {
+      padding-left: 24px;
+      margin: 10px 0;
+    }
+
+    .tp .task-desc ol li,
+    .tp .task-desc ul li {
+      margin-bottom: 6px;
+    }
+
+    .tp .task-desc a {
+      color: var(--blue);
+      text-decoration: underline;
+      font-weight: 500;
+    }
+
+    .tp .task-desc a:hover {
+      color: #1d4ed8;
+    }
+
+    .tp .task-desc h2,
+    .tp .task-desc h3,
+    .tp .task-desc h4 {
+      color: var(--text-1);
+      margin: 16px 0 8px;
+    }
+
+    .tp .task-desc h2 { font-size: 20px; }
+    .tp .task-desc h3 { font-size: 17px; }
+    .tp .task-desc h4 { font-size: 15px; }
 
     .tp .task-meta {
       display: flex;

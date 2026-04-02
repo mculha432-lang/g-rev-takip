@@ -317,6 +317,29 @@
                                                                                                             <%=field.is_required
                                                                                                             ? 'required'
                                                                                                             : '' %>>
+
+                                                                                                        <% } else if (field.field_type==='time') { %>
+                                                                                                        <input
+                                                                                                            type="time"
+                                                                                                            name="field_<%= field.id %>"
+                                                                                                            class="form-control"
+                                                                                                            value="<%= responsesMap[field.id] || '' %>"
+                                                                                                            <%=field.is_required
+                                                                                                            ? 'required'
+                                                                                                            : '' %>>
+
+                                                                                                        <% } else if (field.field_type==='scale') { %>
+                                                                                                        <div class="scale-group" style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
+                                                                                                            <% for(let i = 1; i <= 5; i++) { %>
+                                                                                                            <label class="scale-option" style="display:flex; flex-direction:column; align-items:center; cursor:pointer;">
+                                                                                                                <input type="radio" name="field_<%= field.id %>" value="<%= i %>"
+                                                                                                                    <%= responsesMap[field.id] == String(i) ? 'checked' : '' %>
+                                                                                                                    <%= field.is_required ? 'required' : '' %>
+                                                                                                                    style="width:20px; height:20px; accent-color:var(--red);">
+                                                                                                                <span style="font-size:13px; font-weight:600; margin-top:4px;"><%= i %></span>
+                                                                                                            </label>
+                                                                                                            <% } %>
+                                                                                                        </div>
                                                                                                         <% } %>
                                                                         </div>
                                                                         <% }) %>
@@ -601,6 +624,5 @@
                                                         </div>
                                                     </div>
 
-                                                    <script>
     <script src="/js/okul_task_detail.js"></script>
                                                     <%- include('../layouts/school_footer') %>
