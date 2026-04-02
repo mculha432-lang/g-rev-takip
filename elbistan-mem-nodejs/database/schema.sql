@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS tasks (
     deadline DATE,
     file_path TEXT,
     requires_file INTEGER DEFAULT 0,
+    allowed_file_types TEXT,
+    max_file_count INTEGER DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -34,6 +36,16 @@ CREATE TABLE IF NOT EXISTS task_assignments (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Görev Yanıt Dosyaları (Çoklu dosya desteği için)
+CREATE TABLE IF NOT EXISTS task_assignment_files (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    assignment_id INTEGER NOT NULL,
+    file_path TEXT NOT NULL,
+    original_name TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (assignment_id) REFERENCES task_assignments(id) ON DELETE CASCADE
 );
 
 -- Duyurular
