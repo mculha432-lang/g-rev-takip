@@ -283,6 +283,39 @@ async function generateTaskDetailExcel(taskId) {
 
 // ==================== PDF RAPORLARI ====================
 
+// Renk paleti
+const COLORS = {
+    primary:    '#B91C1C',   // Koyu kırmızı
+    primaryLt:  '#FEF2F2',   // Açık kırmızı bg
+    dark:       '#111827',   // Başlık metni
+    text:       '#374151',   // Normal metin
+    muted:      '#6B7280',   // Soluk metin
+    border:     '#D1D5DB',   // Kenar çizgisi
+    headerBg:   '#1E293B',   // Tablo başlık bg
+    headerTxt:  '#FFFFFF',   // Tablo başlık metin
+    rowEven:    '#F8FAFC',   // Çift satır bg
+    green:      '#059669',
+    greenLt:    '#ECFDF5',
+    blue:       '#2563EB',
+    blueLt:     '#EFF6FF',
+    orange:     '#D97706',
+    orangeLt:   '#FFFBEB',
+};
+
+// Hex rengi RGB dizisine çevir
+function hexToRGB(hex) {
+    const h = hex.replace('#', '');
+    return [parseInt(h.substring(0, 2), 16), parseInt(h.substring(2, 4), 16), parseInt(h.substring(4, 6), 16)];
+}
+
+// Yuvarlak köşeli dikdörtgen (stat card)
+function drawRoundedRect(doc, x, y, w, h, r, fillColor) {
+    const rgb = hexToRGB(fillColor);
+    doc.save();
+    doc.roundedRect(x, y, w, h, r).fill(rgb);
+    doc.restore();
+}
+
 // Görev Özet PDF
 async function generateTaskSummaryPDF() {
     ensureReportsDir();
@@ -291,52 +324,278 @@ async function generateTaskSummaryPDF() {
         const fileName = `gorev_ozeti_${Date.now()}.pdf`;
         const filePath = path.join(REPORTS_DIR, fileName);
 
-        const doc = new PDFDocument({ margin: 50 });
+        const doc = new PDFDocument({
+            size: 'A4',
+            margins: { top: 50, bottom: 60, left: 50, right: 50 },
+            bufferPages: true,
+            info: {
+                Title: 'Görev Özet Raporu',
+                Author: 'Elbistan İlçe Milli Eğitim Müdürlüğü',
+                Subject: 'Görev Takip Sistemi Raporu',
+                Creator: 'E-GTS v1.0'
+            }
+        });
         const stream = fs.createWriteStream(filePath);
-
         doc.pipe(stream);
 
-        // Türkçe karakter desteği için Arial font
+        // ── Fontları kaydet ──
         const fontPath = path.join(__dirname, '..', 'fonts', 'arial.ttf');
         const fontBoldPath = path.join(__dirname, '..', 'fonts', 'arialbd.ttf');
-
         doc.registerFont('Arial', fontPath);
-        doc.registerFont('Arial-Bold', fontBoldPath);
+        doc.registerFont('ArialBd', fontBoldPath);
         doc.font('Arial');
 
-        // Başlık
-        doc.font('Arial-Bold').fontSize(20).text('Elbistan İlçe Milli Eğitim Müdürlüğü', { align: 'center' });
-        doc.font('Arial').fontSize(16).text('Görev Özet Raporu', { align: 'center' });
-        doc.fontSize(10).text(`Oluşturulma: ${new Date().toLocaleString('tr-TR')}`, { align: 'center' });
-        doc.moveDown(2);
+        const pageW = doc.page.width;
+        const marginL = doc.page.margins.left;
+        const marginR = doc.page.margins.right;
+        const contentW = pageW - marginL - marginR;
 
-        // İstatistikler
+        // ── LOGO + BAŞLIK ALANI ──
+        const logoPath = path.join(__dirname, '..', 'public', 'images', 'logo.png');
+        const headerTop = 35;
+
+        // Üst kırmızı çizgi
+        doc.save();
+        doc.rect(0, 0, pageW, 4).fill(hexToRGB(COLORS.primary));
+        doc.restore();
+
+        // Logo (sol)
+        if (fs.existsSync(logoPath)) {
+            doc.image(logoPath, marginL, headerTop, { width: 60, height: 60 });
+        }
+
+        // Logo (sağ — aynı logo)
+        if (fs.existsSync(logoPath)) {
+            doc.image(logoPath, pageW - marginR - 60, headerTop, { width: 60, height: 60 });
+        }
+
+        // Başlık metinleri (ortalanmış)
+        const titleCenterX = marginL + 70;
+        const titleW = contentW - 140;
+        doc.font('ArialBd').fontSize(8).fillColor(hexToRGB(COLORS.muted));
+        doc.text('T.C.', titleCenterX, headerTop + 2, { width: titleW, align: 'center' });
+
+        doc.font('ArialBd').fontSize(11).fillColor(hexToRGB(COLORS.dark));
+        doc.text('ELBİSTAN KAYMAKAMLIĞI', titleCenterX, headerTop + 14, { width: titleW, align: 'center' });
+
+        doc.font('Arial').fontSize(9).fillColor(hexToRGB(COLORS.text));
+        doc.text('İlçe Milli Eğitim Müdürlüğü', titleCenterX, headerTop + 29, { width: titleW, align: 'center' });
+
+        doc.font('Arial').fontSize(8).fillColor(hexToRGB(COLORS.muted));
+        doc.text('Elektronik Görev Takip Sistemi', titleCenterX, headerTop + 42, { width: titleW, align: 'center' });
+
+        // Başlık altı çizgi
+        doc.save();
+        doc.moveTo(marginL, headerTop + 68).lineTo(pageW - marginR, headerTop + 68).lineWidth(1.5).strokeColor(hexToRGB(COLORS.primary)).stroke();
+        doc.moveTo(marginL, headerTop + 71).lineTo(pageW - marginR, headerTop + 71).lineWidth(0.5).strokeColor(hexToRGB(COLORS.border)).stroke();
+        doc.restore();
+
+        // Belge numarası ve tarih
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const timeStr = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+        doc.font('Arial').fontSize(8).fillColor(hexToRGB(COLORS.muted));
+        doc.text(`Rapor No: GTS-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${Date.now().toString().slice(-5)}`, marginL, headerTop + 78);
+        doc.text(`Tarih: ${dateStr}  Saat: ${timeStr}`, marginL, headerTop + 78, { width: contentW, align: 'right' });
+
+        // ── RAPOR BAŞLIĞI ──
+        const reportTitleY = headerTop + 98;
+        drawRoundedRect(doc, marginL, reportTitleY, contentW, 32, 6, COLORS.primaryLt);
+        doc.save();
+        doc.roundedRect(marginL, reportTitleY, contentW, 32, 6).lineWidth(1).strokeColor(hexToRGB('#FECACA')).stroke();
+        doc.restore();
+        doc.font('ArialBd').fontSize(14).fillColor(hexToRGB(COLORS.primary));
+        doc.text('GÖREV ÖZET RAPORU', marginL, reportTitleY + 9, { width: contentW, align: 'center' });
+
+        // ── İSTATİSTİK VERİLERİ ──
         const totalTasks = db.prepare('SELECT COUNT(*) as count FROM tasks').get().count;
         const totalAssignments = db.prepare('SELECT COUNT(*) as count FROM task_assignments').get().count;
         const completedAssignments = db.prepare("SELECT COUNT(*) as count FROM task_assignments WHERE status = 'completed'").get().count;
+        const pendingAssignments = db.prepare("SELECT COUNT(*) as count FROM task_assignments WHERE status IN ('pending','in_progress')").get().count;
         const successRate = totalAssignments > 0 ? Math.round((completedAssignments / totalAssignments) * 100) : 0;
 
-        doc.font('Arial').fontSize(12);
-        doc.text(`Toplam Görev: ${totalTasks}`);
-        doc.text(`Toplam Atama: ${totalAssignments}`);
-        doc.text(`Tamamlanan: ${completedAssignments}`);
-        doc.text(`Genel Başarı Oranı: %${successRate}`);
-        doc.moveDown(2);
+        // ── STAT KARTLARI ──
+        const cardsY = reportTitleY + 46;
+        const cardW = (contentW - 18) / 4;  // 4 kart, 6px boşluk
+        const cardH = 54;
 
-        // Görev listesi
-        doc.font('Arial-Bold').fontSize(14).text('Görevler', { underline: true });
-        doc.moveDown();
+        const statCards = [
+            { label: 'Toplam Görev', value: String(totalTasks), bg: COLORS.blueLt, color: COLORS.blue, border: '#BFDBFE' },
+            { label: 'Toplam Atama', value: String(totalAssignments), bg: COLORS.orangeLt, color: COLORS.orange, border: '#FDE68A' },
+            { label: 'Tamamlanan', value: String(completedAssignments), bg: COLORS.greenLt, color: COLORS.green, border: '#A7F3D0' },
+            { label: 'Başarı Oranı', value: `%${successRate}`, bg: COLORS.primaryLt, color: COLORS.primary, border: '#FECACA' },
+        ];
 
-        const tasks = db.prepare('SELECT * FROM tasks ORDER BY id DESC LIMIT 20').all();
+        statCards.forEach((card, i) => {
+            const cx = marginL + i * (cardW + 6);
+            drawRoundedRect(doc, cx, cardsY, cardW, cardH, 6, card.bg);
+            doc.save();
+            doc.roundedRect(cx, cardsY, cardW, cardH, 6).lineWidth(0.8).strokeColor(hexToRGB(card.border)).stroke();
+            doc.restore();
 
-        tasks.forEach((task, index) => {
-            const assignments = db.prepare('SELECT * FROM task_assignments WHERE task_id = ?').all(task.id);
-            const completed = assignments.filter(a => a.status === 'completed').length;
+            doc.font('ArialBd').fontSize(18).fillColor(hexToRGB(card.color));
+            doc.text(card.value, cx, cardsY + 8, { width: cardW, align: 'center' });
 
-            doc.font('Arial-Bold').fontSize(11).text(`${index + 1}. ${task.title}`);
-            doc.font('Arial').fontSize(9).text(`   Son Tarih: ${formatDate(task.deadline)} | Tamamlanan: ${completed}/${assignments.length}`);
-            doc.moveDown(0.5);
+            doc.font('Arial').fontSize(7.5).fillColor(hexToRGB(COLORS.muted));
+            doc.text(card.label, cx, cardsY + 32, { width: cardW, align: 'center' });
         });
+
+        // ── GÖREV TABLOSU ──
+        const tableTopY = cardsY + cardH + 20;
+
+        // Tablo başlığı
+        doc.font('ArialBd').fontSize(10).fillColor(hexToRGB(COLORS.dark));
+        doc.text('GÖREV LİSTESİ', marginL, tableTopY);
+
+        const tasks = db.prepare('SELECT * FROM tasks ORDER BY id DESC').all();
+
+        // Tablo çizelgesi
+        const colWidths = [28, contentW * 0.38, 70, 65, 65, 65, 55];
+        const headers = ['#', 'Görev Adı', 'Son Tarih', 'Atama', 'Tamamlanan', 'Bekleyen', 'Oran'];
+        const tableX = marginL;
+        let rowY = tableTopY + 18;
+        const rowH = 22;
+        const headerH = 26;
+
+        // Tablo başlık satırı
+        drawRoundedRect(doc, tableX, rowY, contentW, headerH, 4, COLORS.headerBg);
+        let colX = tableX;
+        headers.forEach((h, i) => {
+            doc.font('ArialBd').fontSize(7.5).fillColor(hexToRGB(COLORS.headerTxt));
+            doc.text(h, colX + 4, rowY + 8, { width: colWidths[i] - 8, align: i === 1 ? 'left' : 'center' });
+            colX += colWidths[i];
+        });
+        rowY += headerH;
+
+        // Tablo satırları
+        tasks.forEach((task, idx) => {
+            // Sayfa kontrolü
+            if (rowY + rowH > doc.page.height - 80) {
+                doc.addPage();
+                rowY = 50;
+                // Yeni sayfada başlık satırını tekrarla
+                drawRoundedRect(doc, tableX, rowY, contentW, headerH, 4, COLORS.headerBg);
+                let hx = tableX;
+                headers.forEach((h, i) => {
+                    doc.font('ArialBd').fontSize(7.5).fillColor(hexToRGB(COLORS.headerTxt));
+                    doc.text(h, hx + 4, rowY + 8, { width: colWidths[i] - 8, align: i === 1 ? 'left' : 'center' });
+                    hx += colWidths[i];
+                });
+                rowY += headerH;
+            }
+
+            const assignments = db.prepare('SELECT * FROM task_assignments WHERE task_id = ?').all(task.id);
+            const total = assignments.length;
+            const completed = assignments.filter(a => a.status === 'completed').length;
+            const pending = total - completed;
+            const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            // Zebra çizgileme
+            if (idx % 2 === 0) {
+                doc.save();
+                doc.rect(tableX, rowY, contentW, rowH).fill(hexToRGB(COLORS.rowEven));
+                doc.restore();
+            }
+
+            // Alt çizgi
+            doc.save();
+            doc.moveTo(tableX, rowY + rowH).lineTo(tableX + contentW, rowY + rowH).lineWidth(0.3).strokeColor(hexToRGB(COLORS.border)).stroke();
+            doc.restore();
+
+            const rowData = [
+                String(idx + 1),
+                task.title && task.title.length > 45 ? task.title.substring(0, 42) + '...' : (task.title || '-'),
+                formatDate(task.deadline),
+                String(total),
+                String(completed),
+                String(pending),
+                `%${rate}`
+            ];
+
+            colX = tableX;
+            rowData.forEach((val, i) => {
+                // Oran sütununda renkli badge
+                if (i === 6) {
+                    const rateNum = parseInt(val.replace('%', ''));
+                    let badgeColor = COLORS.primary;
+                    let badgeBg = COLORS.primaryLt;
+                    if (rateNum >= 80) { badgeColor = COLORS.green; badgeBg = COLORS.greenLt; }
+                    else if (rateNum >= 50) { badgeColor = COLORS.orange; badgeBg = COLORS.orangeLt; }
+                    else if (rateNum >= 1) { badgeColor = COLORS.blue; badgeBg = COLORS.blueLt; }
+
+                    drawRoundedRect(doc, colX + 8, rowY + 4, colWidths[i] - 16, 14, 3, badgeBg);
+                    doc.font('ArialBd').fontSize(7).fillColor(hexToRGB(badgeColor));
+                    doc.text(val, colX + 4, rowY + 6, { width: colWidths[i] - 8, align: 'center' });
+                } else {
+                    doc.font(i === 1 ? 'ArialBd' : 'Arial').fontSize(7.5).fillColor(hexToRGB(i === 1 ? COLORS.dark : COLORS.text));
+                    doc.text(val, colX + 4, rowY + 6, { width: colWidths[i] - 8, align: i === 1 ? 'left' : 'center' });
+                }
+                colX += colWidths[i];
+            });
+
+            rowY += rowH;
+        });
+
+        // Tablo alt kenarı
+        doc.save();
+        doc.moveTo(tableX, rowY).lineTo(tableX + contentW, rowY).lineWidth(1).strokeColor(hexToRGB(COLORS.primary)).stroke();
+        doc.restore();
+
+        // ── ÖZET KUTUSU ──
+        if (rowY + 80 > doc.page.height - 80) {
+            doc.addPage();
+            rowY = 50;
+        }
+        rowY += 14;
+
+        drawRoundedRect(doc, marginL, rowY, contentW, 60, 6, '#F0F4FF');
+        doc.save();
+        doc.roundedRect(marginL, rowY, contentW, 60, 6).lineWidth(0.8).strokeColor(hexToRGB('#BFDBFE')).stroke();
+        doc.restore();
+
+        doc.font('ArialBd').fontSize(9).fillColor(hexToRGB(COLORS.blue));
+        doc.text('ÖZET BİLGİLER', marginL + 14, rowY + 8);
+
+        doc.font('Arial').fontSize(8).fillColor(hexToRGB(COLORS.text));
+        const summaryCol1X = marginL + 14;
+        const summaryCol2X = marginL + contentW / 2;
+        doc.text(`Toplam Görev Sayısı: ${totalTasks}`, summaryCol1X, rowY + 24);
+        doc.text(`Toplam Atama Sayısı: ${totalAssignments}`, summaryCol1X, rowY + 38);
+        doc.text(`Tamamlanan Görev: ${completedAssignments}`, summaryCol2X, rowY + 24);
+        doc.text(`Bekleyen Görev: ${pendingAssignments}`, summaryCol2X, rowY + 38);
+
+        // ── SAYFA NUMARALARI + FOOTER ──
+        const totalPages = doc.bufferedPageRange().count;
+        for (let i = 0; i < totalPages; i++) {
+            doc.switchToPage(i);
+
+            // Alt kırmızı çizgi
+            const footerY = doc.page.height - 45;
+            doc.save();
+            doc.moveTo(marginL, footerY).lineTo(pageW - marginR, footerY).lineWidth(0.5).strokeColor(hexToRGB(COLORS.primary)).stroke();
+            doc.restore();
+
+            // Footer metinleri
+            doc.font('Arial').fontSize(7).fillColor(hexToRGB(COLORS.muted));
+            doc.text(
+                'Elbistan İlçe Milli Eğitim Müdürlüğü — Elektronik Görev Takip Sistemi (E-GTS)',
+                marginL, footerY + 6,
+                { width: contentW, align: 'left' }
+            );
+            doc.text(
+                `Sayfa ${i + 1} / ${totalPages}`,
+                marginL, footerY + 6,
+                { width: contentW, align: 'right' }
+            );
+
+            doc.font('Arial').fontSize(6).fillColor(hexToRGB(COLORS.muted));
+            doc.text(
+                `Bu rapor ${dateStr} tarihinde ${timeStr} saatinde otomatik olarak oluşturulmuştur.`,
+                marginL, footerY + 18,
+                { width: contentW, align: 'center' }
+            );
+        }
 
         doc.end();
 
