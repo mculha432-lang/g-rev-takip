@@ -29,15 +29,30 @@ const schoolPanelController = {
             `).all(userId);
 
             // İstatistikler
-            const totalTasks = myTasks.length;
+            let totalTasks = 0;
             let completedTasks = 0;
             let pendingTasks = 0;
             let inProgressTasks = 0;
 
+            const now = new Date();
+
             myTasks.forEach(task => {
-                if (task.status === 'completed') completedTasks++;
-                else if (task.status === 'in_progress') inProgressTasks++;
-                else pendingTasks++;
+                let isExpired = false;
+                if (task.deadline && task.status !== 'completed' && task.status !== 'rejected') {
+                    const dDate = new Date(task.deadline);
+                    if (task.deadline.length <= 10) dDate.setHours(23, 59, 59, 999);
+                    if (now > dDate) isExpired = true;
+                }
+
+                if (task.status === 'completed') {
+                    completedTasks++;
+                    totalTasks++;
+                } else if (!isExpired) {
+                    // Sadece süresi dolmamış aktif görevleri sayılara ekle
+                    totalTasks++;
+                    if (task.status === 'in_progress') inProgressTasks++;
+                        else pendingTasks++;
+                }
             });
 
             // Son duyuru
