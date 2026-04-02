@@ -8,21 +8,54 @@ const adminController = {
     dashboard: (req, res) => {
         try {
             // İstatistikler - Kartlar için
+            const allTasksRows = db.prepare("SELECT id, deadline FROM tasks").all();
+            const now = new Date();
+            
+            let activeTaskIds = [];
+            let expiredTaskIds = [];
+            
+            allTasksRows.forEach(t => {
+                let isExpired = false;
+                if (t.deadline) {
+                    const dDate = new Date(t.deadline);
+                    if (t.deadline.length <= 10) dDate.setHours(23, 59, 59, 999);
+                    if (now > dDate) isExpired = true;
+                }
+                if (!isExpired) {
+                    activeTaskIds.push(t.id);
+                } else {
+                    expiredTaskIds.push(t.id);
+                }
+            });
+
             const totalUsers = db.prepare("SELECT COUNT(*) as count FROM users WHERE role != 'admin'").get().count;
-            const totalTasks = db.prepare("SELECT COUNT(*) as count FROM tasks").get().count;
+            const totalTasks = activeTaskIds.length;
 
             // Atamalar ve Başarı Oranı
             let totalAssignments = 0;
             let completedTasks = 0;
             let successRate = 0;
+            let pendingTasks = 0;
 
             try {
+                // Sadece süresi dolmamış aktif görevlerin atamalarını al (Bekleyenleri hesaplamak için)
+                let activeAssignmentsCount = 0;
+                let activeCompletedCount = 0;
+                
+                if (activeTaskIds.length > 0) {
+                    const placeholders = activeTaskIds.map(() => '?').join(',');
+                    activeAssignmentsCount = db.prepare(`SELECT COUNT(*) as count FROM task_assignments WHERE task_id IN (${placeholders})`).get(...activeTaskIds).count;
+                    activeCompletedCount = db.prepare(`SELECT COUNT(*) as count FROM task_assignments WHERE status = 'completed' AND task_id IN (${placeholders})`).get(...activeTaskIds).count;
+                }
+                
+                // Başarı oranı hesaplaması için TÜM görevler (Geçmiş ve aktif)
                 totalAssignments = db.prepare("SELECT COUNT(*) as count FROM task_assignments").get().count;
                 completedTasks = db.prepare("SELECT COUNT(*) as count FROM task_assignments WHERE status = 'completed'").get().count;
                 successRate = totalAssignments > 0 ? Math.round((completedTasks / totalAssignments) * 100) : 0;
-            } catch (e) { }
-
-            const pendingTasks = totalAssignments - completedTasks;
+                
+                // Bekleyen görevler sadece aktif görevler üzerinden hesaplanmalı
+                pendingTasks = activeAssignmentsCount - activeCompletedCount;
+            } catch (e) { console.error("Grafik veri hatası:", e); }
 
             // --- DETAYLI GRAFİK VERİLERİ ---
 
