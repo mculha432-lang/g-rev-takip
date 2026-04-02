@@ -569,6 +569,7 @@ async function generateTaskSummaryPDF() {
         const totalPages = doc.bufferedPageRange().count;
         for (let i = 0; i < totalPages; i++) {
             doc.switchToPage(i);
+            doc.page.margins.bottom = 0;
 
             // Alt kırmızı çizgi
             const footerY = doc.page.height - 45;
@@ -860,6 +861,7 @@ async function generateSchoolPerformancePDF() {
         const totalPages = doc.bufferedPageRange().count;
         for (let i = 0; i < totalPages; i++) {
             doc.switchToPage(i);
+            doc.page.margins.bottom = 0;
             const footerY = doc.page.height - 45;
 
             doc.save();
