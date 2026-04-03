@@ -99,49 +99,82 @@
                                                     <% } %>
 
                                                         <!-- Çoklu ek dosyalar (yönetici tarafından yüklenen) -->
-                                                        <% if (typeof taskAttachments !=='undefined' && taskAttachments
-                                                            && taskAttachments.length> 0) { %>
-                                                            <div class="task-meta-item"
-                                                                style="flex-direction:column; align-items:flex-start; gap:8px; width:100%;">
-                                                                <div style="display:flex; align-items:center; gap:8px;">
-                                                                    <i class="fas fa-paperclip"
-                                                                        style="color:var(--red);"></i>
-                                                                    <div>
-                                                                        <span
-                                                                            style="display:block;font-size:11px;color:var(--gray-600);font-weight:500;">
-                                                                            Ekli Dosyalar
-                                                                        </span>
-                                                                        <span
-                                                                            style="font-size:12px; font-weight:700; color:var(--red);">
-                                                                            <%= taskAttachments.length %> dosya
-                                                                        </span>
-                                                                    </div>
+                                                        <% if (typeof taskAttachments !=='undefined' && taskAttachments && taskAttachments.length > 0) { %>
+                                                            <div class="task-meta-item" style="flex-basis: 100%; border-top: 1px solid #f1f5f9; padding-top: 15px; margin-top: 10px;">
+                                                                <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                                                                    <i class="fas fa-paperclip" style="color:var(--red); font-size: 16px;"></i>
+                                                                    <span style="font-size:13px; font-weight:700; color:var(--gray-700);">Kurumdan Gelen Ekli Dosyalar (<%= taskAttachments.length %>)</span>
                                                                 </div>
-                                                                <div
-                                                                    style="display:flex; flex-wrap:wrap; gap:8px; padding-left:24px;">
-                                                                    <% taskAttachments.forEach(function(attach, idx) {
-                                                                        %>
-                                                                        <a href="/uploads/tasks/<%= attach.file_path %>"
-                                                                            target="_blank"
-                                                                            style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; background:#fff5f5; border:1px solid #fecaca; border-radius:8px; font-size:13px; font-weight:600; color:var(--red); text-decoration:none;">
-                                                                            <i class="fas fa-download"></i>
-                                                                            <%= attach.original_name ?
-                                                                                (attach.original_name.length> 30 ?
-                                                                                attach.original_name.substring(0, 27) +
-                                                                                '...' : attach.original_name)
-                                                                                : ('Dosya ' + (idx + 1)) %>
+                                                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; width: 100%;">
+                                                                    <% taskAttachments.forEach(function(attach, idx) { %>
+                                                                        <a href="/uploads/tasks/<%= attach.file_path %>" target="_blank" 
+                                                                           class="attachment-download-box"
+                                                                           title="<%= attach.original_name %>">
+                                                                            <div class="adb-icon"><i class="fas fa-file-download"></i></div>
+                                                                            <div class="adb-info">
+                                                                                <span class="adb-name">
+                                                                                    <%= attach.original_name ? (attach.original_name.length > 25 ? attach.original_name.substring(0, 22) + '...' : attach.original_name) : ('Dosya ' + (idx + 1)) %>
+                                                                                </span>
                                                                                 <% if (attach.file_size) { %>
-                                                                                    <span
-                                                                                        style="font-size:10px; color:#94a3b8; font-weight:400;">
-                                                                                        (<%= (attach.file_size /
-                                                                                            1024).toFixed(0) %>KB)
-                                                                                    </span>
-                                                                                    <% } %>
+                                                                                    <span class="adb-size"><%= (attach.file_size / 1024).toFixed(0) %> KB</span>
+                                                                                <% } %>
+                                                                            </div>
                                                                         </a>
-                                                                        <% }) %>
+                                                                    <% }) %>
                                                                 </div>
                                                             </div>
-                                                            <% } else if (task.task_file) { %>
+                                                            <style>
+                                                                .attachment-download-box {
+                                                                    display: flex;
+                                                                    align-items: center;
+                                                                    gap: 12px;
+                                                                    padding: 10px 14px;
+                                                                    background: #f8fafc;
+                                                                    border: 1px solid #e2e8f0;
+                                                                    border-radius: 10px;
+                                                                    text-decoration: none;
+                                                                    transition: all 0.2s ease;
+                                                                    overflow: hidden;
+                                                                }
+                                                                .attachment-download-box:hover {
+                                                                    background: #fff5f5;
+                                                                    border-color: #fecaca;
+                                                                    transform: translateY(-2px);
+                                                                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                                                                }
+                                                                .adb-icon {
+                                                                    width: 32px;
+                                                                    height: 32px;
+                                                                    background: white;
+                                                                    border-radius: 8px;
+                                                                    display: flex;
+                                                                    align-items: center;
+                                                                    justify-content: center;
+                                                                    color: var(--red);
+                                                                    font-size: 14px;
+                                                                    border: 1px solid #e2e8f0;
+                                                                    flex-shrink: 0;
+                                                                }
+                                                                .adb-info {
+                                                                    display: flex;
+                                                                    flex-direction: column;
+                                                                    min-width: 0;
+                                                                }
+                                                                .adb-name {
+                                                                    font-size: 12px;
+                                                                    font-weight: 600;
+                                                                    color: var(--gray-700);
+                                                                    white-space: nowrap;
+                                                                    overflow: hidden;
+                                                                    text-overflow: ellipsis;
+                                                                }
+                                                                .adb-size {
+                                                                    font-size: 10px;
+                                                                    color: var(--gray-400);
+                                                                    font-weight: 500;
+                                                                }
+                                                            </style>
+                                                        <% } else if (task.task_file) { %>
                                                                 <!-- Geriye dönük uyumluluk: eski tek dosya -->
                                                                 <div class="task-meta-item">
                                                                     <i class="fas fa-file-alt"></i>

@@ -289,7 +289,9 @@ const schoolPanelController = {
                 );
                 
                 files.forEach(file => {
-                    insertFileStmt.run(id, file.filename, file.originalname, file.size);
+                    // Multer uses latin1 for filenames by default, convert to utf-8 for Turkish characters
+                    const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+                    insertFileStmt.run(id, file.filename, originalName, file.size);
                 });
 
                 // Geriye dönük uyumluluk için response_file sütununa ilk dosyanın adını yaz

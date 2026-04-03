@@ -89,7 +89,9 @@ const taskController = {
                     VALUES (?, ?, ?, ?)
                 `);
                 req.files.forEach(file => {
-                    attachStmt.run(taskId, file.filename, file.originalname, file.size);
+                    // Multer uses latin1 for filenames by default, convert to utf-8 for Turkish characters
+                    const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+                    attachStmt.run(taskId, file.filename, originalName, file.size);
                 });
             }
 
@@ -392,7 +394,9 @@ const taskController = {
                     VALUES (?, ?, ?, ?)
                 `);
                 req.files.forEach(file => {
-                    attachStmt.run(id, file.filename, file.originalname, file.size);
+                    // Multer uses latin1 for filenames by default, convert to utf-8 for Turkish characters
+                    const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+                    attachStmt.run(id, file.filename, originalName, file.size);
                 });
             }
 

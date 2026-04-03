@@ -45,31 +45,80 @@
                         </div>
 
                         <!-- Çoklu ek dosyalar -->
-                        <% if (taskAttachments && taskAttachments.length> 0) { %>
-                            <div class="task-meta-item" style="flex-direction:column; align-items:flex-start; gap:8px;">
-                                <div style="display:flex; align-items:center; gap:8px;">
-                                    <span class="meta-icon"><i class="fas fa-paperclip"></i></span>
-                                    <div>
-                                        <span class="meta-label">Ek Dosyalar</span>
-                                        <span style="font-size:12px; font-weight:700; color:#3b82f6;">
-                                            <%= taskAttachments.length %> dosya
-                                        </span>
-                                    </div>
+                        <% if (taskAttachments && taskAttachments.length > 0) { %>
+                            <div class="task-meta-item" style="flex-basis: 100%; border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 10px;">
+                                <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                                    <span class="meta-icon" style="background:#eff6ff; color:#3b82f6;"><i class="fas fa-paperclip"></i></span>
+                                    <span style="font-size:13px; font-weight:700; color:#475569;">Ekli Dosyalar (<%= taskAttachments.length %>)</span>
                                 </div>
-                                <div style="display:flex; flex-wrap:wrap; gap:8px; padding-left:36px;">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; width: 100%;">
                                     <% taskAttachments.forEach(function(attach) { %>
-                                        <a href="/uploads/tasks/<%= attach.file_path %>" target="_blank"
-                                            style="display:inline-flex; align-items:center; gap:6px; padding:5px 12px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; font-size:12px; font-weight:600; color:#1d4ed8; text-decoration:none;"
-                                            title="<%= attach.original_name || attach.file_path %>">
-                                            <i class="fas fa-file-download"></i>
-                                            <%= attach.original_name ? (attach.original_name.length> 25 ?
-                                                attach.original_name.substring(0,22)+'...' : attach.original_name)
-                                                : 'Dosya' %>
+                                        <a href="/uploads/tasks/<%= attach.file_path %>" target="_blank" 
+                                           class="admin-attachment-box"
+                                           title="<%= attach.original_name %>">
+                                            <div class="aab-icon"><i class="fas fa-file-download"></i></div>
+                                            <div class="aab-info">
+                                                <span class="aab-name">
+                                                    <%= attach.original_name ? (attach.original_name.length > 25 ? attach.original_name.substring(0, 22) + '...' : attach.original_name) : 'Dosya' %>
+                                                </span>
+                                                <% if (attach.file_size) { %>
+                                                    <span class="aab-size"><%= (attach.file_size / 1024).toFixed(0) %> KB</span>
+                                                <% } %>
+                                            </div>
                                         </a>
-                                        <% }) %>
+                                    <% }) %>
                                 </div>
                             </div>
-                            <% } else if (task.file_path) { %>
+                            <style>
+                                .admin-attachment-box {
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 12px;
+                                    padding: 8px 12px;
+                                    background: #f8fafc;
+                                    border: 1px solid #e2e8f0;
+                                    border-radius: 10px;
+                                    text-decoration: none;
+                                    transition: all 0.2s ease;
+                                    overflow: hidden;
+                                }
+                                .admin-attachment-box:hover {
+                                    background: #eff6ff;
+                                    border-color: #bfdbfe;
+                                    transform: translateY(-2px);
+                                }
+                                .aab-icon {
+                                    width: 30px;
+                                    height: 30px;
+                                    background: white;
+                                    border-radius: 8px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    color: #3b82f6;
+                                    font-size: 13px;
+                                    border: 1px solid #e2e8f0;
+                                    flex-shrink: 0;
+                                }
+                                .aab-info {
+                                    display: flex;
+                                    flex-direction: column;
+                                    min-width: 0;
+                                }
+                                .aab-name {
+                                    font-size: 11px;
+                                    font-weight: 600;
+                                    color: #334155;
+                                    white-space: nowrap;
+                                    overflow: hidden;
+                                    text-overflow: ellipsis;
+                                }
+                                .aab-size {
+                                    font-size: 9px;
+                                    color: #64748b;
+                                }
+                            </style>
+                        <% } else if (task.file_path) { %>
                                 <!-- Geriye dönük uyumluluk: eski tek dosya -->
                                 <div class="task-meta-item">
                                     <span class="meta-icon"><i class="fas fa-file-alt"></i></span>
