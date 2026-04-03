@@ -17,7 +17,7 @@
         lise: '#ef4444' , anaokulu: '#f59e0b' , diger: '#6b7280' , rehabilitasyon: '#10b981' , surucu_kursu: '#f97316' ,
         kurs: '#06b6d4' , yurt: '#ec4899' }; %>
 
-    <link rel="stylesheet" href="/css/admin_task_edit.css">
+        <link rel="stylesheet" href="/css/admin_task_edit.css">
 
         <div class="tp page-root">
             <div class="edit-container">
@@ -87,27 +87,88 @@
                                 <p>Okulların dolduracağı alanları ve dosya ayarlarını yapılandırın.</p>
                             </div>
 
-                            <!-- Ek Dosya -->
+                            <!-- Ek Dosya - MULTIPLE destekli -->
                             <div class="gf-card">
-                                <div class="gf-card-label"><i class="fas fa-paperclip"></i> Ek Dosya (İsteğe Bağlı)
+                                <div class="gf-card-label">
+                                    <i class="fas fa-paperclip"></i> Ek Dosyalar
+                                    <% if (taskAttachments && taskAttachments.length> 0) { %>
+                                        <span
+                                            style="margin-left:8px; background:#3b82f6; color:#fff; font-size:11px; padding:2px 8px; border-radius:10px;">
+                                            <%= taskAttachments.length %> dosya
+                                        </span>
+                                        <% } %>
                                 </div>
-                                <% if (task.file_path) { %>
-                                    <div class="gf-existing-file"><i class="fas fa-file-alt"></i> Mevcut: <%=
-                                            task.file_path %>
-                                    </div>
-                                    <% } %>
-                                        <div class="gf-file-zone"
-                                            onclick="document.getElementById('taskFileInput').click()">
-                                            <input type="file" name="task_file" id="taskFileInput">
-                                            <div class="gf-file-icon"><i class="fas fa-cloud-upload-alt"></i></div>
-                                            <div class="gf-file-text">Dosya seçmek için tıklayın</div>
-                                            <div class="gf-file-sub">
-                                                <%= task.file_path ? 'Mevcut dosyayı değiştirmek için yeni dosya seçin'
-                                                    : 'PDF, Word, Excel vb.' %>
-                                            </div>
+
+                                <!-- Mevcut dosyaların listesi — tek tek silinebilir -->
+                                <% if (taskAttachments && taskAttachments.length> 0) { %>
+                                    <div style="margin-bottom:14px;">
+                                        <div
+                                            style="font-size:12px; font-weight:700; color:#64748b; margin-bottom:8px; text-transform:uppercase; letter-spacing:.5px;">
+                                            Mevcut Dosyalar
                                         </div>
-                                        <div class="gf-file-chosen" id="fileChosen"><i class="fas fa-check-circle"></i>
-                                            <span id="fileChosenName"></span></div>
+                                        <div id="existingAttachments"
+                                            style="display:flex; flex-direction:column; gap:8px;">
+                                            <% taskAttachments.forEach(function(attach) { %>
+                                                <div class="existing-attach-item" id="attach-row-<%= attach.id %>"
+                                                    style="display:flex; align-items:center; gap:10px; padding:10px 14px; background:#f0f7ff; border:1px solid #cce3ff; border-radius:10px;">
+                                                    <i class="fas fa-file-alt"
+                                                        style="color:#2563eb; flex-shrink:0;"></i>
+                                                    <span
+                                                        style="flex:1; font-size:13px; font-weight:600; color:#1e3a8a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                                        <%= attach.original_name || attach.file_path %>
+                                                    </span>
+                                                    <% if (attach.file_size) { %>
+                                                        <span style="font-size:11px; color:#64748b; flex-shrink:0;">
+                                                            (<%= (attach.file_size / 1024).toFixed(1) %> KB)
+                                                        </span>
+                                                        <% } %>
+                                                            <a href="/uploads/tasks/<%= attach.file_path %>"
+                                                                target="_blank"
+                                                                style="flex-shrink:0; font-size:11px; color:#2563eb; text-decoration:none; border:1px solid #93c5fd; padding:3px 8px; border-radius:6px;"
+                                                                title="Görüntüle">
+                                                                <i class="fas fa-eye"></i>
+                                                            </a>
+                                                            <!-- Silme butonu: form içinde hidden input ile gönder -->
+                                                            <button type="button"
+                                                                onclick="markAttachmentForDelete('<%= attach.id %>')"
+                                                                style="flex-shrink:0; background:#fef2f2; color:#ef4444; border:1px solid #fecaca; border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer;"
+                                                                title="Bu dosyayı sil">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </button>
+                                                            <!-- Silme için hidden input (JS tarafından dinamik ekleniyor) -->
+                                                </div>
+                                                <% }) %>
+                                        </div>
+                                        <div id="deleteAttachContainer"></div>
+                                    </div>
+                                    <% } else { %>
+                                        <div
+                                            style="font-size:13px; color:#94a3b8; margin-bottom:10px; font-style:italic;">
+                                            <i class="fas fa-info-circle"></i> Henüz ek dosya yüklenmemiş.
+                                        </div>
+                                        <% } %>
+
+                                            <!-- Yeni dosya yükle -->
+                                            <div class="gf-file-zone"
+                                                onclick="document.getElementById('taskFileInput').click()">
+                                                <!-- multiple özniteliği eklendi -->
+                                                <input type="file" name="task_file" id="taskFileInput" multiple
+                                                    accept="*/*">
+                                                <div class="gf-file-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                                                <div class="gf-file-text">
+                                                    <%= (taskAttachments && taskAttachments.length> 0) ? 'Yeni
+                                                        dosya(lar) eklemek için tıklayın' : 'Dosya seçmek için tıklayın'
+                                                        %>
+                                                </div>
+                                                <div class="gf-file-sub">Birden fazla dosya seçebilirsiniz — PDF, Word,
+                                                    Excel vb.</div>
+                                            </div>
+
+                                            <!-- Seçilen yeni dosyaların önizlemesi -->
+                                            <div class="gf-file-chosen" id="fileChosen" style="display:none;">
+                                                <div id="fileChosenList"
+                                                    style="display:flex; flex-direction:column; gap:6px;"></div>
+                                            </div>
                             </div>
 
                             <!-- Dosya Ayarları -->
@@ -346,5 +407,57 @@
             </div>
         </div>
 
-    <script src="/js/admin_task_edit.js"></script>
+        <script>
+            // Dosya silme işaretleme fonksiyonu
+            function markAttachmentForDelete(attachId) {
+                if (!confirm('Bu dosyayı silmek istediğinize emin misiniz?')) return;
+
+                // Satırı görsel olarak kaldır
+                const row = document.getElementById('attach-row-' + attachId);
+                if (row) {
+                    row.style.opacity = '0.4';
+                    row.style.pointerEvents = 'none';
+                    row.style.textDecoration = 'line-through';
+                }
+
+                // Form submit edildiğinde bu id'yi sunucuya gönder
+                const container = document.getElementById('deleteAttachContainer');
+                if (container) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'delete_attachment_ids';
+                    input.value = attachId;
+                    container.appendChild(input);
+                }
+            }
+
+            // Yeni dosya seçildiğinde önizleme göster
+            document.addEventListener('DOMContentLoaded', function () {
+                const taskFileInput = document.getElementById('taskFileInput');
+                if (taskFileInput) {
+                    taskFileInput.addEventListener('change', function () {
+                        const fileChosen = document.getElementById('fileChosen');
+                        const fileChosenList = document.getElementById('fileChosenList');
+                        if (!fileChosen || !fileChosenList) return;
+
+                        fileChosenList.innerHTML = '';
+                        if (this.files && this.files.length > 0) {
+                            fileChosen.style.display = 'block';
+                            Array.from(this.files).forEach(function (file) {
+                                const item = document.createElement('div');
+                                item.style.cssText = 'display:flex; align-items:center; gap:8px; font-size:13px; color:#334155; padding:6px 10px; background:#f0fff4; border:1px solid #bbf7d0; border-radius:8px;';
+                                item.innerHTML = '<i class="fas fa-plus-circle" style="color:#16a34a; flex-shrink:0;"></i>'
+                                    + '<span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + file.name + '</span>'
+                                    + '<span style="color:#64748b; font-size:11px; flex-shrink:0;">(' + (file.size / 1024).toFixed(1) + ' KB)</span>';
+                                fileChosenList.appendChild(item);
+                            });
+                        } else {
+                            fileChosen.style.display = 'none';
+                        }
+                    });
+                }
+            });
+        </script>
+
+        <script src="/js/admin_task_edit.js"></script>
         <%- include('../layouts/footer') %>

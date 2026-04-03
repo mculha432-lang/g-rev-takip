@@ -3,7 +3,8 @@ const { uploads, deleteFile } = require('../utils/upload');
 const { sendPushNotification } = require('../utils/push');
 
 const taskController = {
-    uploadMulter: uploads.task.single('task_file'),
+    // .single yerine .array ile çoklu dosya yükleme (max 10 dosya)
+    uploadMulter: uploads.task.array('task_file', 10),
 
     /* ─────────────────────────────────────
        Görev Listesi
@@ -56,34 +57,47 @@ const taskController = {
     store: async (req, res) => {
         try {
             const { title, description, deadline, school_ids } = req.body;
-            const requiresFile    = req.body.requires_file    ? 1 : 0;
+            const requiresFile = req.body.requires_file ? 1 : 0;
             const isFileMandatory = req.body.is_file_mandatory ? 1 : 0;
-            const filePath        = req.file ? req.file.filename : null;
             const allowedFileTypes = req.body.allowed_file_types || '';
-            const maxFileCount     = req.body.max_file_count || 1;
+            const maxFileCount = req.body.max_file_count || 1;
 
             // Form alanları
-            const fieldTypes   = req.body.field_types   || [];
-            const fieldLabels  = req.body.field_labels  || [];
+            const fieldTypes = req.body.field_types || [];
+            const fieldLabels = req.body.field_labels || [];
             const fieldOptions = req.body.field_options || [];
             const fieldRequired = req.body.field_required || [];
 
-            // Görevi ekle
+            // Görevi ekle (file_path artık task_attachments tablosunda tutulacak,
+            // geriye dönük uyumluluk için ilk dosyayı file_path'e de yazıyoruz)
+            const firstFile = req.files && req.files.length > 0 ? req.files[0].filename : null;
+
             const result = db.prepare(`
                 INSERT INTO tasks
                     (title, description, deadline, file_path, requires_file,
                      is_file_mandatory, allowed_file_types, max_file_count)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            `).run(title, description, deadline, filePath,
-                   requiresFile, isFileMandatory, allowedFileTypes, maxFileCount);
+            `).run(title, description, deadline, firstFile,
+                requiresFile, isFileMandatory, allowedFileTypes, maxFileCount);
 
             const taskId = result.lastInsertRowid;
 
+            // Yüklenen tüm ek dosyaları task_attachments tablosuna kaydet
+            if (req.files && req.files.length > 0) {
+                const attachStmt = db.prepare(`
+                    INSERT INTO task_attachments (task_id, file_path, original_name, file_size)
+                    VALUES (?, ?, ?, ?)
+                `);
+                req.files.forEach(file => {
+                    attachStmt.run(taskId, file.filename, file.originalname, file.size);
+                });
+            }
+
             // Form alanlarını kaydet
             if (fieldTypes && fieldLabels) {
-                const typesArr    = Array.isArray(fieldTypes)    ? fieldTypes    : [fieldTypes];
-                const labelsArr   = Array.isArray(fieldLabels)   ? fieldLabels   : [fieldLabels];
-                const optionsArr  = Array.isArray(fieldOptions)  ? fieldOptions  : [fieldOptions];
+                const typesArr = Array.isArray(fieldTypes) ? fieldTypes : [fieldTypes];
+                const labelsArr = Array.isArray(fieldLabels) ? fieldLabels : [fieldLabels];
+                const optionsArr = Array.isArray(fieldOptions) ? fieldOptions : [fieldOptions];
                 const requiredArr = Array.isArray(fieldRequired) ? fieldRequired : [fieldRequired];
 
                 const fieldStmt = db.prepare(`
@@ -94,7 +108,7 @@ const taskController = {
 
                 typesArr.forEach((type, i) => {
                     if (labelsArr[i] && labelsArr[i].trim()) {
-                        const options    = optionsArr[i] || '';
+                        const options = optionsArr[i] || '';
                         const isRequired = requiredArr.includes(i.toString()) ? 1 : 0;
                         fieldStmt.run(taskId, type, labelsArr[i], options, isRequired, i);
                     }
@@ -112,9 +126,9 @@ const taskController = {
                     stmt.run(taskId, schoolId, 'pending');
                     await sendPushNotification(schoolId, {
                         title: '📋 Yeni Bir Görev Atandı',
-                        body:  `"${title}" başlıklı yeni bir görev hesabınıza tanımlanmıştır. Lütfen giriş yapıp kontrol ediniz.`,
-                        url:   '/okul/dashboard',
-                        tag:   'task-new-' + taskId
+                        body: `"${title}" başlıklı yeni bir görev hesabınıza tanımlanmıştır. Lütfen giriş yapıp kontrol ediniz.`,
+                        url: '/okul/dashboard',
+                        tag: 'task-new-' + taskId
                     });
                 }
             }
@@ -123,7 +137,7 @@ const taskController = {
         } catch (error) {
             console.error('CRITICAL ERROR in taskController.store:', error);
             res.status(500).render('404', {
-                title:   'Hata',
+                title: 'Hata',
                 message: 'Görev eklenirken bir hata oluştu: ' + error.message
             });
         }
@@ -139,6 +153,11 @@ const taskController = {
             const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
             if (!task) return res.status(404).send('Görev bulunamadı');
 
+            // Göreve ait tüm ek dosyaları getir
+            const taskAttachments = db.prepare(
+                'SELECT * FROM task_attachments WHERE task_id = ? ORDER BY created_at ASC'
+            ).all(id);
+
             // Atamalar (okul bilgileriyle)
             const assignments = db.prepare(`
                 SELECT ta.*, u.full_name, u.username
@@ -152,9 +171,9 @@ const taskController = {
             const total = assignments.length;
             let readCount = 0, completedCount = 0, pendingApprovalCount = 0;
             assignments.forEach(a => {
-                if (a.is_read)                        readCount++;
-                if (a.status === 'completed')         completedCount++;
-                if (a.status === 'pending_approval')  pendingApprovalCount++;
+                if (a.is_read) readCount++;
+                if (a.status === 'completed') completedCount++;
+                if (a.status === 'pending_approval') pendingApprovalCount++;
             });
 
             // Form alanları
@@ -227,17 +246,18 @@ const taskController = {
             });
 
             res.render('admin/task_detail', {
-                title:               'Görev Takibi',
-                activePage:          'tasks',
+                title: 'Görev Takibi',
+                activePage: 'tasks',
                 task,
-                assignments:         assignmentsWithResponses,
+                taskAttachments,
+                assignments: assignmentsWithResponses,
                 taskFields,
                 total,
                 readCount,
                 completedCount,
                 pendingApprovalCount,
                 messagesMap,
-                currentUserId:       req.session.user.id
+                currentUserId: req.session.user.id
             });
         } catch (error) {
             console.error('Görev detay hatası:', error);
@@ -251,8 +271,18 @@ const taskController = {
     delete: (req, res) => {
         try {
             const { id } = req.params;
+
+            // Göreve ait tüm ek dosyaları diskten sil
+            const attachments = db.prepare('SELECT file_path FROM task_attachments WHERE task_id = ?').all(id);
+            attachments.forEach(a => deleteFile('tasks', a.file_path));
+
+            // Geriye dönük uyumluluk: tasks.file_path'deki dosyayı da sil (attachments'ta yoksa)
             const task = db.prepare('SELECT file_path FROM tasks WHERE id = ?').get(id);
-            if (task && task.file_path) deleteFile('tasks', task.file_path);
+            if (task && task.file_path) {
+                const alreadyDeleted = attachments.some(a => a.file_path === task.file_path);
+                if (!alreadyDeleted) deleteFile('tasks', task.file_path);
+            }
+
             db.prepare('DELETE FROM tasks WHERE id = ?').run(id);
             res.redirect('/admin/tasks?status=deleted');
         } catch (error) {
@@ -271,6 +301,11 @@ const taskController = {
             const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
             if (!task) return res.redirect('/admin/tasks?status=not_found');
 
+            // Göreve ait tüm ek dosyaları getir
+            const taskAttachments = db.prepare(
+                'SELECT * FROM task_attachments WHERE task_id = ? ORDER BY created_at ASC'
+            ).all(id);
+
             const schools = db.prepare(
                 "SELECT * FROM users WHERE role = 'school' ORDER BY full_name ASC"
             ).all();
@@ -285,9 +320,9 @@ const taskController = {
 
             const assignedIds = assignedSchools.map(a => a.user_id);
             const assignedSchoolDetails = assignedSchools.map(a => ({
-                id:        a.user_id,
+                id: a.user_id,
                 full_name: a.full_name,
-                username:  a.username
+                username: a.username
             }));
 
             const taskFields = db.prepare(
@@ -300,9 +335,10 @@ const taskController = {
             ).all().map(r => r.school_type);
 
             res.render('admin/task_edit', {
-                title:               'Görev Düzenle',
-                activePage:          'tasks',
+                title: 'Görev Düzenle',
+                activePage: 'tasks',
                 task,
+                taskAttachments,
                 schools,
                 assignedIds,
                 assignedSchoolDetails,
@@ -323,20 +359,48 @@ const taskController = {
         try {
             const { id } = req.params;
             const { title, description, deadline, school_ids } = req.body;
-            const requiresFile    = req.body.requires_file    ? 1 : 0;
+            const requiresFile = req.body.requires_file ? 1 : 0;
             const isFileMandatory = req.body.is_file_mandatory ? 1 : 0;
             const allowedFileTypes = req.body.allowed_file_types || '';
-            const maxFileCount     = req.body.max_file_count || 1;
+            const maxFileCount = req.body.max_file_count || 1;
 
             const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
             if (!task) return res.redirect('/admin/tasks?status=not_found');
 
-            // Yeni dosya varsa eskiyi sil
-            let filePath = task.file_path;
-            if (req.file) {
-                if (task.file_path) deleteFile('tasks', task.file_path);
-                filePath = req.file.filename;
+            // Silinmesi istenen mevcut ekleri işle
+            const deleteAttachmentIds = req.body.delete_attachment_ids;
+            if (deleteAttachmentIds) {
+                const deleteArr = Array.isArray(deleteAttachmentIds)
+                    ? deleteAttachmentIds
+                    : [deleteAttachmentIds];
+
+                deleteArr.forEach(attachId => {
+                    const attach = db.prepare(
+                        'SELECT file_path FROM task_attachments WHERE id = ? AND task_id = ?'
+                    ).get(attachId, id);
+                    if (attach) {
+                        deleteFile('tasks', attach.file_path);
+                        db.prepare('DELETE FROM task_attachments WHERE id = ?').run(attachId);
+                    }
+                });
             }
+
+            // Yeni dosyalar varsa task_attachments'a ekle
+            if (req.files && req.files.length > 0) {
+                const attachStmt = db.prepare(`
+                    INSERT INTO task_attachments (task_id, file_path, original_name, file_size)
+                    VALUES (?, ?, ?, ?)
+                `);
+                req.files.forEach(file => {
+                    attachStmt.run(id, file.filename, file.originalname, file.size);
+                });
+            }
+
+            // Geriye dönük uyumluluk için tasks.file_path'i ilk ek dosya ile güncelle
+            const firstAttach = db.prepare(
+                'SELECT file_path FROM task_attachments WHERE task_id = ? ORDER BY created_at ASC LIMIT 1'
+            ).get(id);
+            const updatedFilePath = firstAttach ? firstAttach.file_path : null;
 
             // Görevi güncelle
             db.prepare(`
@@ -345,8 +409,8 @@ const taskController = {
                     requires_file = ?, is_file_mandatory = ?,
                     allowed_file_types = ?, max_file_count = ?
                 WHERE id = ?
-            `).run(title, description, deadline, filePath,
-                   requiresFile, isFileMandatory, allowedFileTypes, maxFileCount, id);
+            `).run(title, description, deadline, updatedFilePath,
+                requiresFile, isFileMandatory, allowedFileTypes, maxFileCount, id);
 
             // Kaldırılacak okullar
             const remove_school_ids = req.body.remove_school_ids;
@@ -374,25 +438,25 @@ const taskController = {
                     insertStmt.run(id, schoolId, 'pending');
                     await sendPushNotification(schoolId, {
                         title: '📋 Yeni Bir Görev Atandı',
-                        body:  `Daha önceden oluşturulmuş "${title}" başlıklı görev hesabınıza tanımlanmıştır.`,
-                        url:   '/okul/dashboard',
-                        tag:   'task-assign-' + id + '-' + schoolId
+                        body: `Daha önceden oluşturulmuş "${title}" başlıklı görev hesabınıza tanımlanmıştır.`,
+                        url: '/okul/dashboard',
+                        tag: 'task-assign-' + id + '-' + schoolId
                     });
                 }
             }
 
             // Form alanları
-            const fieldIds      = req.body.field_ids      || [];
-            const fieldTypes    = req.body.field_types    || [];
-            const fieldLabels   = req.body.field_labels   || [];
-            const fieldOptions  = req.body.field_options  || [];
+            const fieldIds = req.body.field_ids || [];
+            const fieldTypes = req.body.field_types || [];
+            const fieldLabels = req.body.field_labels || [];
+            const fieldOptions = req.body.field_options || [];
             const fieldRequired = req.body.field_required || [];
 
             if (fieldTypes && fieldLabels) {
-                const idsArr      = Array.isArray(fieldIds)      ? fieldIds      : [fieldIds];
-                const typesArr    = Array.isArray(fieldTypes)    ? fieldTypes    : [fieldTypes];
-                const labelsArr   = Array.isArray(fieldLabels)   ? fieldLabels   : [fieldLabels];
-                const optionsArr  = Array.isArray(fieldOptions)  ? fieldOptions  : [fieldOptions];
+                const idsArr = Array.isArray(fieldIds) ? fieldIds : [fieldIds];
+                const typesArr = Array.isArray(fieldTypes) ? fieldTypes : [fieldTypes];
+                const labelsArr = Array.isArray(fieldLabels) ? fieldLabels : [fieldLabels];
+                const optionsArr = Array.isArray(fieldOptions) ? fieldOptions : [fieldOptions];
                 const requiredArr = Array.isArray(fieldRequired) ? fieldRequired : [fieldRequired];
 
                 // Silinecek alanları bul
@@ -400,8 +464,8 @@ const taskController = {
                     'SELECT id FROM task_fields WHERE task_id = ?'
                 ).all(id);
                 const currentFieldIds = currentFields.map(f => f.id.toString());
-                const incomingIds     = idsArr.filter(fid => fid !== '').map(fid => fid.toString());
-                const toDelete        = currentFieldIds.filter(cid => !incomingIds.includes(cid));
+                const incomingIds = idsArr.filter(fid => fid !== '').map(fid => fid.toString());
+                const toDelete = currentFieldIds.filter(cid => !incomingIds.includes(cid));
 
                 if (toDelete.length > 0) {
                     const deleteFieldStmt = db.prepare('DELETE FROM task_fields WHERE id = ?');
@@ -422,9 +486,9 @@ const taskController = {
 
                 typesArr.forEach((type, i) => {
                     if (labelsArr[i] && labelsArr[i].trim()) {
-                        const options    = optionsArr[i] || '';
+                        const options = optionsArr[i] || '';
                         const isRequired = requiredArr.includes(i.toString()) ? 1 : 0;
-                        const fieldId    = idsArr[i];
+                        const fieldId = idsArr[i];
 
                         if (fieldId) {
                             updateStmt.run(type, labelsArr[i], options, isRequired, i, fieldId);
@@ -467,11 +531,11 @@ const taskController = {
             const task = db.prepare('SELECT title FROM tasks WHERE id = ?').get(taskId);
             await sendPushNotification(assignment.user_id, {
                 title: '✅ Göreviniz Onaylandı',
-                body:  task
+                body: task
                     ? `"${task.title}" başlıklı göreviniz yönetici tarafından onaylandı.`
                     : 'Göreviniz onaylandı.',
-                url:   `/okul/tasks/${assignmentId}`,
-                tag:   'approved-' + assignmentId
+                url: `/okul/tasks/${assignmentId}`,
+                tag: 'approved-' + assignmentId
             });
 
             res.redirect(`/admin/tasks/${taskId}?status=approved`);
@@ -504,11 +568,11 @@ const taskController = {
             const task = db.prepare('SELECT title FROM tasks WHERE id = ?').get(taskId);
             await sendPushNotification(assignment.user_id, {
                 title: '⚠️ Göreviniz İade Edildi',
-                body:  task
+                body: task
                     ? `"${task.title}" başlıklı göreviniz iade edildi. Not: ${note}`
                     : 'Göreviniz iade edildi.',
-                url:   `/okul/tasks/${assignmentId}`,
-                tag:   'rejected-' + assignmentId
+                url: `/okul/tasks/${assignmentId}`,
+                tag: 'rejected-' + assignmentId
             });
 
             res.redirect(`/admin/tasks/${taskId}?status=rejected`);
@@ -555,9 +619,9 @@ const taskController = {
                     try {
                         await sendPushNotification(info.user_id, {
                             title: `💬 Yeni Mesaj: ${info.task_title || 'Görev'}`,
-                            body:  preview,
-                            url:   `/okul/tasks/${assignmentId}`,
-                            tag:   'message-' + assignmentId + '-' + Date.now()
+                            body: preview,
+                            url: `/okul/tasks/${assignmentId}`,
+                            tag: 'message-' + assignmentId + '-' + Date.now()
                         });
                     } catch (pushErr) {
                         console.error('Push bildirim hatası:', pushErr);
@@ -593,7 +657,7 @@ const taskController = {
             }
 
             const path = require('path');
-            const fs   = require('fs');
+            const fs = require('fs');
             const { sanitizeFilename } = require('../utils/upload');
 
             const filePath = path.join(
@@ -605,7 +669,7 @@ const taskController = {
                 return res.status(404).send('Dosya sunucuda bulunamadı.');
             }
 
-            const ext          = path.extname(assignment.response_file);
+            const ext = path.extname(assignment.response_file);
             const downloadName = `${sanitizeFilename(assignment.school_name)}_${sanitizeFilename(assignment.task_title)}${ext}`;
 
             res.download(filePath, downloadName);
@@ -616,48 +680,78 @@ const taskController = {
     },
 
     /* ─────────────────────────────────────
+       Ek Dosya Sil (AJAX / Form)
+    ───────────────────────────────────── */
+    deleteAttachment: (req, res) => {
+        try {
+            const { taskId, attachmentId } = req.params;
+            const attach = db.prepare(
+                'SELECT file_path FROM task_attachments WHERE id = ? AND task_id = ?'
+            ).get(attachmentId, taskId);
+
+            if (!attach) {
+                return res.status(404).json({ success: false, message: 'Dosya bulunamadı.' });
+            }
+
+            deleteFile('tasks', attach.file_path);
+            db.prepare('DELETE FROM task_attachments WHERE id = ?').run(attachmentId);
+
+            // tasks.file_path'i güncelle
+            const firstAttach = db.prepare(
+                'SELECT file_path FROM task_attachments WHERE task_id = ? ORDER BY created_at ASC LIMIT 1'
+            ).get(taskId);
+            db.prepare('UPDATE tasks SET file_path = ? WHERE id = ?').run(
+                firstAttach ? firstAttach.file_path : null, taskId
+            );
+
+            if (req.xhr || req.headers.accept?.includes('application/json')) {
+                return res.json({ success: true });
+            }
+            res.redirect(`/admin/tasks/${taskId}/edit?status=attachment_deleted`);
+        } catch (error) {
+            console.error('Ek dosya silme hatası:', error);
+            res.status(500).json({ success: false, message: 'Bir hata oluştu.' });
+        }
+    },
+
+    /* ─────────────────────────────────────
        Toplu Görev Onaylama
     ───────────────────────────────────── */
     approveBulk: (req, res) => {
         try {
             const { taskId } = req.params;
             let { assignmentIds } = req.body;
-            
+
             if (!assignmentIds) {
                 return res.redirect(`/admin/tasks/${taskId}?error=1`);
             }
-            
-            // Eğer tek bir değer geldiyse diziye çevir
+
             if (!Array.isArray(assignmentIds)) {
                 assignmentIds = [assignmentIds];
             }
-            
+
             if (assignmentIds.length === 0) {
                 return res.redirect(`/admin/tasks/${taskId}?error=1`);
             }
-            
+
             const placeholders = assignmentIds.map(() => '?').join(',');
-            
-            // Sadece pending_approval durumundakileri onayla
-            const db = require('../config/database');
+
             db.prepare(`
                 UPDATE task_assignments 
                 SET status = 'completed' 
                 WHERE task_id = ? AND status = 'pending_approval' AND id IN (${placeholders})
             `).run(taskId, ...assignmentIds);
-            
-            // Bildirim gönder (Asenkron)
+
             const task = db.prepare('SELECT title FROM tasks WHERE id = ?').get(taskId);
-            
+
             assignmentIds.forEach(id => {
                 const ta = db.prepare('SELECT user_id FROM task_assignments WHERE id = ?').get(id);
-                if(ta && task) {
-                   const { sendPushNotification } = require('../utils/push');
-                   sendPushNotification(ta.user_id, {
+                if (ta && task) {
+                    sendPushNotification(ta.user_id, {
                         title: '✅ Görev Onaylandı',
                         body: `'${task.title}' görevi için gönderdiğiniz yanıt onaylandı.`,
                         url: `/okul/tasks/${taskId}`
-                   }).catch(e => console.error('Push error:', e.message));
+                    }).catch(e => console.error('Push error:', e.message));
                 }
             });
 
@@ -670,4 +764,3 @@ const taskController = {
 };
 
 module.exports = taskController;
-

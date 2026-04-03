@@ -44,6 +44,9 @@ router.post('/:id/update', taskController.uploadMulter, virusScanner, csrfProtec
 // Görev Sil
 router.post('/:id/delete', taskController.delete);
 
+// Ek Dosya Sil (tek dosya silme)
+router.post('/:taskId/attachments/:attachmentId/delete', csrfProtection, taskController.deleteAttachment);
+
 // Görev İade Et (Reject)
 router.post('/:taskId/assignments/:assignmentId/reject', taskController.rejectAssignment);
 

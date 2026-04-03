@@ -1,582 +1,412 @@
-<%- include('../layouts/school_header') %>
+<%- include('../layouts/header') %>
 
-    <link rel="stylesheet" href="/css/okul_task_detail.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
+        rel="stylesheet">
 
-    <div class="page-header">
-        <div class="page-header-left">
-            <div class="page-header-icon"><i class="fas fa-tasks"></i></div>
-            <div>
-                <h1>Görev Detayı</h1>
-                <p>Görevi inceleyin ve yanıtınızı gönderin.</p>
+    <link rel="stylesheet" href="/css/admin_task_detail.css">
+
+    <div class="tp">
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="ph-left">
+                <div class="ph-icon"><i class="fas fa-chart-bar"></i></div>
+                <div>
+                    <h1>Görev Takibi</h1>
+                    <p>Görevin okul bazlı durumunu ve istatistiklerini inceleyin.</p>
+                </div>
+            </div>
+            <a href="/admin/tasks" class="btn-back"><i class="fas fa-arrow-left"></i> Geri Dön</a>
+        </div>
+
+        <!-- Task Info Card -->
+        <div class="task-card">
+            <div class="task-card-top">
+                <div class="task-title">
+                    <%= task.title %>
+                </div>
+                <a href="/admin/tasks/<%= task.id %>/edit" class="btn-primary">
+                    <i class="fas fa-edit"></i> Düzenle
+                </a>
+            </div>
+            <% if (task.description) { %>
+                <div class="task-desc">
+                    <%- task.description %>
+                </div>
+                <% } %>
+                    <div class="task-meta">
+                        <div class="task-meta-item">
+                            <span class="meta-icon"><i class="fas fa-calendar-alt"></i></span>
+                            <div>
+                                <span class="meta-label">Son Teslim</span>
+                                <%= task.deadline || 'Belirtilmemiş' %>
+                            </div>
+                        </div>
+
+                        <!-- Çoklu ek dosyalar -->
+                        <% if (taskAttachments && taskAttachments.length> 0) { %>
+                            <div class="task-meta-item" style="flex-direction:column; align-items:flex-start; gap:8px;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span class="meta-icon"><i class="fas fa-paperclip"></i></span>
+                                    <div>
+                                        <span class="meta-label">Ek Dosyalar</span>
+                                        <span style="font-size:12px; font-weight:700; color:#3b82f6;">
+                                            <%= taskAttachments.length %> dosya
+                                        </span>
+                                    </div>
+                                </div>
+                                <div style="display:flex; flex-wrap:wrap; gap:8px; padding-left:36px;">
+                                    <% taskAttachments.forEach(function(attach) { %>
+                                        <a href="/uploads/tasks/<%= attach.file_path %>" target="_blank"
+                                            style="display:inline-flex; align-items:center; gap:6px; padding:5px 12px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; font-size:12px; font-weight:600; color:#1d4ed8; text-decoration:none;"
+                                            title="<%= attach.original_name || attach.file_path %>">
+                                            <i class="fas fa-file-download"></i>
+                                            <%= attach.original_name ? (attach.original_name.length> 25 ?
+                                                attach.original_name.substring(0,22)+'...' : attach.original_name)
+                                                : 'Dosya ' + loop.index %>
+                                        </a>
+                                        <% }) %>
+                                </div>
+                            </div>
+                            <% } else if (task.file_path) { %>
+                                <!-- Geriye dönük uyumluluk: eski tek dosya -->
+                                <div class="task-meta-item">
+                                    <span class="meta-icon"><i class="fas fa-file-alt"></i></span>
+                                    <div>
+                                        <span class="meta-label">Ek Dosya</span>
+                                        <a href="/uploads/tasks/<%= task.file_path %>" target="_blank">Dosyayı
+                                            Görüntüle</a>
+                                    </div>
+                                </div>
+                                <% } %>
+                    </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card s-blue">
+                <div class="stat-icon"><i class="fas fa-school"></i></div>
+                <div class="stat-info">
+                    <h3>
+                        <%= total %>
+                    </h3>
+                    <p>Toplam Atama</p>
+                </div>
+            </div>
+            <div class="stat-card s-yellow">
+                <div class="stat-icon"><i class="fas fa-eye"></i></div>
+                <div class="stat-info">
+                    <h3>
+                        <%= readCount %>
+                    </h3>
+                    <p>Okuyan Okul</p>
+                </div>
+            </div>
+            <div class="stat-card s-orange">
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-info">
+                    <h3>
+                        <%= pendingApprovalCount %>
+                    </h3>
+                    <p>Onay Bekleyen</p>
+                </div>
+            </div>
+            <div class="stat-card s-green">
+                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-info">
+                    <h3>
+                        <%= completedCount %>
+                    </h3>
+                    <p>Tamamlanan</p>
+                </div>
             </div>
         </div>
-        <a href="/okul/dashboard" class="btn-back"><i class="fas fa-arrow-left"></i> Geri Dön</a>
-    </div>
 
-    <% const statusMessages={ 'success' : { updated: 'Yanıtınız başarıyla kaydedildi.' ,
-        message_sent: 'Mesajınız gönderildi.' }, 'error' : { missing_file: 'Lütfen bir dosya yükleyin.' ,
-        empty_message: 'Mesaj boş olamaz.' , '1' : 'Bir hata oluştu, lütfen tekrar deneyin.' } }; %>
-
-        <% if (typeof success !=='undefined' && success) { %>
-            <div class="alert alert-success">
-                <i class="fas fa-check-circle"></i>
-                <%= success==='updated' ? 'Yanıtınız başarıyla kaydedildi.' : success==='message_sent'
-                    ? 'Mesajınız gönderildi.' : 'İşlem başarılı.' %>
+        <!-- Assignments Table -->
+        <div class="card">
+            <div class="card-header"
+                style="display: flex; justify-content: space-between; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="ch-icon"><i class="fas fa-list-ul"></i></div>
+                    Okul Durumları
+                </div>
+                <button type="button" onclick="document.getElementById('bulkApproveForm').submit()" class="btn-primary"
+                    style="padding: 6px 12px; font-size: 12px;">
+                    <i class="fas fa-check-double"></i> Seçilenleri Onayla
+                </button>
             </div>
-            <% } %>
-                <% if (typeof error !=='undefined' && error) { %>
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <%= error==='missing_file' ? 'Lütfen bir dosya yükleyin.' : error==='already_submitted'
-                            ? 'Bu görev zaten onaya gönderilmiş veya tamamlanmış. Değişiklik yapmak için yöneticiden İade istemeniz gerekmektedir.'
-                            : error==='deadline_passed'
-                            ? 'Bu görevin süresi dolmuştur. İşlem yapmak için yönetici tarafından İade (Tekrar düzenleme izni) verilmesi gerekmektedir.'
-                            : error==='empty_message' ? 'Mesaj boş olamaz.' : 'Bir hata oluştu, lütfen tekrar deneyin.'
-                            %>
-                    </div>
-                    <% } %>
+            <div class="table-wrap">
+                <form id="bulkApproveForm" action="/admin/tasks/<%= task.id %>/approve-bulk" method="POST">
+                    <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAllItems"
+                                        title="Tümünü Seç"></th>
+                                <th class="sortable" data-sort="name">Okul <i class="fas fa-sort sort-icon"></i></th>
+                                <th>Kurum Kodu</th>
+                                <th>Okundu</th>
+                                <th class="sortable" data-sort="status">Durum <i class="fas fa-sort sort-icon"></i></th>
+                                <th>Yanıt / Form</th>
+                                <th>Dosya</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <% assignments.forEach(assignment=> {
+                                const isCompleted = assignment.status === 'completed';
+                                const isPendingApp = assignment.status === 'pending_approval';
+                                const isRejected = assignment.status === 'rejected';
 
-                        <% if (typeof isDeadlinePassed !=='undefined' && isDeadlinePassed) { %>
-                            <div class="alert alert-warning"
-                                style="background:#fff7ed; color:#c2410c; border-color:#fed7aa;">
-                                <i class="fas fa-clock"></i>
-                                <strong>Süre Doldu:</strong> Bu görevin son teslim tarihi geçmiştir. Yönetici iade
-                                etmediği sürece herhangi bir değişiklik yapamazsınız. Detaylar için mesajlaşma kısmından
-                                yöneticinize ulaşabilirsiniz.
-                            </div>
-                            <% } %>
+                                const hasDeadline = task.deadline && task.deadline.trim() !== '';
+                                const isOverdue = hasDeadline && new Date(task.deadline) < new Date(); const
+                                    needsAction=isCompleted || isPendingApp || isOverdue; const
+                                    showRejectBtn=!isRejected && needsAction; %>
+                                    <tr data-name="<%= assignment.full_name %>" data-status="<%= assignment.status %>"
+                                        data-read="<%= assignment.is_read ? 1 : 0 %>">
 
-                                <!-- Görev Bilgisi -->
-                                <div class="task-card">
-                                    <div class="task-title"><i class="fas fa-clipboard-list"
-                                            style="color:var(--red); margin-right:10px;"></i>
-                                        <%= task.title %>
-                                    </div>
+                                        <td style="text-align: center;">
+                                            <% if (isPendingApp) { %>
+                                                <input type="checkbox" name="assignmentIds" value="<%= assignment.id %>"
+                                                    class="bulk-cb" style="width: 16px; height: 16px; cursor: pointer;">
+                                                <% } %>
+                                        </td>
 
-                                    <% if (task.description) { %>
-                                        <div class="task-desc"><%- task.description %></div>
-                                        <% } %>
-
-                                            <div class="task-meta">
-                                                <div class="task-meta-item">
-                                                    <i class="fas fa-info-circle"></i>
-                                                    <div>
-                                                        <span
-                                                            style="display:block;font-size:11px;color:var(--gray-600);font-weight:500;">Durum</span>
-                                                        <% if (task.status==='completed' ) { %>
-                                                            <span class="badge badge-completed"><i
-                                                                    class="fas fa-check"></i> Tamamlandı</span>
-                                                            <% } else if (task.status==='pending_approval' ) { %>
-                                                                <span class="badge badge-pending_approval"><i
-                                                                        class="fas fa-hourglass-half"></i> Onay
-                                                                    Bekliyor</span>
-                                                                <% } else if (task.status==='in_progress' ) { %>
-                                                                    <span class="badge badge-in_progress"><i
-                                                                            class="fas fa-spinner fa-spin"></i> Devam
-                                                                        Ediyor</span>
-                                                                    <% } else if (task.status==='rejected' ) { %>
-                                                                        <span class="badge badge-rejected"><i
-                                                                                class="fas fa-times"></i> İade
-                                                                            Edildi</span>
-                                                                        <% } else { %>
-                                                                            <span class="badge badge-pending"><i
-                                                                                    class="fas fa-clock"></i>
-                                                                                Bekliyor</span>
-                                                                            <% } %>
-                                                    </div>
-                                                </div>
-
-                                                <% if (task.deadline) { %>
-                                                    <div class="task-meta-item">
-                                                        <i class="fas fa-calendar-alt"></i>
-                                                        <div>
-                                                            <span
-                                                                style="display:block;font-size:11px;color:var(--gray-600);font-weight:500;">Son
-                                                                Teslim</span>
-                                                            <%= task.deadline %>
-                                                        </div>
-                                                    </div>
-                                                    <% } %>
-
-                                                        <% if (task.task_file) { %>
-                                                            <div class="task-meta-item">
-                                                                <i class="fas fa-file-alt"></i>
-                                                                <div>
-                                                                    <span
-                                                                        style="display:block;font-size:11px;color:var(--gray-600);font-weight:500;">Ekli
-                                                                        Dosya</span>
-                                                                    <a href="/uploads/tasks/<%= task.task_file %>"
-                                                                        target="_blank"
-                                                                        style="color: var(--red); text-decoration:none; font-weight:600;">
-                                                                        <i class="fas fa-download"></i> İndir
-                                                                    </a>
-                                                                </div>
-                                                            </div>
-                                                            <% } %>
+                                        <td>
+                                            <div class="school-name">
+                                                <%= assignment.full_name %>
                                             </div>
-                                </div>
+                                        </td>
+                                        <td><span class="school-code">
+                                                <%= assignment.username %>
+                                            </span></td>
 
-                                <!-- İade Notu (varsa) -->
-                                <% if (task.status==='rejected' && task.rejection_note) { %>
-                                    <div class="rejection-box">
-                                        <h4><i class="fas fa-exclamation-triangle"></i> İade Sebebi</h4>
-                                        <p>
-                                            <%= task.rejection_note %>
-                                        </p>
-                                    </div>
-                                    <% } %>
-
-                                        <!-- Yanıt Formu -->
-                                        <% if (task.status !=='completed' && task.status !=='pending_approval' &&
-                                            !isDeadlinePassed) { %>
-                                            <div class="section-card">
-                                                <div class="section-header">
-                                                    <i class="fas fa-paper-plane"></i>
-                                                    <%= task.status==='rejected' ? 'Tekrar Yanıt Gönder'
-                                                        : 'Yanıt Gönder' %>
+                                        <td>
+                                            <% if (assignment.is_read) { %>
+                                                <span style="color:var(--green);font-size:12px;font-weight:600;">
+                                                    <i class="fas fa-check-double"></i> Evet
+                                                </span>
+                                                <div style="font-size:10px;color:var(--text-4);margin-top:2px;">
+                                                    <%= assignment.read_at ? new
+                                                        Date(assignment.read_at).toLocaleString('tr-TR') : '' %>
                                                 </div>
-                                                <div class="section-body">
+                                                <% } else { %>
+                                                    <span style="color:var(--text-4);font-size:12px;">
+                                                        <i class="fas fa-minus-circle"></i> Hayır
+                                                    </span>
+                                                    <% } %>
+                                        </td>
 
-                                                    <% if (task.response_file) { %>
-                                                        <div class="response-display" style="margin-bottom: 20px;">
-                                                            <p><strong><i class="fas fa-paperclip"></i> Mevcut Yanıt
-                                                                    Dosyası:</strong></p>
-                                                            <a href="/uploads/responses/<%= task.response_file %>"
-                                                                target="_blank">
-                                                                <i class="fas fa-file"></i> Dosyayı Görüntüle
-                                                            </a>
+                                        <td>
+                                            <% if (isCompleted) { %>
+                                                <span class="badge badge-completed"><i class="fas fa-check"></i>
+                                                    Tamamlandı</span>
+                                                <span class="badge-time">
+                                                    <%= assignment.completed_at ? new
+                                                        Date(assignment.completed_at).toLocaleString('tr-TR') : '' %>
+                                                </span>
+                                                <% } else if (isRejected) { %>
+                                                    <span class="badge badge-rejected"><i class="fas fa-times"></i>
+                                                        Reddedildi</span>
+                                                    <% } else if (isPendingApp) { %>
+                                                        <span class="badge badge-pending_approval">
+                                                            <i class="fas fa-hourglass-half"></i> Onay Bekliyor
+                                                        </span>
+                                                        <% } else if (assignment.status==='in_progress' ) { %>
+                                                            <span class="badge badge-in_progress">
+                                                                <i class="fas fa-spinner fa-spin"></i> İşleniyor
+                                                            </span>
+                                                            <% } else { %>
+                                                                <span class="badge badge-pending"><i
+                                                                        class="fas fa-clock"></i> Bekliyor</span>
+                                                                <% } %>
+                                        </td>
+
+                                        <td>
+                                            <% if (assignment.fieldResponses && assignment.fieldResponses.length> 0) {
+                                                %>
+                                                <button type="button" class="btn-sm btn-red js-open-answers"
+                                                    data-id="<%= assignment.id %>"
+                                                    data-name="<%= assignment.full_name %>">
+                                                    <i class="fas fa-list"></i> Form Cevapları
+                                                </button>
+                                                <% } %>
+                                                    <% if (assignment.response_note) { %>
+                                                        <div
+                                                            style="font-style:italic;color:var(--text-3);font-size:12px;margin-top:5px;">
+                                                            "<%= assignment.response_note %>"
                                                         </div>
                                                         <% } %>
+                                                            <% if (!assignment.fieldResponses?.length &&
+                                                                !assignment.response_note) { %>
+                                                                <span style="color:var(--text-4);">—</span>
+                                                                <% } %>
+                                        </td>
 
-                                                            <form action="/okul/tasks/<%= task.id %>/response"
-                                                                method="POST" enctype="multipart/form-data">
-                                                                <input type="hidden" name="_csrf"
-                                                                    value="<%= csrfToken %>">
-
-                                                                <% if (taskFields && taskFields.length> 0) { %>
-                                                                    <% taskFields.forEach(field=> { %>
-                                                                        <div class="field-group">
-                                                                            <label class="field-label">
-                                                                                <%= field.field_label %>
-                                                                                    <% if (field.is_required) { %><span
-                                                                                            class="required">*</span>
-                                                                                        <% } %>
-                                                                            </label>
-
-                                                                            <% if (field.field_type==='short_text' ||
-                                                                                field.field_type==='text' ) { %>
-                                                                                <input type="text"
-                                                                                    name="field_<%= field.id %>"
-                                                                                    class="form-control"
-                                                                                    placeholder="Yanıtınızı yazın..."
-                                                                                    value="<%= responsesMap[field.id] || '' %>"
-                                                                                    <%=field.is_required ? 'required'
-                                                                                    : '' %>>
-
-                                                                                <% } else if
-                                                                                    (field.field_type==='paragraph' ||
-                                                                                    field.field_type==='textarea' ) { %>
-                                                                                    <textarea
-                                                                                        name="field_<%= field.id %>"
-                                                                                        class="form-control"
-                                                                                        placeholder="Yanıtınızı yazın..."
-                                                                                        <%=field.is_required
-                                                                                        ? 'required' : ''
-                                                                                        %>><%= responsesMap[field.id] || '' %></textarea>
-
-                                                                                    <% } else if
-                                                                                        (field.field_type==='multiple_choice'
-                                                                                        || field.field_type==='radio' )
-                                                                                        { %>
-                                                                                        <div class="options-group">
-                                                                                                <% if (field.field_options) { %>
-                                                                                                    <% field.field_options.split(',').forEach((opt, index) => { %>
-                                                                                                        <% const optVal=opt.trim(); if(!optVal) return; %>
-                                                                                                        <div class="option-item">
-                                                                                                            <input type="radio" name="field_<%= field.id %>" id="r_<%= field.id %>_<%= index %>" value="<%= optVal %>" <%=responsesMap[field.id]===optVal ? 'checked' : '' %> <%= field.is_required ? 'required' : '' %>>
-                                                                                                            <label for="r_<%= field.id %>_<%= index %>"><%= optVal %></label>
-                                                                                                        </div>
-                                                                                                    <% }) %>
-                                                                                                <% } %>
-                                                                                        </div>
-
-                                                                                        <% } else if
-                                                                                            (field.field_type==='select'
-                                                                                            ) { %>
-                                                                                            <select
-                                                                                                name="field_<%= field.id %>"
-                                                                                                class="form-control"
-                                                                                                <%=field.is_required
-                                                                                                ? 'required' : '' %>>
-                                                                                                <option value="">--
-                                                                                                    Seçiniz --</option>
-                                                                                                <% if
-                                                                                                    (field.field_options)
-                                                                                                    { %>
-                                                                                                    <%
-                                                                                                        field.field_options.split(',').forEach(opt=>
-                                                                                                        { %>
-                                                                                                        <% const
-                                                                                                            optVal=opt.trim();
-                                                                                                            if(!optVal)
-                                                                                                            return; %>
-                                                                                                            <option
-                                                                                                                value="<%= optVal %>"
-                                                                                                                <%=responsesMap[field.id]===optVal
-                                                                                                                ? 'selected'
-                                                                                                                : '' %>>
-                                                                                                                <%= optVal
-                                                                                                                    %>
-                                                                                                            </option>
-                                                                                                            <% }) %>
-                                                                                                                <% } %>
-                                                                                            </select>
-
-                                                                                            <% } else if
-                                                                                                (field.field_type==='checkbox'
-                                                                                                ) { %>
-                                                                                                <div
-                                                                                                    class="options-group">
-                                                                                                <% if (field.field_options) { %>
-                                                                                                    <% const checkedVals=(responsesMap[field.id] ? String(responsesMap[field.id]) : '').split(', '); %>
-                                                                                                    <% field.field_options.split(',').forEach((opt, index) => { %>
-                                                                                                        <% const optVal=opt.trim(); if(!optVal) return; %>
-                                                                                                        <div class="option-item">
-                                                                                                            <input type="checkbox" name="field_<%= field.id %>[]" id="c_<%= field.id %>_<%= index %>" value="<%= optVal %>" <%=checkedVals.includes(optVal) ? 'checked' : '' %>>
-                                                                                                            <label for="c_<%= field.id %>_<%= index %>"><%= optVal %></label>
-                                                                                                        </div>
-                                                                                                    <% }) %>
-                                                                                                <% } %>
-                                                                                                </div>
-
-                                                                                                <% } else if
-                                                                                                    (field.field_type==='number'
-                                                                                                    ) { %>
-                                                                                                    <input type="number"
-                                                                                                        name="field_<%= field.id %>"
-                                                                                                        class="form-control"
-                                                                                                        value="<%= responsesMap[field.id] || '' %>"
-                                                                                                        <%=field.is_required
-                                                                                                        ? 'required'
-                                                                                                        : '' %>>
-
-                                                                                                    <% } else if
-                                                                                                        (field.field_type==='date'
-                                                                                                        ) { %>
-                                                                                                        <input
-                                                                                                            type="date"
-                                                                                                            name="field_<%= field.id %>"
-                                                                                                            class="form-control"
-                                                                                                            value="<%= responsesMap[field.id] || '' %>"
-                                                                                                            <%=field.is_required
-                                                                                                            ? 'required'
-                                                                                                            : '' %>>
-
-                                                                                                        <% } else if (field.field_type==='time') { %>
-                                                                                                        <input
-                                                                                                            type="time"
-                                                                                                            name="field_<%= field.id %>"
-                                                                                                            class="form-control"
-                                                                                                            value="<%= responsesMap[field.id] || '' %>"
-                                                                                                            <%=field.is_required
-                                                                                                            ? 'required'
-                                                                                                            : '' %>>
-
-                                                                                                        <% } else if (field.field_type==='scale') { %>
-                                                                                                        <div class="scale-group" style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
-                                                                                                            <% for(let i = 1; i <= 5; i++) { %>
-                                                                                                            <label class="scale-option" style="display:flex; flex-direction:column; align-items:center; cursor:pointer;">
-                                                                                                                <input type="radio" name="field_<%= field.id %>" value="<%= i %>"
-                                                                                                                    <%= responsesMap[field.id] == String(i) ? 'checked' : '' %>
-                                                                                                                    <%= field.is_required ? 'required' : '' %>
-                                                                                                                    style="width:20px; height:20px; accent-color:var(--red);">
-                                                                                                                <span style="font-size:13px; font-weight:600; margin-top:4px;"><%= i %></span>
-                                                                                                            </label>
-                                                                                                            <% } %>
-                                                                                                        </div>
-                                                                                                        <% } %>
-                                                                        </div>
-                                                                        <% }) %>
-                                                                            <% } %>
-
-                                                                                <div class="field-group">
-                                                                                    <label class="field-label">Yanıt
-                                                                                        Notu <span
-                                                                                            style="font-size:12px; color:var(--gray-400); font-weight:400;">(isteğe
-                                                                                            bağlı)</span></label>
-                                                                                    <textarea name="response_note"
-                                                                                        class="form-control"
-                                                                                        placeholder="Açıklamalarınızı buraya yazabilirsiniz..."><%= task.response_note || '' %></textarea>
-                                                                                </div>
-
-                                                                                <% if (task.requires_file) { %>
-                                                                                    <div class="field-group">
-                                                                                        <label class="field-label">
-                                                                                            Yanıt Dosyaları
-                                                                                            <% if
-                                                                                                (task.is_file_mandatory)
-                                                                                                { %>
-                                                                                                <span class="required">*
-                                                                                                    (Zorunlu)</span>
-                                                                                                <% } else { %>
-                                                                                                    <span
-                                                                                                        style="font-size:12px; color:var(--gray-400); font-weight:400;">(İsteğe
-                                                                                                        bağlı)</span>
-                                                                                                    <% } %>
-                                                                                                        <span
-                                                                                                            style="float: right; color: var(--red); font-weight: 700;">Max:
-                                                                                                            <%= task.max_file_count
-                                                                                                                || 1 %>
-                                                                                                                Dosya</span>
-                                                                                        </label>
-
-                                                                                        <% if (task.files &&
-                                                                                            task.files.length> 0) { %>
-                                                                                            <div class="existing-files"
-                                                                                                style="margin-bottom: 15px;">
-                                                                                                <p
-                                                                                                    style="font-size: 12px; color: var(--gray-600); margin-bottom: 8px; font-weight: 600;">
-                                                                                                    Yüklü Dosyalar:</p>
-                                                                                                <div
-                                                                                                    style="display: flex; flex-wrap: wrap; gap: 10px;">
-                                                                                                    <%
-                                                                                                        task.files.forEach(file=>
-                                                                                                        { %>
-                                                                                                        <div
-                                                                                                            style="background: #f0f7ff; border: 1px solid #cce3ff; padding: 6px 12px; border-radius: 8px; font-size: 13px; display: flex; align-items: center; gap: 8px;">
-                                                                                                            <i class="fas fa-file-alt"
-                                                                                                                style="color: #2563eb;"></i>
-                                                                                                            <a href="/uploads/responses/<%= file.file_path %>"
-                                                                                                                target="_blank"
-                                                                                                                style="text-decoration: none; color: #1e3a8a; font-weight: 600;">
-                                                                                                                <%= file.original_name
-                                                                                                                    || 'Dosya'
-                                                                                                                    %>
-                                                                                                            </a>
-                                                                                                        </div>
-                                                                                                        <% }) %>
-                                                                                                </div>
-                                                                                                <p
-                                                                                                    style="font-size: 11px; color: #ef4444; margin-top: 8px;">
-                                                                                                    <i
-                                                                                                        class="fas fa-info-circle"></i>
-                                                                                                    Yeni dosya
-                                                                                                    yüklerseniz mevcut
-                                                                                                    dosyaların tamamı
-                                                                                                    değiştirilecektir.
-                                                                                                </p>
-                                                                                            </div>
-                                                                                            <% } %>
-
-                                                                                                <label
-                                                                                                    class="file-upload-area"
-                                                                                                    for="response_file_input">
-                                                                                                    <i
-                                                                                                        class="fas fa-cloud-upload-alt"></i>
-                                                                                                    <p>Dosyaları buraya
-                                                                                                        sürükleyin veya
-                                                                                                        tıklayın</p>
-                                                                                                    <p
-                                                                                                        style="font-size:12px; color:var(--gray-400); margin-top:6px;">
-                                                                                                        Birden fazla
-                                                                                                        dosya
-                                                                                                        seçebilirsiniz
-                                                                                                        (Maksimum <%=
-                                                                                                            task.max_file_count
-                                                                                                            || 1 %>)</p>
-                                                                                                </label>
-                                                                                                <input type="file"
-                                                                                                    id="response_file_input"
-                                                                                                    name="response_files"
-                                                                                                    multiple
-                                                                                                    style="display:none;"
-                                                                                                    onchange="updateFileNames(this)"
-                                                                                                    <%=(task.is_file_mandatory
-                                                                                                    && (!task.files ||
-                                                                                                    task.files.length===0))
-                                                                                                    ? 'required' : ''
-                                                                                                    %>>
-                                                                                                <div id="selected-files-list"
-                                                                                                    style="margin-top:8px; display:none;">
-                                                                                                    <div
-                                                                                                        style="font-size: 12px; font-weight: 700; color: #1e3a5a; margin-bottom: 5px;">
-                                                                                                        Seçilen Yeni
-                                                                                                        Dosyalar:</div>
-                                                                                                    <div id="file-items-container"
-                                                                                                        style="display: flex; flex-direction: column; gap: 5px;">
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                    </div>
-                                                                                    <% } %>
-
-                                                                                        <script>
-                                                                                            function updateFileNames(input) {
-                                                                                                const listDiv = document.getElementById('selected-files-list');
-                                                                                                const container = document.getElementById('file-items-container');
-                                                                                                const maxFiles = <%= task.max_file_count || 1 %>;
-
-                                                                                                container.innerHTML = '';
-
-                                                                                                if (input.files && input.files.length > 0) {
-                                                                                                    if (input.files.length > maxFiles) {
-                                                                                                        alert(`En fazla ${maxFiles} dosya yükleyebilirsiniz. Şu an ${input.files.length} dosya seçtiniz.`);
-                                                                                                        input.value = '';
-                                                                                                        listDiv.style.display = 'none';
-                                                                                                        return;
-                                                                                                    }
-
-                                                                                                    listDiv.style.display = 'block';
-                                                                                                    Array.from(input.files).forEach(file => {
-                                                                                                        const item = document.createElement('div');
-                                                                                                        item.style.cssText = 'padding: 8px 12px; background: white; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; color: #334155; display: flex; align-items: center; gap: 8px;';
-                                                                                                        item.innerHTML = `<i class="fas fa-file-check" style="color: #10b981;"></i> ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-                                                                                                        container.appendChild(item);
-                                                                                                    });
-                                                                                                } else {
-                                                                                                    listDiv.style.display = 'none';
-                                                                                                }
-                                                                                            }
-                                                                                        </script>
-
-                                                                                        <div class="form-actions">
-                                                                                            <button type="submit"
-                                                                                                name="status"
-                                                                                                value="in_progress"
-                                                                                                class="btn-save">
-                                                                                                <i
-                                                                                                    class="fas fa-save"></i>
-                                                                                                Kaydet (Devam Ediyor)
-                                                                                            </button>
-                                                                                            <button type="submit"
-                                                                                                name="status"
-                                                                                                value="completed"
-                                                                                                class="btn-submit">
-                                                                                                <i
-                                                                                                    class="fas fa-check-circle"></i>
-                                                                                                Tamamlandı Olarak Gönder
-                                                                                            </button>
-                                                                                        </div>
-                                                            </form>
+                                        <td>
+                                            <% if (assignment.files && assignment.files.length> 0) { %>
+                                                <div style="display:flex;flex-direction:column;gap:4px;">
+                                                    <% assignment.files.forEach(file=> { %>
+                                                        <a href="/uploads/responses/<%= file.file_path %>"
+                                                            target="_blank" class="btn-sm btn-blue"
+                                                            style="font-size:11px;padding:4px 8px;">
+                                                            <i class="fas fa-file-download"></i>
+                                                            <%= file.original_name ? (file.original_name.length> 15 ?
+                                                                file.original_name.substring(0,12)+'...' :
+                                                                file.original_name)
+                                                                : 'Dosya' %>
+                                                        </a>
+                                                        <% }) %>
                                                 </div>
-                                            </div>
-                                            <% } else { %>
-                                                <!-- Görev tamamlandı veya onaya gönderildi -->
-                                                <div class="section-card">
-                                                    <div class="section-header">
-                                                        <i class="fas fa-lock"></i>
-                                                        <%= task.status==='pending_approval' ? 'Onay Bekleyen Yanıt'
-                                                            : 'Tamamlanan Yanıt' %>
-                                                    </div>
-                                                    <div class="section-body">
-                                                        <% if (task.status==='pending_approval' ) { %>
-                                                            <div class="alert alert-warning"
-                                                                style="margin-bottom: 24px;">
-                                                                <i class="fas fa-info-circle"></i>
-                                                                <strong>Bilgi:</strong> Yanıtınız yönetici onayına
-                                                                sunulmuştur. Değişiklik yapmak isterseniz lütfen mesaj
-                                                                kısmından yöneticiye ulaşarak iade isteyiniz.
-                                                            </div>
+                                                <% } else if (assignment.response_file) { %>
+                                                    <a href="/admin/tasks/assignments/<%= assignment.id %>/download"
+                                                        target="_blank" class="btn-sm btn-blue">
+                                                        <i class="fas fa-paperclip"></i> İncele
+                                                    </a>
+                                                    <% } else { %>
+                                                        <span style="color:var(--text-4);">—</span>
+                                                        <% } %>
+                                        </td>
+
+                                        <td>
+                                            <div style="display:flex;gap:5px;align-items:center;">
+                                                <button type="button" class="btn-sm btn-blue js-open-message"
+                                                    data-id="<%= assignment.id %>"
+                                                    data-name="<%= assignment.full_name %>" title="Mesajlar">
+                                                    <i class="fas fa-comment-dots"></i>
+                                                </button>
+                                                <% if (isPendingApp) { %>
+                                                    <button type="button" class="btn-sm btn-green js-open-approve"
+                                                        data-id="<%= assignment.id %>"
+                                                        data-name="<%= assignment.full_name %>" title="Onayla">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <% } %>
+                                                        <% if (showRejectBtn) { %>
+                                                            <button type="button" class="btn-sm btn-red js-open-reject"
+                                                                data-id="<%= assignment.id %>"
+                                                                data-name="<%= assignment.full_name %>"
+                                                                title="<%= isCompleted ? 'Geri Al' : 'Reddet' %>">
+                                                                <i
+                                                                    class="<%= isCompleted ? 'fas fa-undo' : 'fas fa-times' %>"></i>
+                                                            </button>
                                                             <% } %>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                        </tbody>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
 
-                                                                <% if (task.response_note) { %>
-                                                                    <div class="response-display"
-                                                                        style="margin-bottom:16px;">
-                                                                        <p><strong>Notunuz:</strong></p>
-                                                                        <p
-                                                                            style="margin:0; font-size:14px; color:var(--gray-800);">
-                                                                            <%= task.response_note %>
-                                                                        </p>
-                                                                    </div>
-                                                                    <% } %>
-                                                                        <% if (task.response_file) { %>
-                                                                            <div class="response-display">
-                                                                                <p><strong><i
-                                                                                            class="fas fa-paperclip"></i>
-                                                                                        Yüklediğiniz Dosya:</strong></p>
-                                                                                <a href="/uploads/responses/<%= task.response_file %>"
-                                                                                    target="_blank">
-                                                                                    <i class="fas fa-file"></i> Dosyayı
-                                                                                    Görüntüle
-                                                                                </a>
-                                                                            </div>
-                                                                            <% } %>
-                                                                                <% if (taskFields && taskFields.length>
-                                                                                    0) { %>
-                                                                                    <div style="margin-top:20px;">
-                                                                                        <strong
-                                                                                            style="font-size:14px; color:var(--gray-800);">Form
-                                                                                            Cevaplarınız:</strong>
-                                                                                        <% taskFields.forEach(field=> {
-                                                                                            %>
-                                                                                            <div
-                                                                                                style="margin-top:12px; padding:14px; background:var(--gray-50); border:1px solid var(--gray-200); border-radius:10px;">
-                                                                                                <div
-                                                                                                    style="font-weight:600; font-size:13px; color:var(--gray-600); margin-bottom:4px;">
-                                                                                                    <%= field.field_label
-                                                                                                        %>
-                                                                                                </div>
-                                                                                                <div
-                                                                                                    style="font-size:14px; color:var(--gray-800);">
-                                                                                                    <%= responsesMap[field.id]
-                                                                                                        || '-' %>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <% }) %>
-                                                                                    </div>
-                                                                                    <% } %>
-                                                    </div>
-                                                </div>
-                                                <% } %>
+    <!-- ── REJECT MODAL ── -->
+    <div id="rejectModal" class="tp-modal">
+        <div class="tp-modal-box tp">
+            <div class="tp-modal-header">
+                <div class="tp-modal-title" style="color:var(--red);">
+                    <i class="fas fa-exclamation-triangle"></i> Görevi Reddet
+                </div>
+                <button class="tp-btn-close" data-close="rejectModal"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="tp-modal-sub">
+                <strong id="rejectSchoolName"></strong> tarafından gönderilen görevi reddetmek üzeresiniz:
+            </p>
+            <form id="rejectForm" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <textarea class="tp-input" name="rejection_note" placeholder="Red sebebini belirtin..."
+                    required></textarea>
+                <div class="tp-modal-footer">
+                    <button type="button" class="btn-back" data-close="rejectModal">İptal</button>
+                    <button type="submit" class="btn-primary" style="padding:10px 20px;">Reddet</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-                                                    <!-- Mesajlaşma Bölümü -->
-                                                    <div class="section-card" id="messages">
-                                                        <div class="section-header"><i class="fas fa-comments"></i>
-                                                            Mesajlar</div>
-                                                        <div class="section-body">
-                                                            <div class="messages-box" id="messagesBox">
-                                                                <% if (messages && messages.length> 0) { %>
-                                                                    <% messages.forEach(msg=> { %>
-                                                                        <% const isMe=msg.sender_id===currentUserId; %>
-                                                                            <div
-                                                                                class="msg-bubble <%= isMe ? 'me' : 'them' %>">
-                                                                                <div class="msg-sender">
-                                                                                    <%= isMe ? 'Siz' : (msg.full_name
-                                                                                        || 'Yönetici' ) %>
-                                                                                </div>
-                                                                                <div>
-                                                                                    <%= msg.message %>
-                                                                                </div>
-                                                                                <div class="msg-time">
-                                                                                    <%= new
-                                                                                        Date(msg.created_at).toLocaleString('tr-TR',
-                                                                                        { day:'2-digit',
-                                                                                        month:'2-digit', year:'numeric',
-                                                                                        hour:'2-digit', minute:'2-digit'
-                                                                                        }) %>
-                                                                                </div>
-                                                                            </div>
-                                                                            <% }) %>
-                                                                                <% } else { %>
-                                                                                    <div
-                                                                                        style="text-align:center; color:var(--gray-400); padding:40px 20px;">
-                                                                                        <i class="fas fa-comment-slash"
-                                                                                            style="font-size:32px; margin-bottom:10px; display:block;"></i>
-                                                                                        Henüz mesaj yok.
-                                                                                    </div>
-                                                                                    <% } %>
-                                                            </div>
+    <!-- ── APPROVE MODAL ── -->
+    <div id="approveModal" class="tp-modal">
+        <div class="tp-modal-box tp" style="border-top-color:var(--green);">
+            <div class="tp-modal-header">
+                <div class="tp-modal-title" style="color:var(--green);">
+                    <i class="fas fa-check-circle"></i> Görevi Onayla
+                </div>
+                <button class="tp-btn-close" data-close="approveModal"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="tp-modal-sub">
+                <strong id="approveSchoolName"></strong> tarafından yapılan görevi onaylamak üzeresiniz.
+            </p>
+            <form id="approveForm" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div class="tp-modal-footer">
+                    <button type="button" class="btn-back" data-close="approveModal">İptal</button>
+                    <button type="submit" class="btn-primary"
+                        style="background:var(--green);padding:10px 20px;">Onayla</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-                                                            <form action="/okul/tasks/<%= task.id %>/message"
-                                                                method="POST" class="msg-input-row">
-                                                                <input type="hidden" name="_csrf"
-                                                                    value="<%= csrfToken %>">
-                                                                <input type="text" name="message" class="msg-input"
-                                                                    placeholder="Bir mesaj yazın..." required>
-                                                                <button type="submit" class="btn-send"><i
-                                                                        class="fas fa-paper-plane"></i></button>
-                                                            </form>
-                                                        </div>
-                                                    </div>
+    <!-- ── MESSAGE MODAL ── -->
+    <div id="messageModal" class="tp-modal">
+        <div class="tp-modal-box tp" style="border-top-color:var(--blue);max-width:580px;">
+            <div class="tp-modal-header">
+                <div class="tp-modal-title" style="color:var(--blue);">
+                    <i class="fas fa-comments"></i> Mesajlar
+                </div>
+                <button class="tp-btn-close" data-close="messageModal"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="tp-modal-sub">
+                <strong id="msgSchoolName"></strong> ile mesajlaşma geçmişi:
+            </p>
+            <div class="tp-msg-list" id="msgList"></div>
+            <form id="messageForm" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="task_id" value="<%= task.id %>">
+                <div class="tp-msg-row">
+                    <input type="text" name="message" class="tp-input" placeholder="Bir mesaj yazın..." required>
+                    <button type="submit" class="btn-primary"
+                        style="background:var(--blue);margin:0;padding:10px 16px;flex-shrink:0;">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    <script src="/js/okul_task_detail.js"></script>
-                                                    <%- include('../layouts/school_footer') %>
+    <!-- ── ANSWERS MODAL ── -->
+    <div id="answersModal" class="tp-modal">
+        <div class="tp-modal-box tp" style="max-width:580px;">
+            <div class="tp-modal-header">
+                <div class="tp-modal-title" style="color:var(--red);">
+                    <i class="fas fa-tasks"></i> Form Cevapları
+                </div>
+                <button class="tp-btn-close" data-close="answersModal"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="tp-modal-sub">
+                <strong id="ansSchoolName"></strong> tarafından gönderilen form cevapları:
+            </p>
+            <div id="ansList" style="background:#f8fafc;border:1px solid var(--border);border-radius:12px;
+                    max-height:380px;overflow-y:auto;padding:14px;
+                    display:flex;flex-direction:column;gap:12px;margin-bottom:18px;"></div>
+            <div class="tp-modal-footer">
+                <button type="button" class="btn-back" data-close="answersModal">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Veriler JSON script tag'lerinde güvenli biçimde aktarılıyor -->
+    <script id="messagesMapData"
+        type="application/json"><%- JSON.stringify(messagesMap  || {}).replace(/</g, '\\u003c') %></script>
+    <script id="assignmentsData"
+        type="application/json"><%- JSON.stringify(assignments || []).replace(/</g, '\\u003c') %></script>
+    <script>
+        window.TASK_ID = '<%= task.id %>';
+        window.ME = String('<%= typeof currentUserId !== "undefined" ? currentUserId : "" %>');
+    </script>
+
+    <script src="/js/admin_task_detail.js?v=<%= Date.now() %>"></script>
+    <%- include('../layouts/footer') %>

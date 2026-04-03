@@ -84,7 +84,7 @@ function initDatabase() {
         )
     `);
 
-    // Çoklu dosya desteği için yeni tablo
+    // Çoklu dosya desteği için yeni tablo (okul yanıt dosyaları)
     db.exec(`
         CREATE TABLE IF NOT EXISTS task_assignment_files (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -94,6 +94,19 @@ function initDatabase() {
             file_size INTEGER,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (assignment_id) REFERENCES task_assignments(id) ON DELETE CASCADE
+        )
+    `);
+
+    // YENİ: Görev ekli dosyaları tablosu (yönetici tarafından yüklenen çoklu dosyalar)
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS task_attachments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id INTEGER NOT NULL,
+            file_path TEXT NOT NULL,
+            original_name TEXT,
+            file_size INTEGER,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
         )
     `);
 
@@ -111,6 +124,12 @@ function initDatabase() {
         ];
         migrations.forEach(sql => { try { db.exec(sql); } catch (e) { /* sütun zaten var */ } });
         setSchemaVersion(1);
+    }
+
+    if (schemaVersion < 2) {
+        // v2: task_attachments tablosu (yönetici çoklu ek dosya desteği)
+        // Tablo zaten CREATE IF NOT EXISTS ile oluşturuluyor, sadece versiyon güncellenir.
+        setSchemaVersion(2);
     }
 
     // Duyurular tablosu
