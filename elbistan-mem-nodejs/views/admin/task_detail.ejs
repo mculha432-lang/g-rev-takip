@@ -191,7 +191,7 @@
 
                 <td>
                   <% if (assignment.fieldResponses && assignment.fieldResponses.length> 0) { %>
-                    <button class="btn-sm btn-red js-open-answers" data-id="<%= assignment.id %>"
+                    <button type="button" class="btn-sm btn-red js-open-answers" data-id="<%= assignment.id %>"
                       data-name="<%= assignment.full_name %>">
                       <i class="fas fa-list"></i> Form Cevapları
                     </button>
@@ -231,18 +231,18 @@
 
                 <td>
                   <div style="display:flex;gap:5px;align-items:center;">
-                    <button class="btn-sm btn-blue js-open-message" data-id="<%= assignment.id %>"
+                    <button type="button" class="btn-sm btn-blue js-open-message" data-id="<%= assignment.id %>"
                       data-name="<%= assignment.full_name %>" title="Mesajlar">
                       <i class="fas fa-comment-dots"></i>
                     </button>
                     <% if (isPendingApp) { %>
-                      <button class="btn-sm btn-green js-open-approve" data-id="<%= assignment.id %>"
+                      <button type="button" class="btn-sm btn-green js-open-approve" data-id="<%= assignment.id %>"
                         data-name="<%= assignment.full_name %>" title="Onayla">
                         <i class="fas fa-check"></i>
                       </button>
                       <% } %>
                         <% if (showRejectBtn) { %>
-                          <button class="btn-sm btn-red js-open-reject" data-id="<%= assignment.id %>"
+                          <button type="button" class="btn-sm btn-red js-open-reject" data-id="<%= assignment.id %>"
                             data-name="<%= assignment.full_name %>" title="<%= isCompleted ? 'Geri Al' : 'Reddet' %>">
                             <i class="<%= isCompleted ? 'fas fa-undo' : 'fas fa-times' %>"></i>
                           </button>
@@ -354,6 +354,10 @@
   <!-- Veriler JSON script tag'lerinde güvenli biçimde aktarılıyor -->
   <script id="messagesMapData" type="application/json"><%- JSON.stringify(messagesMap  || {}) %></script>
   <script id="assignmentsData" type="application/json"><%- JSON.stringify(assignments || []) %></script>
+  <script>
+    window.TASK_ID = '<%= task.id %>';
+    window.ME = String('<%= typeof currentUserId !== "undefined" ? currentUserId : "" %>');
+  </script>
 
   <script src="/js/admin_task_detail.js"></script>
   <%- include('../layouts/footer') %>

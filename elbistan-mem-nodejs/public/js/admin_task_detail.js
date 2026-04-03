@@ -8,8 +8,8 @@
         if (a.fieldResponses && a.fieldResponses.length) responsesMap[a.id] = a.fieldResponses;
       });
 
-      const ME = String('<%= typeof currentUserId !== "undefined" ? currentUserId : "" %>');
-      const TASK_ID = '<%= task.id %>';
+      const ME = String(window.ME || '');
+      const TASK_ID = window.TASK_ID || '';
 
       const $ = id => document.getElementById(id);
       const show = id => { const el = $(id); if (el) el.classList.add('active'); };

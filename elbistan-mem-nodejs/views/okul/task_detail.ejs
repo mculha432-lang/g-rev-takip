@@ -189,36 +189,15 @@
                                                                                         || field.field_type==='radio' )
                                                                                         { %>
                                                                                         <div class="options-group">
-                                                                                            <% if (field.field_options)
-                                                                                                { %>
-                                                                                                <%
-                                                                                                    field.field_options.split(',').forEach(opt=>
-                                                                                                    { %>
-                                                                                                    <% const
-                                                                                                        optVal=opt.trim();
-                                                                                                        if(!optVal)
-                                                                                                        return; %>
-                                                                                                        <div
-                                                                                                            class="option-item">
-                                                                                                            <input
-                                                                                                                type="radio"
-                                                                                                                name="field_<%= field.id %>"
-                                                                                                                id="r_<%= field.id %>_<%= optVal %>"
-                                                                                                                value="<%= optVal %>"
-                                                                                                                <%=responsesMap[field.id]===optVal
-                                                                                                                ? 'checked'
-                                                                                                                : '' %>
-                                                                                                            <%= field.is_required
-                                                                                                                ? 'required'
-                                                                                                                : '' %>>
-                                                                                                                <label
-                                                                                                                    for="r_<%= field.id %>_<%= optVal %>">
-                                                                                                                    <%= optVal
-                                                                                                                        %>
-                                                                                                                </label>
+                                                                                                <% if (field.field_options) { %>
+                                                                                                    <% field.field_options.split(',').forEach((opt, index) => { %>
+                                                                                                        <% const optVal=opt.trim(); if(!optVal) return; %>
+                                                                                                        <div class="option-item">
+                                                                                                            <input type="radio" name="field_<%= field.id %>" id="r_<%= field.id %>_<%= index %>" value="<%= optVal %>" <%=responsesMap[field.id]===optVal ? 'checked' : '' %> <%= field.is_required ? 'required' : '' %>>
+                                                                                                            <label for="r_<%= field.id %>_<%= index %>"><%= optVal %></label>
                                                                                                         </div>
-                                                                                                        <% }) %>
-                                                                                                            <% } %>
+                                                                                                    <% }) %>
+                                                                                                <% } %>
                                                                                         </div>
 
                                                                                         <% } else if
@@ -258,41 +237,16 @@
                                                                                                 ) { %>
                                                                                                 <div
                                                                                                     class="options-group">
-                                                                                                    <% if
-                                                                                                        (field.field_options)
-                                                                                                        { %>
-                                                                                                        <% const
-                                                                                                            checkedVals=(responsesMap[field.id]
-                                                                                                            ?
-                                                                                                            String(responsesMap[field.id])
-                                                                                                            : ''
-                                                                                                            ).split(', '); %>
-                                                                                                        <% field.field_options.split(',').forEach(opt=> { %>
-                                                                                                            <% const
-                                                                                                                optVal=opt.trim();
-                                                                                                                if(!optVal)
-                                                                                                                return;
-                                                                                                                %>
-                                                                                                                <div
-                                                                                                                    class="option-item">
-                                                                                                                    <input
-                                                                                                                        type="checkbox"
-                                                                                                                        name="field_<%= field.id %>"
-                                                                                                                        id="c_<%= field.id %>_<%= optVal %>"
-                                                                                                                        value="<%= optVal %>"
-                                                                                                                        <%=checkedVals.includes(optVal)
-                                                                                                                        ? 'checked'
-                                                                                                                        : ''
-                                                                                                                        %>>
-                                                                                                                    <label
-                                                                                                                        for="c_<%= field.id %>_<%= optVal %>">
-                                                                                                                        <%= optVal
-                                                                                                                            %>
-                                                                                                                    </label>
-                                                                                                                </div>
-                                                                                                                <% }) %>
-                                                                                                                    <% }
-                                                                                                                        %>
+                                                                                                <% if (field.field_options) { %>
+                                                                                                    <% const checkedVals=(responsesMap[field.id] ? String(responsesMap[field.id]) : '').split(', '); %>
+                                                                                                    <% field.field_options.split(',').forEach((opt, index) => { %>
+                                                                                                        <% const optVal=opt.trim(); if(!optVal) return; %>
+                                                                                                        <div class="option-item">
+                                                                                                            <input type="checkbox" name="field_<%= field.id %>[]" id="c_<%= field.id %>_<%= index %>" value="<%= optVal %>" <%=checkedVals.includes(optVal) ? 'checked' : '' %>>
+                                                                                                            <label for="c_<%= field.id %>_<%= index %>"><%= optVal %></label>
+                                                                                                        </div>
+                                                                                                    <% }) %>
+                                                                                                <% } %>
                                                                                                 </div>
 
                                                                                                 <% } else if
