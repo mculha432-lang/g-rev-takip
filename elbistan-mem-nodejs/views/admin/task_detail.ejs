@@ -1,476 +1,412 @@
 <%- include('../layouts/header') %>
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
-    rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
-  <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
+        rel="stylesheet">
 
-  <% const safeTasks=typeof tasks !=='undefined' ? tasks : []; const totalTasks=safeTasks.length; const
-    activeTasks=safeTasks.filter(t=> new Date(t.deadline) >= new Date()).length;
-    const expiredTasks = totalTasks - activeTasks;
-    const safeSchoolTypes = typeof schoolTypes !== 'undefined' ? schoolTypes : [];
+    <link rel="stylesheet" href="/css/admin_task_detail.css">
 
-    const typeLabels = {
-    ilkokul: 'İlkokul', ortaokul: 'Ortaokul', lise: 'Lise', anaokulu: 'Anaokulu',
-    diger: 'Diğer Kurumlar', rehabilitasyon: 'Rehabilitasyon',
-    surucu_kursu: 'Sürücü Kursu', kurs: 'Kurs', yurt: 'Yurt'
-    };
-    const typeIcons = {
-    ilkokul: 'fa-child', ortaokul: 'fa-book-reader', lise: 'fa-graduation-cap',
-    anaokulu: 'fa-baby', diger: 'fa-building', rehabilitasyon: 'fa-hands-helping',
-    surucu_kursu: 'fa-car', kurs: 'fa-chalkboard-teacher', yurt: 'fa-bed'
-    };
-    const typeColors = {
-    ilkokul: '#3b82f6', ortaokul: '#8b5cf6', lise: '#ef4444', anaokulu: '#f59e0b',
-    diger: '#6b7280', rehabilitasyon: '#10b981', surucu_kursu: '#f97316',
-    kurs: '#06b6d4', yurt: '#ec4899'
-    };
-    %>
+    <div class="tp">
 
-    <link rel="stylesheet" href="/css/admin_tasks.css">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="ph-left">
+                <div class="ph-icon"><i class="fas fa-chart-bar"></i></div>
+                <div>
+                    <h1>Görev Takibi</h1>
+                    <p>Görevin okul bazlı durumunu ve istatistiklerini inceleyin.</p>
+                </div>
+            </div>
+            <a href="/admin/tasks" class="btn-back"><i class="fas fa-arrow-left"></i> Geri Dön</a>
+        </div>
 
-    <div class="tp page-root">
+        <!-- Task Info Card -->
+        <div class="task-card">
+            <div class="task-card-top">
+                <div class="task-title">
+                    <%= task.title %>
+                </div>
+                <a href="/admin/tasks/<%= task.id %>/edit" class="btn-primary">
+                    <i class="fas fa-edit"></i> Düzenle
+                </a>
+            </div>
+            <% if (task.description) { %>
+                <div class="task-desc">
+                    <%- task.description %>
+                </div>
+                <% } %>
+                    <div class="task-meta">
+                        <div class="task-meta-item">
+                            <span class="meta-icon"><i class="fas fa-calendar-alt"></i></span>
+                            <div>
+                                <span class="meta-label">Son Teslim</span>
+                                <%= task.deadline || 'Belirtilmemiş' %>
+                            </div>
+                        </div>
 
-      <!-- ══════════════════════════════════════════
-       DASHBOARD VIEW
-  ══════════════════════════════════════════ -->
-      <div id="dashboardView">
-        <div
-          style="display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; flex-wrap:wrap; gap:14px;">
-          <div>
-            <h1 style="font-size:26px; font-weight:800; margin:0; color:var(--navy);">Görev Yönetimi</h1>
-            <p style="color:var(--text-3); font-size:14px; margin:6px 0 0; font-weight:500;">Kurum
-              genelindeki görevleri ve okul yanıtlarını takip edin.</p>
-          </div>
-          <button class="btn btn-red" onclick="switchView('wizard')">
-            <i class="fas fa-plus-circle"></i> Yeni Görev Oluştur
-          </button>
+                        <!-- Çoklu ek dosyalar -->
+                        <% if (taskAttachments && taskAttachments.length> 0) { %>
+                            <div class="task-meta-item" style="flex-direction:column; align-items:flex-start; gap:8px;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span class="meta-icon"><i class="fas fa-paperclip"></i></span>
+                                    <div>
+                                        <span class="meta-label">Ek Dosyalar</span>
+                                        <span style="font-size:12px; font-weight:700; color:#3b82f6;">
+                                            <%= taskAttachments.length %> dosya
+                                        </span>
+                                    </div>
+                                </div>
+                                <div style="display:flex; flex-wrap:wrap; gap:8px; padding-left:36px;">
+                                    <% taskAttachments.forEach(function(attach) { %>
+                                        <a href="/uploads/tasks/<%= attach.file_path %>" target="_blank"
+                                            style="display:inline-flex; align-items:center; gap:6px; padding:5px 12px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; font-size:12px; font-weight:600; color:#1d4ed8; text-decoration:none;"
+                                            title="<%= attach.original_name || attach.file_path %>">
+                                            <i class="fas fa-file-download"></i>
+                                            <%= attach.original_name ? (attach.original_name.length> 25 ?
+                                                attach.original_name.substring(0,22)+'...' : attach.original_name)
+                                                : 'Dosya' %>
+                                        </a>
+                                        <% }) %>
+                                </div>
+                            </div>
+                            <% } else if (task.file_path) { %>
+                                <!-- Geriye dönük uyumluluk: eski tek dosya -->
+                                <div class="task-meta-item">
+                                    <span class="meta-icon"><i class="fas fa-file-alt"></i></span>
+                                    <div>
+                                        <span class="meta-label">Ek Dosya</span>
+                                        <a href="/uploads/tasks/<%= task.file_path %>" target="_blank">Dosyayı
+                                            Görüntüle</a>
+                                    </div>
+                                </div>
+                                <% } %>
+                    </div>
         </div>
 
         <!-- Stats -->
         <div class="stats-grid">
-          <div class="stat-card" onclick="filterTasks('all')" id="filterAll">
-            <div class="stat-icon navy"><i class="fas fa-folder-open"></i></div>
-            <div class="stat-info">
-              <h3>
-                <%= totalTasks %>
-              </h3>
-              <p>Toplam Görev</p>
+            <div class="stat-card s-blue">
+                <div class="stat-icon"><i class="fas fa-school"></i></div>
+                <div class="stat-info">
+                    <h3>
+                        <%= total %>
+                    </h3>
+                    <p>Toplam Atama</p>
+                </div>
             </div>
-          </div>
-          <div class="stat-card" onclick="filterTasks('active')" id="filterActive">
-            <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
-            <div class="stat-info">
-              <h3>
-                <%= activeTasks %>
-              </h3>
-              <p>Aktif Görevler</p>
+            <div class="stat-card s-yellow">
+                <div class="stat-icon"><i class="fas fa-eye"></i></div>
+                <div class="stat-info">
+                    <h3>
+                        <%= readCount %>
+                    </h3>
+                    <p>Okuyan Okul</p>
+                </div>
             </div>
-          </div>
-          <div class="stat-card" onclick="filterTasks('expired')" id="filterExpired">
-            <div class="stat-icon red"><i class="fas fa-history"></i></div>
-            <div class="stat-info">
-              <h3>
-                <%= expiredTasks %>
-              </h3>
-              <p>Süresi Dolanlar</p>
+            <div class="stat-card s-orange">
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-info">
+                    <h3>
+                        <%= pendingApprovalCount %>
+                    </h3>
+                    <p>Onay Bekleyen</p>
+                </div>
             </div>
-          </div>
+            <div class="stat-card s-green">
+                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-info">
+                    <h3>
+                        <%= completedCount %>
+                    </h3>
+                    <p>Tamamlanan</p>
+                </div>
+            </div>
         </div>
 
-        <!-- Search -->
-        <div class="filter-bar">
-          <i class="fas fa-search" style="color:var(--text-3); font-size:16px;"></i>
-          <input type="text" id="taskSearchInput" placeholder="Görev ara... (başlık veya tarih)"
-            oninput="searchTasks(this.value)">
-        </div>
-
-        <!-- Task Grid -->
-        <div class="task-grid" id="taskGrid">
-          <% if (safeTasks.length===0) { %>
-            <div
-              style="grid-column:1/-1; text-align:center; padding:70px; background:#fff; border-radius:20px; border:2px dashed var(--border);">
-              <i class="fas fa-clipboard-list"
-                style="font-size:56px; color:var(--border); margin-bottom:20px; display:block;"></i>
-              <p style="color:var(--text-3); font-weight:600; font-size:15px;">Henüz hiç görev
-                oluşturulmadı.</p>
-              <button class="btn btn-red" style="margin-top:16px;" onclick="switchView('wizard')">
-                <i class="fas fa-plus"></i> İlk Görevi Oluştur
-              </button>
-            </div>
-            <% } %>
-
-              <% safeTasks.forEach(t=> {
-                const isExpired = new Date(t.deadline) < new Date(); const deadlineDate=new Date(t.deadline); const
-                  diffDays=Math.ceil((deadlineDate - new Date()) / (1000 * 60 * 60 * 24)); %>
-                  <div class="task-card" data-title="<%= t.title.toLowerCase() %>"
-                    data-expired="<%= isExpired ? '1' : '0' %>" data-deadline="<%= t.deadline %>">
-
-                    <div class="card-top">
-                      <div class="card-status-row">
-                        <span class="badge <%= isExpired ? 'badge-expired' : 'badge-active' %>">
-                          <%= isExpired ? 'Süresi Doldu' : 'Aktif' %>
-                        </span>
-                        <span style="font-size:11px; font-weight:800; color:var(--text-3);">
-                          <i class="fas fa-calendar-alt"></i>
-                          <%= deadlineDate.toLocaleDateString('tr-TR') %>
-                        </span>
-                      </div>
-
-                      <div class="card-title">
-                        <%= t.title %>
-                      </div>
-
-                      <div class="card-stats-row">
-                        <div class="cs-item"><i class="fas fa-school" style="color:var(--blue);"></i><span>
-                            <%= t.total_assignments || 0 %> okul
-                          </span></div>
-                        <div class="cs-item"><i class="fas fa-check-circle" style="color:var(--green);"></i><span>
-                            <%= t.completed_assignments || 0 %> tamamlandı
-                          </span></div>
-                        <% if (!isExpired && diffDays <=3 && diffDays> 0) { %>
-                          <div class="cs-item" style="color:#f59e0b;">
-                            <i class="fas fa-exclamation-triangle"></i><span>
-                              <%= diffDays %> gün kaldı
-                            </span>
-                          </div>
-                          <% } %>
-                      </div>
-
-                      <div>
-                        <div
-                          style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:var(--text-2); margin-bottom:8px;">
-                          <span>Tamamlanma Oranı</span><span>%<%= t.completion_rate || 0 %>
-                          </span>
-                        </div>
-                        <div style="height:7px; background:var(--border-lt); border-radius:10px; overflow:hidden;">
-                          <div
-                            style="width:<%= t.completion_rate || 0 %>%; height:100%; background:linear-gradient(90deg, var(--green), #34d399); border-radius:10px; transition:width .5s ease;">
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="card-footer">
-                      <a href="/admin/tasks/<%= t.id %>" class="btn btn-navy btn-sm"
-                        style="flex:1; justify-content:center;">
-                        <i class="fas fa-chart-bar"></i> Takip Et
-                      </a>
-                      <a href="/admin/tasks/<%= t.id %>/edit" class="btn btn-ghost btn-sm" title="Düzenle"><i
-                          class="fas fa-pencil-alt"></i></a>
-                      <form action="/admin/tasks/<%= t.id %>/delete" method="POST" style="display:inline; margin:0;"
-                        onsubmit="return confirm('⚠️ DİKKAT!\n\nBu görevi silmek istediğinize emin misiniz?\nOkulların yüklediği tüm dosyalar, form cevapları ve mesajlar kalıcı olarak silinecektir.');">
-                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                        <button type="submit" class="btn btn-ghost btn-sm" title="Görevi Sil"
-                          style="color:#ef4444; border-color:#fecaca;">
-                          <i class="fas fa-trash-alt"></i>
-                        </button>
-                      </form>
-                    </div>
-                  </div>
-                  <% }) %>
-        </div>
-      </div>
-
-      <!-- ══════════════════════════════════════════
-       WIZARD VIEW
-  ══════════════════════════════════════════ -->
-      <div id="wizardView" style="display:none;">
-        <div class="wizard-wrap">
-          <div class="wizard-panel">
-
-            <div class="wizard-header">
-              <h2><i class="fas fa-pen-nib" style="color:var(--red); margin-right:12px;"></i> Yeni Görev
-                Yaz</h2>
-              <button class="btn btn-ghost btn-sm" onclick="switchView('dashboard')">Listeye Dön</button>
-            </div>
-
-            <div class="step-nav">
-              <div class="step-item active" data-step="1">
-                <div class="step-icon">1</div> Temel Bilgiler
-              </div>
-              <div class="step-item" data-step="2">
-                <div class="step-icon">2</div> Görev Metni
-              </div>
-              <div class="step-item" data-step="3">
-                <div class="step-icon">3</div> Form & Dosya
-              </div>
-              <div class="step-item" data-step="4">
-                <div class="step-icon">4</div> Okul Seçimi
-              </div>
-            </div>
-
-            <form id="taskForm" action="/admin/tasks" method="POST" enctype="multipart/form-data" class="step-content">
-              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-
-              <!-- Step 1: Temel Bilgiler -->
-              <div class="step-pane active" id="pane-1">
-                <div class="gf-section-header" style="border-top-color:var(--red);">
-                  <h3><i class="fas fa-info-circle" style="color:var(--red); margin-right:10px;"></i>Temel Bilgiler</h3>
-                  <p>Görevin başlığını, dosya numarasını ve son teslim tarihini belirleyin.</p>
+        <!-- Assignments Table -->
+        <div class="card">
+            <div class="card-header"
+                style="display: flex; justify-content: space-between; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="ch-icon"><i class="fas fa-list-ul"></i></div>
+                    Okul Durumları
                 </div>
-
-                <div class="gf-card focused">
-                  <div class="gf-card-label"><i class="fas fa-heading"></i> Görev Başlığı / Konusu
-                    <span style="color:var(--red);">*</span>
-                  </div>
-                  <input type="text" name="title" id="mainTitle" class="form-control"
-                    placeholder="Örn: 2024 Yılı Taşımalı Eğitim Veri Girişi" required style="font-size:15px;">
-                </div>
-
-                <div class="gf-card">
-                  <div class="gf-card-label"><i class="fas fa-file-signature"></i> Dosya / Sayı
-                    Numarası (Opsiyonel)</div>
-                  <input type="text" name="ebys_no" class="form-control" placeholder="Örn: 12345678-100-E.12345">
-                </div>
-
-                <div class="gf-card">
-                  <div class="gf-card-label"><i class="fas fa-calendar-check"></i> Son Teslim Tarihi
-                    ve Saati <span style="color:var(--red);">*</span></div>
-                  <input type="text" name="deadline" id="deadlinePicker" class="form-control"
-                    placeholder="Tarih seçiniz..." required>
-                </div>
-              </div>
-
-              <!-- Step 2: Görev Metni -->
-              <div class="step-pane" id="pane-2">
-                <div class="gf-section-header" style="border-top-color:var(--blue);">
-                  <h3><i class="fas fa-file-alt" style="color:var(--blue); margin-right:10px;"></i>Görev Metni</h3>
-                  <p>Okullara gönderilecek resmî yazı metnini düzenleyin.</p>
-                </div>
-                <div class="gf-card" style="padding:0; overflow:hidden;">
-                  <textarea name="description" id="editor"></textarea>
-                </div>
-              </div>
-
-              <!-- Step 3: Form & Dosya -->
-              <div class="step-pane" id="pane-3" style="background:#fafafa; margin:-36px -48px; padding:36px 48px;">
-                <div class="gf-section-header">
-                  <h3><i class="fas fa-wpforms" style="color:var(--gf-purple); margin-right:10px;"></i>Form & Dosya
-                    Ayarları
-                  </h3>
-                  <p>Okullardan istenecek dosya ve veri giriş alanlarını yapılandırın.</p>
-                </div>
-
-                <!-- Ek Dosya - MULTIPLE destekli -->
-                <div class="gf-card">
-                  <div class="gf-card-label"><i class="fas fa-paperclip"></i> Ek Dosyalar (İsteğe Bağlı)
-                  </div>
-                  <div class="gf-file-zone" onclick="document.getElementById('taskFileInput').click()">
-                    <!-- multiple özniteliği eklendi, max 10 dosya -->
-                    <input type="file" name="task_file" id="taskFileInput" multiple accept="*/*">
-                    <div class="gf-file-icon"><i class="fas fa-cloud-upload-alt"></i></div>
-                    <div class="gf-file-text">Dosya seçmek için tıklayın veya sürükleyin</div>
-                    <div class="gf-file-sub">PDF, Word, Excel vb. — Birden fazla dosya seçebilirsiniz</div>
-                  </div>
-                  <!-- Seçilen dosyaların listesi -->
-                  <div class="gf-file-chosen" id="fileChosen" style="display:none;">
-                    <div id="fileChosenList" style="display:flex; flex-direction:column; gap:6px;"></div>
-                  </div>
-                </div>
-
-                <!-- Dosya Ayarları -->
-                <div class="gf-card">
-                  <div class="gf-card-label"><i class="fas fa-cog"></i> Dosya Yükleme Ayarları</div>
-
-                  <div class="gf-toggle-row">
-                    <div class="gf-toggle-label">
-                      <strong>Okullar Dosya Yüklesin</strong>
-                      <span>Okulların bu göreve dosya eklemesine izin verir</span>
-                    </div>
-                    <label class="gf-switch">
-                      <input type="checkbox" name="requires_file" value="1" id="requiresFileToggle">
-                      <span class="gf-slider"></span>
-                    </label>
-                  </div>
-
-                  <div class="gf-toggle-row" id="mandatoryRow" style="opacity:.4; pointer-events:none;">
-                    <div class="gf-toggle-label">
-                      <strong>Dosya Yükleme Zorunlu</strong>
-                      <span>Aktifse okullar dosya yüklemeden formu gönderemez</span>
-                    </div>
-                    <label class="gf-switch">
-                      <input type="checkbox" name="is_file_mandatory" value="1" id="fileMandatoryToggle">
-                      <span class="gf-slider"></span>
-                    </label>
-                  </div>
-
-                  <div class="gf-stepper" id="fileCountRow" style="display:none;">
-                    <label><i class="fas fa-copy" style="margin-right:6px;"></i> Maksimum Dosya
-                      Sayısı</label>
-                    <button type="button" class="gf-stepper-btn" onclick="changeFileCount(-1)">−</button>
-                    <span class="gf-stepper-val" id="fileCountDisplay">1</span>
-                    <button type="button" class="gf-stepper-btn" onclick="changeFileCount(1)">+</button>
-                    <input type="hidden" name="max_file_count" id="maxFileCountInput" value="1">
-                  </div>
-                </div>
-
-                <!-- Sorular -->
-                <div class="gf-card" style="padding:24px 28px 20px;">
-                  <div class="gf-card-label" style="margin-bottom:6px;"><i class="fas fa-list-ul"></i>
-                    Veri Giriş Formu</div>
-                  <p style="font-size:12px; color:var(--text-3); margin:0 0 20px; font-weight:500;">
-                    Okulların dolduracağı soruları ekleyin.</p>
-                  <div class="gf-question-list" id="dynamicFields">
-                    <div class="gf-empty" id="emptyState">
-                      <i class="fas fa-clipboard-list"></i>
-                      <p>Henüz soru eklenmemiş.<br><span style="font-size:12px; color:#bbb;">Aşağıdaki butona tıklayarak
-                          soru
-                          oluşturun.</span></p>
-                    </div>
-                  </div>
-                </div>
-
-                <button type="button" class="gf-add-btn" onclick="addField()">
-                  <i class="fas fa-plus-circle"></i> Yeni Soru / Veri Alanı Ekle
+                <button type="button" onclick="document.getElementById('bulkApproveForm').submit()" class="btn-primary"
+                    style="padding: 6px 12px; font-size: 12px;">
+                    <i class="fas fa-check-double"></i> Seçilenleri Onayla
                 </button>
-              </div>
-
-              <!-- Step 4: Okul Seçimi -->
-              <div class="step-pane" id="pane-4">
-                <div class="gf-section-header" style="border-top-color:var(--green);">
-                  <h3><i class="fas fa-school" style="color:var(--green); margin-right:10px;"></i>Okul
-                    Seçimi</h3>
-                  <p>Görevi hangi okul ve kurumlara göndereceğinizi seçin.</p>
-                </div>
-
-                <div class="school-picker">
-                  <div class="school-search">
-                    <i class="fas fa-search" style="color:var(--text-3); align-self:center; margin-left:10px;"></i>
-                    <input type="text" id="schoolSearch" class="form-control"
-                      style="border:none; background:transparent; flex:1;" placeholder="Okul veya kurum adı ile ara...">
-                    <button type="button" class="btn btn-navy btn-sm" onclick="toggleAllSchools(true)">Tümünü
-                      Seç</button>
-                    <button type="button" class="btn btn-ghost btn-sm"
-                      onclick="toggleAllSchools(false)">Temizle</button>
-
-                    <!-- Okul Türü Filtre Butonları -->
-                    <div class="type-btn-group" id="typeButtonGroup">
-                      <% safeSchoolTypes.forEach(type=> { %>
-                        <button type="button" class="type-btn" data-type="<%= type %>"
-                          style="color:<%= typeColors[type] || '#6b7280' %>; border-color:<%= typeColors[type] || '#6b7280' %>;"
-                          onclick="toggleTypeSelection('<%= type %>', this)">
-                          <i class="fas <%= typeIcons[type] || 'fa-building' %>"></i>
-                          <%= typeLabels[type] || type %>
-                        </button>
-                        <% }) %>
-
-                          <!-- Ayraç -->
-                          <div class="feature-filter-divider"></div>
-
-                          <!-- Kantin Filtresi -->
-                          <button type="button" class="type-btn" id="filterCanteen"
-                            style="color:#ea580c; border-color:#ea580c;" onclick="toggleFeatureFilter('canteen', this)"
-                            title="Kantini olan okulları filtrele">
-                            <i class="fas fa-utensils"></i> Kantin
-                          </button>
-
-                          <!-- Pansiyon Filtresi -->
-                          <button type="button" class="type-btn" id="filterPension"
-                            style="color:#059669; border-color:#059669;" onclick="toggleFeatureFilter('pension', this)"
-                            title="Pansiyonu olan okulları filtrele">
-                            <i class="fas fa-bed"></i> Pansiyon
-                          </button>
-                    </div>
-                  </div>
-
-                  <div class="school-list" id="schoolList">
-                    <% schools.forEach(s=> { %>
-                      <label class="school-item" data-name="<%= s.full_name.toLowerCase() %>"
-                        data-type="<%= s.school_type %>" data-canteen="<%= s.has_canteen ? '1' : '0' %>"
-                        data-pension="<%= s.has_pension ? '1' : '0' %>">
-                        <input type="checkbox" name="school_ids" value="<%= s.id %>">
-                        <span style="font-size:14px; font-weight:600; flex:1;">
-                          <%= s.full_name %>
-                        </span>
-                        <span style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
-                          <% if(s.has_canteen) { %>
-                            <span
-                              style="font-size:10px; padding:2px 7px; border-radius:8px; background:#fff7ed; color:#ea580c; border:1px solid #fed7aa;"
-                              title="Kantini Var">
-                              <i class="fas fa-utensils"></i>
-                            </span>
-                            <% } %>
-                              <% if(s.has_pension) { %>
-                                <span
-                                  style="font-size:10px; padding:2px 7px; border-radius:8px; background:#ecfdf5; color:#059669; border:1px solid #a7f3d0;"
-                                  title="Pansiyonu Var">
-                                  <i class="fas fa-bed"></i>
-                                </span>
-                                <% } %>
-                                  <span
-                                    style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:12px; background:<%= typeColors[s.school_type] ? typeColors[s.school_type] + '18' : '#f1f5f9' %>; color:<%= typeColors[s.school_type] || '#6b7280' %>;">
-                                    <%= typeLabels[s.school_type] || s.school_type || '-' %>
-                                  </span>
-                        </span>
-                      </label>
-                      <% }) %>
-                  </div>
-
-                  <div class="school-count-badge">
-                    <span><i class="fas fa-check-circle" style="color:var(--green); margin-right:6px;"></i>Seçilen Okul
-                      Sayısı:</span>
-                    <span class="count" id="selectedSchoolCount">0</span>
-                  </div>
-                </div>
-              </div>
-            </form>
-
-            <!-- Footer -->
-            <div
-              style="padding:26px 48px; background:#f8fafc; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-              <button type="button" id="btnPrev" class="btn btn-ghost" style="visibility:hidden;">
-                <i class="fas fa-chevron-left"></i> Önceki Adım
-              </button>
-              <div>
-                <button type="button" id="btnNext" class="btn btn-red" style="padding:14px 32px;">
-                  Sonraki Adım <i class="fas fa-chevron-right" style="margin-left:10px;"></i>
-                </button>
-                <button type="button" id="btnSubmit" class="btn btn-navy"
-                  style="display:none; padding:14px 36px; background:var(--green);">
-                  <i class="fas fa-paper-plane" style="margin-right:10px;"></i> Görevi Yayınla
-                </button>
-              </div>
             </div>
+            <div class="table-wrap">
+                <form id="bulkApproveForm" action="/admin/tasks/<%= task.id %>/approve-bulk" method="POST">
+                    <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAllItems"
+                                        title="Tümünü Seç"></th>
+                                <th class="sortable" data-sort="name">Okul <i class="fas fa-sort sort-icon"></i></th>
+                                <th>Kurum Kodu</th>
+                                <th>Okundu</th>
+                                <th class="sortable" data-sort="status">Durum <i class="fas fa-sort sort-icon"></i></th>
+                                <th>Yanıt / Form</th>
+                                <th>Dosya</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <% assignments.forEach(assignment=> {
+                                const isCompleted = assignment.status === 'completed';
+                                const isPendingApp = assignment.status === 'pending_approval';
+                                const isRejected = assignment.status === 'rejected';
 
-          </div>
+                                const hasDeadline = task.deadline && task.deadline.trim() !== '';
+                                const isOverdue = hasDeadline && new Date(task.deadline) < new Date(); const
+                                    needsAction=isCompleted || isPendingApp || isOverdue; const
+                                    showRejectBtn=!isRejected && needsAction; %>
+                                    <tr data-name="<%= assignment.full_name %>" data-status="<%= assignment.status %>"
+                                        data-read="<%= assignment.is_read ? 1 : 0 %>">
+
+                                        <td style="text-align: center;">
+                                            <% if (isPendingApp) { %>
+                                                <input type="checkbox" name="assignmentIds" value="<%= assignment.id %>"
+                                                    class="bulk-cb" style="width: 16px; height: 16px; cursor: pointer;">
+                                                <% } %>
+                                        </td>
+
+                                        <td>
+                                            <div class="school-name">
+                                                <%= assignment.full_name %>
+                                            </div>
+                                        </td>
+                                        <td><span class="school-code">
+                                                <%= assignment.username %>
+                                            </span></td>
+
+                                        <td>
+                                            <% if (assignment.is_read) { %>
+                                                <span style="color:var(--green);font-size:12px;font-weight:600;">
+                                                    <i class="fas fa-check-double"></i> Evet
+                                                </span>
+                                                <div style="font-size:10px;color:var(--text-4);margin-top:2px;">
+                                                    <%= assignment.read_at ? new
+                                                        Date(assignment.read_at).toLocaleString('tr-TR') : '' %>
+                                                </div>
+                                                <% } else { %>
+                                                    <span style="color:var(--text-4);font-size:12px;">
+                                                        <i class="fas fa-minus-circle"></i> Hayır
+                                                    </span>
+                                                    <% } %>
+                                        </td>
+
+                                        <td>
+                                            <% if (isCompleted) { %>
+                                                <span class="badge badge-completed"><i class="fas fa-check"></i>
+                                                    Tamamlandı</span>
+                                                <span class="badge-time">
+                                                    <%= assignment.completed_at ? new
+                                                        Date(assignment.completed_at).toLocaleString('tr-TR') : '' %>
+                                                </span>
+                                                <% } else if (isRejected) { %>
+                                                    <span class="badge badge-rejected"><i class="fas fa-times"></i>
+                                                        Reddedildi</span>
+                                                    <% } else if (isPendingApp) { %>
+                                                        <span class="badge badge-pending_approval">
+                                                            <i class="fas fa-hourglass-half"></i> Onay Bekliyor
+                                                        </span>
+                                                        <% } else if (assignment.status==='in_progress' ) { %>
+                                                            <span class="badge badge-in_progress">
+                                                                <i class="fas fa-spinner fa-spin"></i> İşleniyor
+                                                            </span>
+                                                            <% } else { %>
+                                                                <span class="badge badge-pending"><i
+                                                                        class="fas fa-clock"></i> Bekliyor</span>
+                                                                <% } %>
+                                        </td>
+
+                                        <td>
+                                            <% if (assignment.fieldResponses && assignment.fieldResponses.length> 0) {
+                                                %>
+                                                <button type="button" class="btn-sm btn-red js-open-answers"
+                                                    data-id="<%= assignment.id %>"
+                                                    data-name="<%= assignment.full_name %>">
+                                                    <i class="fas fa-list"></i> Form Cevapları
+                                                </button>
+                                                <% } %>
+                                                    <% if (assignment.response_note) { %>
+                                                        <div
+                                                            style="font-style:italic;color:var(--text-3);font-size:12px;margin-top:5px;">
+                                                            "<%= assignment.response_note %>"
+                                                        </div>
+                                                        <% } %>
+                                                            <% if (!assignment.fieldResponses?.length &&
+                                                                !assignment.response_note) { %>
+                                                                <span style="color:var(--text-4);">—</span>
+                                                                <% } %>
+                                        </td>
+
+                                        <td>
+                                            <% if (assignment.files && assignment.files.length> 0) { %>
+                                                <div style="display:flex;flex-direction:column;gap:4px;">
+                                                    <% assignment.files.forEach(file=> { %>
+                                                        <a href="/uploads/responses/<%= file.file_path %>"
+                                                            target="_blank" class="btn-sm btn-blue"
+                                                            style="font-size:11px;padding:4px 8px;">
+                                                            <i class="fas fa-file-download"></i>
+                                                            <%= file.original_name ? (file.original_name.length> 15 ?
+                                                                file.original_name.substring(0,12)+'...' :
+                                                                file.original_name)
+                                                                : 'Dosya' %>
+                                                        </a>
+                                                        <% }) %>
+                                                </div>
+                                                <% } else if (assignment.response_file) { %>
+                                                    <a href="/admin/tasks/assignments/<%= assignment.id %>/download"
+                                                        target="_blank" class="btn-sm btn-blue">
+                                                        <i class="fas fa-paperclip"></i> İncele
+                                                    </a>
+                                                    <% } else { %>
+                                                        <span style="color:var(--text-4);">—</span>
+                                                        <% } %>
+                                        </td>
+
+                                        <td>
+                                            <div style="display:flex;gap:5px;align-items:center;">
+                                                <button type="button" class="btn-sm btn-blue js-open-message"
+                                                    data-id="<%= assignment.id %>"
+                                                    data-name="<%= assignment.full_name %>" title="Mesajlar">
+                                                    <i class="fas fa-comment-dots"></i>
+                                                </button>
+                                                <% if (isPendingApp) { %>
+                                                    <button type="button" class="btn-sm btn-green js-open-approve"
+                                                        data-id="<%= assignment.id %>"
+                                                        data-name="<%= assignment.full_name %>" title="Onayla">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <% } %>
+                                                        <% if (showRejectBtn) { %>
+                                                            <button type="button" class="btn-sm btn-red js-open-reject"
+                                                                data-id="<%= assignment.id %>"
+                                                                data-name="<%= assignment.full_name %>"
+                                                                title="<%= isCompleted ? 'Geri Al' : 'Reddet' %>">
+                                                                <i
+                                                                    class="<%= isCompleted ? 'fas fa-undo' : 'fas fa-times' %>"></i>
+                                                            </button>
+                                                            <% } %>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                        </tbody>
+                    </table>
+                </form>
+            </div>
         </div>
-      </div>
-
     </div>
 
-    <script>
-      // Çoklu dosya seçiminde liste göster
-      document.addEventListener('DOMContentLoaded', function () {
-        const taskFileInput = document.getElementById('taskFileInput');
-        if (taskFileInput) {
-          taskFileInput.addEventListener('change', function () {
-            const fileChosen = document.getElementById('fileChosen');
-            const fileChosenList = document.getElementById('fileChosenList');
-            if (!fileChosen || !fileChosenList) return;
+    <!-- ── REJECT MODAL ── -->
+    <div id="rejectModal" class="tp-modal">
+        <div class="tp-modal-box tp">
+            <div class="tp-modal-header">
+                <div class="tp-modal-title" style="color:var(--red);">
+                    <i class="fas fa-exclamation-triangle"></i> Görevi Reddet
+                </div>
+                <button class="tp-btn-close" data-close="rejectModal"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="tp-modal-sub">
+                <strong id="rejectSchoolName"></strong> tarafından gönderilen görevi reddetmek üzeresiniz:
+            </p>
+            <form id="rejectForm" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <textarea class="tp-input" name="rejection_note" placeholder="Red sebebini belirtin..."
+                    required></textarea>
+                <div class="tp-modal-footer">
+                    <button type="button" class="btn-back" data-close="rejectModal">İptal</button>
+                    <button type="submit" class="btn-primary" style="padding:10px 20px;">Reddet</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-            fileChosenList.innerHTML = '';
-            if (this.files && this.files.length > 0) {
-              fileChosen.style.display = 'block';
-              Array.from(this.files).forEach(function (file) {
-                const item = document.createElement('div');
-                item.style.cssText = 'display:flex; align-items:center; gap:8px; font-size:13px; color:#334155; padding:6px 10px; background:#f0f7ff; border:1px solid #cce3ff; border-radius:8px;';
-                item.innerHTML = '<i class="fas fa-file-alt" style="color:#2563eb; flex-shrink:0;"></i>'
-                  + '<span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + file.name + '</span>'
-                  + '<span style="color:#64748b; font-size:11px; flex-shrink:0;">(' + (file.size / 1024).toFixed(1) + ' KB)</span>';
-                fileChosenList.appendChild(item);
-              });
-            } else {
-              fileChosen.style.display = 'none';
-            }
-          });
-        }
-      });
+    <!-- ── APPROVE MODAL ── -->
+    <div id="approveModal" class="tp-modal">
+        <div class="tp-modal-box tp" style="border-top-color:var(--green);">
+            <div class="tp-modal-header">
+                <div class="tp-modal-title" style="color:var(--green);">
+                    <i class="fas fa-check-circle"></i> Görevi Onayla
+                </div>
+                <button class="tp-btn-close" data-close="approveModal"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="tp-modal-sub">
+                <strong id="approveSchoolName"></strong> tarafından yapılan görevi onaylamak üzeresiniz.
+            </p>
+            <form id="approveForm" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div class="tp-modal-footer">
+                    <button type="button" class="btn-back" data-close="approveModal">İptal</button>
+                    <button type="submit" class="btn-primary"
+                        style="background:var(--green);padding:10px 20px;">Onayla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── MESSAGE MODAL ── -->
+    <div id="messageModal" class="tp-modal">
+        <div class="tp-modal-box tp" style="border-top-color:var(--blue);max-width:580px;">
+            <div class="tp-modal-header">
+                <div class="tp-modal-title" style="color:var(--blue);">
+                    <i class="fas fa-comments"></i> Mesajlar
+                </div>
+                <button class="tp-btn-close" data-close="messageModal"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="tp-modal-sub">
+                <strong id="msgSchoolName"></strong> ile mesajlaşma geçmişi:
+            </p>
+            <div class="tp-msg-list" id="msgList"></div>
+            <form id="messageForm" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="task_id" value="<%= task.id %>">
+                <div class="tp-msg-row">
+                    <input type="text" name="message" class="tp-input" placeholder="Bir mesaj yazın..." required>
+                    <button type="submit" class="btn-primary"
+                        style="background:var(--blue);margin:0;padding:10px 16px;flex-shrink:0;">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── ANSWERS MODAL ── -->
+    <div id="answersModal" class="tp-modal">
+        <div class="tp-modal-box tp" style="max-width:580px;">
+            <div class="tp-modal-header">
+                <div class="tp-modal-title" style="color:var(--red);">
+                    <i class="fas fa-tasks"></i> Form Cevapları
+                </div>
+                <button class="tp-btn-close" data-close="answersModal"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="tp-modal-sub">
+                <strong id="ansSchoolName"></strong> tarafından gönderilen form cevapları:
+            </p>
+            <div id="ansList" style="background:#f8fafc;border:1px solid var(--border);border-radius:12px;
+                    max-height:380px;overflow-y:auto;padding:14px;
+                    display:flex;flex-direction:column;gap:12px;margin-bottom:18px;"></div>
+            <div class="tp-modal-footer">
+                <button type="button" class="btn-back" data-close="answersModal">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Veriler JSON script tag'lerinde güvenli biçimde aktarılıyor -->
+    <script id="messagesMapData"
+        type="application/json"><%- JSON.stringify(messagesMap  || {}).replace(/</g, '\\u003c') %></script>
+    <script id="assignmentsData"
+        type="application/json"><%- JSON.stringify(assignments || []).replace(/</g, '\\u003c') %></script>
+    <script>
+        window.TASK_ID = '<%= task.id %>';
+        window.ME = String('<%= typeof currentUserId !== "undefined" ? currentUserId : "" %>');
     </script>
 
-    <script src="/js/admin_tasks.js"></script>
-
+    <script src="/js/admin_task_detail.js?v=<%= Date.now() %>"></script>
     <%- include('../layouts/footer') %>

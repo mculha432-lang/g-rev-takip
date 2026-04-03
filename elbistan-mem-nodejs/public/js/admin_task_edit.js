@@ -29,12 +29,8 @@
                 /* ── Flatpickr ── */
                 flatpickr('#deadlinePicker', { enableTime: true, dateFormat: 'Y-m-d H:i', locale: 'tr', time_24hr: true });
 
-                /* ── File zone ── */
-                document.getElementById('taskFileInput').addEventListener('change', function () {
-                    const name = this.files[0]?.name || '';
-                    document.getElementById('fileChosenName').textContent = name;
-                    document.getElementById('fileChosen').style.display = name ? 'flex' : 'none';
-                });
+                // File zone logic removed because it is handled by inline script in EJS for multiple files support.
+
 
                 document.getElementById('requiresFileToggle').addEventListener('change', function () {
                     document.getElementById('mandatoryRow').style.opacity = this.checked ? '1' : '0.4';
