@@ -3,6 +3,8 @@ const router = express.Router();
 const taskController = require('../controllers/taskController');
 const { isAdminOrManager } = require('../middleware/auth');
 
+const { virusScanner } = require('../utils/upload');
+
 const csrf = require('csurf');
 const csrfProtection = csrf({ cookie: true });
 
@@ -19,8 +21,8 @@ router.use(isAdminOrManager);
 router.get('/', taskController.index);
 
 // ── Görev Ekle ───────────────────────────────────────────────
-// Önce dosya yükle (uploadMulter), sonra CSRF kontrolü
-router.post('/', taskController.uploadMulter, csrfProtection, taskController.store);
+// Önce dosya yükle (uploadMulter), SONRA virusScanner, sonra CSRF kontrolü
+router.post('/', taskController.uploadMulter, virusScanner, csrfProtection, taskController.store);
 
 // ── Statik alt rotalar (/:id rotasından ÖNCE tanımla) ────────
 // Görev yanıt dosyası indir
@@ -36,8 +38,8 @@ router.get('/:id', taskController.detail);
 // Görev Düzenle – Form getir
 router.get('/:id/edit', taskController.edit);
 
-// Görev Güncelle – Önce dosya yükle, sonra CSRF
-router.post('/:id/update', taskController.uploadMulter, csrfProtection, taskController.update);
+// Görev Güncelle – Önce dosya yükle, sonra virüs tara, sonra CSRF
+router.post('/:id/update', taskController.uploadMulter, virusScanner, csrfProtection, taskController.update);
 
 // Görev Sil
 router.post('/:id/delete', taskController.delete);

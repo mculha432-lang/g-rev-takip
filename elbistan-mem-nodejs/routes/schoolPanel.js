@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const schoolPanelController = require('../controllers/schoolPanelController');
 const { isSchool } = require('../middleware/auth');
+const { virusScanner } = require('../utils/upload');
 const csrf = require('csurf');
 const csrfProtection = csrf({ cookie: true });
 
@@ -15,7 +16,7 @@ router.get('/dashboard', schoolPanelController.dashboard);
 router.get('/tasks/:id', schoolPanelController.taskDetail);
 
 // Görev Yanıt Gönder
-router.post('/tasks/:id/response', schoolPanelController.uploadMulter, csrfProtection, schoolPanelController.uploadResponse);
+router.post('/tasks/:id/response', schoolPanelController.uploadMulter, virusScanner, csrfProtection, schoolPanelController.uploadResponse);
 
 // Mesaj Gönder
 router.post('/tasks/:id/message', schoolPanelController.sendMessage);

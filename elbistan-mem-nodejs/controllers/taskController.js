@@ -162,20 +162,40 @@ const taskController = {
                 'SELECT * FROM task_fields WHERE task_id = ? ORDER BY field_order ASC'
             ).all(id);
 
-            // Her atama için form cevapları + dosyalar
+            // Her atama için form cevapları + dosyalar (N+1 problemi Json Map ile çözüldü)
+            const allResponses = db.prepare(`
+                SELECT tfr.*, tf.field_label, tf.field_type
+                FROM task_field_responses tfr
+                JOIN task_fields tf ON tfr.field_id = tf.id
+                WHERE tf.task_id = ?
+            `).all(id);
+
+            const allFiles = db.prepare(`
+                SELECT taf.* 
+                FROM task_assignment_files taf
+                JOIN task_assignments ta ON taf.assignment_id = ta.id
+                WHERE ta.task_id = ?
+            `).all(id);
+
+            const responsesMap = {};
+            const filesMap = {};
+
+            allResponses.forEach(r => {
+                if (!responsesMap[r.assignment_id]) responsesMap[r.assignment_id] = [];
+                responsesMap[r.assignment_id].push(r);
+            });
+
+            allFiles.forEach(f => {
+                if (!filesMap[f.assignment_id]) filesMap[f.assignment_id] = [];
+                filesMap[f.assignment_id].push(f);
+            });
+
             const assignmentsWithResponses = assignments.map(assignment => {
-                const responses = db.prepare(`
-                    SELECT tfr.*, tf.field_label, tf.field_type
-                    FROM task_field_responses tfr
-                    JOIN task_fields tf ON tfr.field_id = tf.id
-                    WHERE tfr.assignment_id = ?
-                `).all(assignment.id);
-
-                const files = db.prepare(
-                    'SELECT * FROM task_assignment_files WHERE assignment_id = ?'
-                ).all(assignment.id);
-
-                return { ...assignment, fieldResponses: responses, files };
+                return {
+                    ...assignment,
+                    fieldResponses: responsesMap[assignment.id] || [],
+                    files: filesMap[assignment.id] || []
+                };
             });
 
             // Tüm mesajları getir ve okul mesajlarını okundu yap

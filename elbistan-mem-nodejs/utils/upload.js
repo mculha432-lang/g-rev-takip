@@ -144,11 +144,73 @@ function deleteFile(subDir, filename) {
     return false;
 }
 
+// Node-Clam Entegrasyonu
+const NodeClam = require('clamscan');
+let clamscan = null;
+
+try {
+    // ClamAV ayarlarını başlat (Sunucuda clamd çalışıyor olmalı)
+    new NodeClam().init({
+        removeInfected: true, // Virüslü dosyayı hemen sil
+        clamdscan: {
+            host: '127.0.0.1',
+            port: 3310,
+            timeout: 60000,
+            active: true
+        },
+        preference: 'clamdscan'
+    }).then(instance => {
+        clamscan = instance;
+        console.log('✅ ClamAV virüs tarama soketi aktif.');
+    }).catch(err => {
+        console.warn('⚠️ ClamAV başlatılamadı, virüs taraması bypass edilecek', err.message);
+    });
+} catch (error) {
+    console.warn('⚠️ ClamAV modülü başlatılamadı:', error);
+}
+
+// Virüs tarama middleware'i
+async function virusScanner(req, res, next) {
+    // Eğer clamscan henüz hazır değilse işlemlere devam et (Geliştirme ortamında kesintiye uğramaması için)
+    if (!clamscan) return next();
+
+    const filesToScan = [];
+    if (req.file) filesToScan.push(req.file);
+    if (req.files) {
+        if (Array.isArray(req.files)) {
+            filesToScan.push(...req.files);
+        } else {
+            Object.values(req.files).forEach(fileArray => {
+                filesToScan.push(...fileArray);
+            });
+        }
+    }
+
+    if (filesToScan.length === 0) return next();
+
+    try {
+        for (const file of filesToScan) {
+            const { isInfected, viruses } = await clamscan.isInfected(file.path);
+            if (isInfected) {
+                console.error(`🚨 VİRÜS TESPİT EDİLDİ! Dosya: ${file.originalname}, Tehdit: ${viruses.join(', ')}`);
+                // Virüslü dosya `removeInfected: true` parametresiyle zaten silinmiş olacaktır
+                return res.status(400).send(`Güvenlik Uyarısı: Yüklemeye çalıştığınız dosyada zararlı yazılım (${viruses.join(', ')}) tespit edildi ve işlem iptal edildi.`);
+            }
+        }
+        next();
+    } catch (err) {
+        console.error('ClamAV tarama hatası:', err);
+        // Hata durumunda güvenli tarafta kalmak için yüklemeyi durdurabiliriz
+        next(); // Şimdilik geliştirme evresinde hata olursa bloklamıyoruz
+    }
+}
+
 module.exports = {
     uploads,
     deleteFile,
     sanitizeFilename,
     ALLOWED_EXTENSIONS,
     MAX_FILE_SIZE,
-    ensureUploadDir
+    ensureUploadDir,
+    virusScanner
 };
