@@ -110,7 +110,8 @@ const conditionalCsrf = (req, res, next) => {
     // (Çünkü bu rotalarda uploadMulter çalıştıktan sonra kendi route tanımlarında csrfProtection yapılıyor)
     const isMultipartRoute = req.method === 'POST' && (
         (req.path === '/admin/tasks' || req.path.match(/^\/admin\/tasks\/[A-Za-z0-9_-]+\/update$/)) ||
-        req.path.match(/^\/okul\/tasks\/[A-Za-z0-9_-]+\/response$/)
+        req.path.match(/^\/okul\/tasks\/[A-Za-z0-9_-]+\/response$/) ||
+        req.path === '/admin/files'
     );
 
     if (req.path.startsWith('/push') || isMultipartRoute) {
