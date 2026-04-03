@@ -50,13 +50,23 @@
       document.addEventListener('click', e => {
         const el = e.target.closest('[data-close],[data-sort],button,a');
         if (!el) return;
-        if (el.dataset.close) { hide(el.dataset.close); return; }
+        
+        // Modal kapatma butonları
+        if (el.dataset.close) { 
+          e.preventDefault();
+          hide(el.dataset.close); 
+          return; 
+        }
+
         const { id, name } = el.dataset;
-        if (el.classList.contains('js-open-reject')) { openReject(id, name); return; }
-        if (el.classList.contains('js-open-approve')) { openApprove(id, name); return; }
-        if (el.classList.contains('js-open-message')) { openMessage(id, name); return; }
-        if (el.classList.contains('js-open-answers')) { openAnswers(id, name); return; }
-        if (el.dataset.sort) { sortRows(el.dataset.sort, el); return; }
+        
+        // İşlem butonlarına basıldığında sayfanın form göndermesini engelle
+        if (el.classList.contains('js-open-reject')) { e.preventDefault(); openReject(id, name); return; }
+        if (el.classList.contains('js-open-approve')) { e.preventDefault(); openApprove(id, name); return; }
+        if (el.classList.contains('js-open-message')) { e.preventDefault(); openMessage(id, name); return; }
+        if (el.classList.contains('js-open-answers')) { e.preventDefault(); openAnswers(id, name); return; }
+        
+        if (el.dataset.sort) { e.preventDefault(); sortRows(el.dataset.sort, el); return; }
       });
 
       window.addEventListener('click', e => {
