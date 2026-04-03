@@ -108,7 +108,7 @@ const csrfProtection = csrf({ cookie: true });
 const conditionalCsrf = (req, res, next) => {
     // Sadece /push route'u ve kendisi multer kullanan özel rotaları globalden atla
     // (Çünkü bu rotalarda uploadMulter çalıştıktan sonra kendi route tanımlarında csrfProtection yapılıyor)
-    const isMultipartRoute = (
+    const isMultipartRoute = req.method === 'POST' && (
         (req.path === '/admin/tasks' || req.path.match(/^\/admin\/tasks\/[A-Za-z0-9_-]+\/update$/)) ||
         req.path.match(/^\/okul\/tasks\/[A-Za-z0-9_-]+\/response$/)
     );
