@@ -352,12 +352,12 @@
   </div>
 
   <!-- Veriler JSON script tag'lerinde güvenli biçimde aktarılıyor -->
-  <script id="messagesMapData" type="application/json"><%- JSON.stringify(messagesMap  || {}) %></script>
-  <script id="assignmentsData" type="application/json"><%- JSON.stringify(assignments || []) %></script>
+  <script id="messagesMapData" type="application/json"><%- JSON.stringify(messagesMap  || {}).replace(/</g, '\\u003c') %></script>
+  <script id="assignmentsData" type="application/json"><%- JSON.stringify(assignments || []).replace(/</g, '\\u003c') %></script>
   <script>
     window.TASK_ID = '<%= task.id %>';
     window.ME = String('<%= typeof currentUserId !== "undefined" ? currentUserId : "" %>');
   </script>
 
-  <script src="/js/admin_task_detail.js"></script>
+  <script src="/js/admin_task_detail.js?v=<%= Date.now() %>"></script>
   <%- include('../layouts/footer') %>

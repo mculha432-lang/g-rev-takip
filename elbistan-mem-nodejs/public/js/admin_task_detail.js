@@ -31,7 +31,7 @@
 
       function sortRows(type, header) {
         const tbody = $('tableBody');
-        const rows = [...tbody.querySelectorAll('tr')];
+        const rows = Array.from(tbody.querySelectorAll('tr'));
         document.querySelectorAll('th.sortable').forEach(th => th.classList.remove('active'));
         header.classList.add('active');
         sortDir[type] *= -1;
@@ -48,25 +48,29 @@
 
       /* ── Event delegation ── */
       document.addEventListener('click', e => {
-        const el = e.target.closest('[data-close],[data-sort],button,a');
-        if (!el) return;
-        
-        // Modal kapatma butonları
-        if (el.dataset.close) { 
-          e.preventDefault();
-          hide(el.dataset.close); 
-          return; 
-        }
+        try {
+          const el = e.target.closest('[data-close],[data-sort],button,a');
+          if (!el) return;
+          
+          // Modal kapatma butonları
+          if (el.dataset.close) { 
+            e.preventDefault();
+            hide(el.dataset.close); 
+            return; 
+          }
 
-        const { id, name } = el.dataset;
-        
-        // İşlem butonlarına basıldığında sayfanın form göndermesini engelle
-        if (el.classList.contains('js-open-reject')) { e.preventDefault(); openReject(id, name); return; }
-        if (el.classList.contains('js-open-approve')) { e.preventDefault(); openApprove(id, name); return; }
-        if (el.classList.contains('js-open-message')) { e.preventDefault(); openMessage(id, name); return; }
-        if (el.classList.contains('js-open-answers')) { e.preventDefault(); openAnswers(id, name); return; }
-        
-        if (el.dataset.sort) { e.preventDefault(); sortRows(el.dataset.sort, el); return; }
+          const { id, name } = el.dataset;
+          
+          // İşlem butonlarına basıldığında sayfanın form göndermesini engelle
+          if (el.classList.contains('js-open-reject')) { e.preventDefault(); openReject(id, name); return; }
+          if (el.classList.contains('js-open-approve')) { e.preventDefault(); openApprove(id, name); return; }
+          if (el.classList.contains('js-open-message')) { e.preventDefault(); openMessage(id, name); return; }
+          if (el.classList.contains('js-open-answers')) { e.preventDefault(); openAnswers(id, name); return; }
+          
+          if (el.dataset.sort) { e.preventDefault(); sortRows(el.dataset.sort, el); return; }
+        } catch (err) {
+          console.error('Click error:', err);
+        }
       });
 
       window.addEventListener('click', e => {
