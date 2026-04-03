@@ -36,3 +36,5 @@ public/uploads/system/
 # OS dosyaları
 Thumbs.db
 .DS_Store
+
+.env

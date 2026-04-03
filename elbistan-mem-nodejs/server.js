@@ -105,10 +105,22 @@ const csrfProtection = csrf({ cookie: true });
 // CSRF korumasını tüm POST isteklerine uygula
 // Conditional CSRF Protection
 const conditionalCsrf = (req, res, next) => {
-    // Eğer istek multipart/form-data ise (dosya yükleme) veya /push altındaysa global kontrolü atla
-    if (req.get('content-type')?.includes('multipart/form-data') || req.path.startsWith('/push')) {
+    // Sadece /push route'u ve kendisi multer kullanan özel rotaları globalden atla
+    // (Çünkü bu rotalarda uploadMulter çalıştıktan sonra kendi route tanımlarında csrfProtection yapılıyor)
+    const isMultipartRoute = (
+        (req.path === '/admin/tasks' || req.path.match(/^\/admin\/tasks\/[A-Za-z0-9_-]+\/update$/)) ||
+        req.path.match(/^\/okul\/tasks\/[A-Za-z0-9_-]+\/response$/)
+    );
+
+    if (req.path.startsWith('/push') || isMultipartRoute) {
         return next();
     }
+    
+    // Geçersiz content-type ile gönderilen potansiyel bypass'ları önle
+    if (req.get('content-type')?.includes('multipart/form-data') && !isMultipartRoute) {
+        return res.status(403).send('Bypass detected: Multipart not allowed on this route.');
+    }
+
     csrfProtection(req, res, next);
 };
 
