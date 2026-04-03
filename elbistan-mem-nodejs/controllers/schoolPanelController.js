@@ -174,6 +174,9 @@ const schoolPanelController = {
                 AND is_read = 0
             `).run(id, userId);
 
+            // Süre doldu mu kontrol et? (Yönetici iade etmişse süreye bakma)
+            const deadlinePassed = isDeadlinePassed(assignment.deadline) && assignment.status !== 'rejected';
+
             // Göreve ait tüm ek dosyaları getir
             const taskAttachments = db.prepare(
                 'SELECT * FROM task_attachments WHERE task_id = ? ORDER BY created_at ASC'
