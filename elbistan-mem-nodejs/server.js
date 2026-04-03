@@ -42,7 +42,8 @@ const loginLimiter = rateLimit({
     max: process.env.LOGIN_LIMIT_MAX || 5, // Varsayılan 5 deneme
     message: `Çok fazla giriş denemesi yaptınız. Lütfen ${process.env.LOGIN_LIMIT_WINDOW || 15} dakika sonra tekrar deneyin.`,
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
+    skip: (req, res) => req.method === 'GET' // Sadece form gönderimini (POST) sınırla, sayfayı yenileyenleri bloklama
 });
 
 const generalLimiter = rateLimit({
@@ -126,18 +127,6 @@ const conditionalCsrf = (req, res, next) => {
 
 app.use(conditionalCsrf);
 
-// CSRF hatalarını yakala
-app.use((err, req, res, next) => {
-    if (err.code === 'EBADCSRFTOKEN') {
-        logger.warn(`CSRF token hatası: ${req.method} ${req.originalUrl} - IP: ${req.ip}`);
-        return res.status(403).render('404', {
-            title: 'Güvenlik Hatası',
-            message: 'Oturum süresi dolmuş veya geçersiz istek. Lütfen sayfayı yenileyin.'
-        });
-    }
-    next(err);
-});
-
 // Middleware olarak dışa aktar (Route'larda kullanmak için)
 app.set('csrfProtection', csrfProtection);
 
@@ -184,6 +173,18 @@ app.use((req, res) => {
 
 // Error Logger Middleware
 app.use(errorLogger);
+
+// Ozel CSRF hatasi (Route'lardan sonra cagrildigi icin duzgun calisir)
+app.use((err, req, res, next) => {
+    if (err.code === 'EBADCSRFTOKEN') {
+        logger.warn(`CSRF token hatası: ${req.method} ${req.originalUrl} - IP: ${req.ip}`);
+        return res.status(403).render('404', {
+            title: 'Güvenlik Hatası',
+            message: 'Oturum süresi dolmuş veya geçersiz istek. Lütfen sayfayı yenileyerek tekrar deneyin.'
+        });
+    }
+    next(err);
+});
 
 // Hata yakalama
 app.use((err, req, res, next) => {
