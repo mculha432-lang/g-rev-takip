@@ -170,10 +170,12 @@ async function generateTaskDetailExcel(taskId) {
     const sheet = workbook.addWorksheet('Görev Detayı');
 
     // Görev bilgileri
+    const stripHtml = (html) => html ? html.replace(/<[^>]*>?/gm, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim() : '-';
+
     sheet.addRow(['Görev Bilgileri']);
     sheet.getRow(1).font = { bold: true, size: 14 };
     sheet.addRow(['Görev Adı:', task.title]);
-    sheet.addRow(['Açıklama:', task.description || '-']);
+    sheet.addRow(['Açıklama:', stripHtml(task.description)]);
     sheet.addRow(['Son Tarih:', formatDate(task.deadline)]);
     sheet.addRow([]);
 
@@ -215,6 +217,12 @@ async function generateTaskDetailExcel(taskId) {
             responseMap[r.field_id] = r.response_value;
         });
 
+        // Dosya linki oluştur (BASE_URL veya hardcoded)
+        const baseUrl = process.env.BASE_URL || 'https://elbmemgts.com.tr';
+        const fileObj = a.response_file 
+            ? { text: a.response_file, hyperlink: `${baseUrl}/uploads/responses/${a.response_file}`, tooltip: 'Dosyayı İndir' }
+            : '-';
+
         // Satır verileri
         const rowData = [
             a.full_name,
@@ -222,15 +230,34 @@ async function generateTaskDetailExcel(taskId) {
             translateStatus(a.status),
             a.is_read ? 'Evet' : 'Hayır',
             a.response_note || '-',
-            a.response_file || '-'
+            fileObj
         ];
 
         // Form alanı cevaplarını ekle
         taskFields.forEach(field => {
-            rowData.push(responseMap[field.id] || '-');
+            let val = responseMap[field.id] || '-';
+            // Array/Checkbox verisini düzgün string'e çevir
+            if (typeof val === 'string' && val.startsWith('[')) {
+                try { val = JSON.parse(val).join(', '); } catch(e){}
+            }
+            rowData.push(val);
         });
 
         const row = sheet.addRow(rowData);
+
+        // Stilleri ayarla (Hücre taşımasını önleme ve kenarlık ekleme)
+        row.eachCell({ includeEmpty: true }, (cell) => {
+            cell.alignment = { vertical: 'middle', wrapText: true };
+            cell.border = {
+                top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+                left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+                bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+                right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
+            };
+            if (cell.value && cell.value.hyperlink) {
+                cell.font = { color: { argb: 'FF0563C1' }, underline: true };
+            }
+        });
 
         // Duruma göre satır renklendirme
         if (a.status === 'completed') {
@@ -267,11 +294,13 @@ async function generateTaskDetailExcel(taskId) {
     const completedCount = assignments.filter(a => a.status === 'completed').length;
     const pendingCount = assignments.filter(a => a.status === 'pending').length;
     const inProgressCount = assignments.filter(a => a.status === 'in_progress').length;
+    const rejectedCount = assignments.filter(a => a.status === 'rejected').length;
 
     sheet.addRow(['Toplam Atama:', totalAssignments]);
     sheet.addRow(['Tamamlanan:', completedCount]);
     sheet.addRow(['İşlemde:', inProgressCount]);
     sheet.addRow(['Bekleyen:', pendingCount]);
+    sheet.addRow(['İade Edilen:', rejectedCount]);
     sheet.addRow(['Tamamlanma Oranı:', totalAssignments > 0 ? `%${Math.round(completedCount / totalAssignments * 100)}` : '%0']);
 
     const fileName = `gorev_${taskId}_detay_${Date.now()}.xlsx`;
