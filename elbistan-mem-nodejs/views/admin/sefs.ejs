@@ -1,0 +1,203 @@
+<%- include('../layouts/header') %>
+
+<style>
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 14px; }
+  .page-header h1 { font-size: 26px; font-weight: 800; margin: 0; color: #1e293b; }
+  .page-header p { color: #64748b; font-size: 14px; margin: 6px 0 0; font-weight: 500; }
+
+  .alert { padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+  .alert-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+  .alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+  .card { background: #fff; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,.04); margin-bottom: 24px; }
+  .card-header { padding: 20px 24px; border-bottom: 1px solid #f1f5f9; }
+  .card-header h2 { font-size: 16px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 10px; }
+  .card-body { padding: 24px; }
+
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 13px; font-weight: 600; color: #374151; }
+  .form-control { padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px; font-family: inherit; transition: border-color .2s; outline: none; }
+  .form-control:focus { border-color: #E31E24; }
+
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; text-decoration: none; transition: all .2s; }
+  .btn-primary { background: linear-gradient(135deg, #E31E24, #c41a1f); color: #fff; }
+  .btn-primary:hover { background: linear-gradient(135deg, #c41a1f, #a31519); transform: translateY(-1px); }
+  .btn-danger { background: #fee2e2; color: #dc2626; border: 1.5px solid #fecaca; }
+  .btn-danger:hover { background: #fecaca; }
+  .btn-outline { background: transparent; color: #2563eb; border: 1.5px solid #93c5fd; }
+  .btn-outline:hover { background: #eff6ff; }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
+
+  .sef-table { width: 100%; border-collapse: collapse; }
+  .sef-table th { background: #f8fafc; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .5px; padding: 14px 18px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+  .sef-table td { padding: 14px 18px; font-size: 14px; color: #374151; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+  .sef-table tr:last-child td { border-bottom: none; }
+  .sef-table tr:hover td { background: #f8fafc; }
+
+  .sef-avatar { width: 38px; height: 38px; background: linear-gradient(135deg, #eab308, #ca8a04); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px; }
+  .badge-sef { background: linear-gradient(135deg, rgba(234,179,8,.15), rgba(234,179,8,.05)); color: #b45309; border: 1px solid rgba(234,179,8,.3); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.5); z-index: 1000; align-items: center; justify-content: center; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: #fff; border-radius: 20px; padding: 32px; width: 100%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,.2); }
+  .modal h3 { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+  .modal-footer { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+  .btn-close { background: #f1f5f9; color: #64748b; border: none; padding: 9px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .btn-close:hover { background: #e2e8f0; }
+</style>
+
+<div class="page-header">
+  <div>
+    <h1><i class="fas fa-user-tie" style="color: #E31E24; margin-right: 10px;"></i>Şef Yönetimi</h1>
+    <p>Şef hesapları oluşturun ve yönetin.</p>
+  </div>
+  <button class="btn btn-primary" onclick="openCreateModal()">
+    <i class="fas fa-plus"></i> Yeni Şef Ekle
+  </button>
+</div>
+
+<!-- Durum Bildirimleri -->
+<% if (status === 'created') { %>
+  <div class="alert alert-success"><i class="fas fa-check-circle"></i> Şef hesabı başarıyla oluşturuldu.</div>
+<% } else if (status === 'deleted') { %>
+  <div class="alert alert-success"><i class="fas fa-check-circle"></i> Şef silindi, görevleri admin'e devredildi.</div>
+<% } else if (status === 'password_reset') { %>
+  <div class="alert alert-success"><i class="fas fa-check-circle"></i> Şef şifresi başarıyla güncellendi.</div>
+<% } else if (status === 'username_taken') { %>
+  <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> Bu kullanıcı adı zaten kullanılıyor.</div>
+<% } else if (status === 'missing_fields') { %>
+  <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> Lütfen tüm alanları doldurun.</div>
+<% } else if (status === 'password_too_short') { %>
+  <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> Şifre en az 6 karakter olmalıdır.</div>
+<% } %>
+
+<!-- Şef Listesi -->
+<div class="card">
+  <div class="card-header">
+    <h2><i class="fas fa-list" style="color: #E31E24;"></i> Şef Listesi (<%= sefs.length %> şef)</h2>
+  </div>
+  <% if (sefs.length === 0) { %>
+    <div style="text-align: center; padding: 60px; color: #94a3b8;">
+      <i class="fas fa-user-tie" style="font-size: 48px; margin-bottom: 14px; display: block; opacity: .3;"></i>
+      <p style="font-weight: 600;">Henüz şef eklenmemiş.</p>
+      <button class="btn btn-primary" style="margin-top: 14px;" onclick="openCreateModal()">
+        <i class="fas fa-plus"></i> İlk Şefi Ekle
+      </button>
+    </div>
+  <% } else { %>
+  <div style="overflow-x: auto;">
+    <table class="sef-table">
+      <thead>
+        <tr>
+          <th>Şef</th>
+          <th>Kullanıcı Adı</th>
+          <th>Görev Sayısı</th>
+          <th>Kayıt Tarihi</th>
+          <th>İşlemler</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% sefs.forEach(s => { %>
+        <tr>
+          <td>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div class="sef-avatar"><%= s.full_name ? s.full_name.charAt(0).toUpperCase() : 'Ş' %></div>
+              <div>
+                <div style="font-weight: 700; color: #1e293b;"><%= s.full_name %></div>
+                <span class="badge-sef"><i class="fas fa-user-tie" style="font-size: 9px;"></i> Şef</span>
+              </div>
+            </div>
+          </td>
+          <td><code style="background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size: 13px;"><%= s.username %></code></td>
+          <td>
+            <span style="font-weight: 700; color: #2563eb;"><%= s.task_count || 0 %></span>
+            <span style="color: #64748b; font-size: 12px;"> görev</span>
+          </td>
+          <td style="color: #64748b; font-size: 13px;"><%= new Date(s.created_at).toLocaleDateString('tr-TR') %></td>
+          <td>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button class="btn btn-outline btn-sm" onclick="openResetModal('<%= s.id %>', '<%= s.full_name %>')">
+                <i class="fas fa-key"></i> Şifre
+              </button>
+              <form action="/admin/sefs/<%= s.id %>/delete" method="POST" style="margin: 0;"
+                onsubmit="return confirm('⚠️ Bu şefi silmek istediğinizden emin misiniz?\n\nGörevleri admin\'e devredilecektir.');">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button type="submit" class="btn btn-danger btn-sm">
+                  <i class="fas fa-trash-alt"></i> Sil
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<!-- Şef Oluştur Modal -->
+<div class="modal-overlay" id="createModal">
+  <div class="modal">
+    <h3><i class="fas fa-user-plus" style="color: #E31E24;"></i> Yeni Şef Oluştur</h3>
+    <form action="/admin/sefs" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="form-grid" style="grid-template-columns: 1fr;">
+        <div class="form-group">
+          <label>Ad Soyad *</label>
+          <input type="text" name="full_name" class="form-control" placeholder="Örn: Ahmet Yılmaz" required>
+        </div>
+        <div class="form-group">
+          <label>Kullanıcı Adı *</label>
+          <input type="text" name="username" class="form-control" placeholder="Örn: ahmet.yilmaz" required>
+        </div>
+        <div class="form-group">
+          <label>Şifre * (En az 6 karakter)</label>
+          <input type="password" name="password" class="form-control" placeholder="Güçlü bir şifre girin" required minlength="6">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-close" onclick="closeCreateModal()">İptal</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Kaydet</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Şifre Sıfırla Modal -->
+<div class="modal-overlay" id="resetModal">
+  <div class="modal">
+    <h3><i class="fas fa-key" style="color: #E31E24;"></i> Şifre Sıfırla</h3>
+    <p id="resetModalDesc" style="font-size: 14px; color: #64748b; margin-bottom: 18px;"></p>
+    <form id="resetForm" action="" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="form-group">
+        <label>Yeni Şifre * (En az 6 karakter)</label>
+        <input type="password" name="new_password" class="form-control" placeholder="Yeni şifre girin" required minlength="6">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-close" onclick="closeResetModal()">İptal</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Güncelle</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openCreateModal() { document.getElementById('createModal').classList.add('show'); }
+  function closeCreateModal() { document.getElementById('createModal').classList.remove('show'); }
+  function openResetModal(id, name) {
+    document.getElementById('resetModalDesc').textContent = name + ' adlı şefin şifresi sıfırlanacak.';
+    document.getElementById('resetForm').action = '/admin/sefs/' + id + '/reset-password';
+    document.getElementById('resetModal').classList.add('show');
+  }
+  function closeResetModal() { document.getElementById('resetModal').classList.remove('show'); }
+
+  // Overlay'e tıklandığında kapat
+  document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
+  });
+</script>
+
+<%- include('../layouts/footer') %>

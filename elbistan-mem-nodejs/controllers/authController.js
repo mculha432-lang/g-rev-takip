@@ -8,6 +8,8 @@ const authController = {
         if (req.session.user) {
             if (req.session.user.role === 'admin') {
                 return res.redirect('/admin/dashboard');
+            } else if (req.session.user.role === 'sef') {
+                return res.redirect('/sef/dashboard');
             } else {
                 return res.redirect('/okul/dashboard');
             }
@@ -73,6 +75,8 @@ const authController = {
             // Role göre yönlendir
             if (user.role === 'admin') {
                 res.redirect('/admin/dashboard');
+            } else if (user.role === 'sef') {
+                res.redirect('/sef/dashboard');
             } else if (user.is_manager === 1) {
                 // Kurum yöneticileri admin paneline erişir
                 res.redirect('/admin/dashboard');

@@ -132,6 +132,15 @@ function initDatabase() {
         setSchemaVersion(2);
     }
 
+    if (schemaVersion < 3) {
+        // v3: tasks tablosuna created_by kolonu (şef rolü için)
+        const migrations = [
+            `ALTER TABLE tasks ADD COLUMN created_by INTEGER REFERENCES users(id) ON DELETE SET NULL`
+        ];
+        migrations.forEach(sql => { try { db.exec(sql); } catch (e) { /* sütun zaten var */ } });
+        setSchemaVersion(3);
+    }
+
     // Duyurular tablosu
     db.exec(`
         CREATE TABLE IF NOT EXISTS announcements (

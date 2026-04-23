@@ -24,6 +24,24 @@ function isAdminOrManager(req, res, next) {
     res.redirect('/login');
 }
 
+// Sadece Şef kullanıcılar için
+function isSef(req, res, next) {
+    if (req.session && req.session.user && req.session.user.role === 'sef') {
+        return next();
+    }
+    res.redirect('/login');
+}
+
+// Admin VEYA Şef için
+function isAdminOrSef(req, res, next) {
+    if (req.session && req.session.user) {
+        if (req.session.user.role === 'admin' || req.session.user.role === 'sef') {
+            return next();
+        }
+    }
+    res.redirect('/login');
+}
+
 // Sadece okul kullanıcılar için
 function isSchool(req, res, next) {
     if (req.session && req.session.user && req.session.user.role === 'school') {
@@ -41,5 +59,7 @@ module.exports = {
     isAuthenticated,
     isAdmin,
     isAdminOrManager,
+    isSef,
+    isAdminOrSef,
     isSchool
 };

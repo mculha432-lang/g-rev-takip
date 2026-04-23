@@ -338,7 +338,113 @@ const adminController = {
             console.error('Profil güncelleme hatası:', error);
             res.redirect('/admin/profile?status=error');
         }
+    },
+
+    // ═══════════════════════════════════════════════════════
+    //  ŞEF YÖNETİMİ
+    // ═══════════════════════════════════════════════════════
+
+    // Şef Listesi
+    sefList: (req, res) => {
+        try {
+            const sefs = db.prepare(`
+                SELECT u.*,
+                    (SELECT COUNT(*) FROM tasks WHERE created_by = u.id) as task_count
+                FROM users u
+                WHERE u.role = 'sef'
+                ORDER BY u.created_at DESC
+            `).all();
+
+            res.render('admin/sefs', {
+                title: 'Şef Yönetimi',
+                activePage: 'sefs',
+                sefs,
+                status: req.query.status || null
+            });
+        } catch (error) {
+            console.error('Şef listesi hatası:', error);
+            res.status(500).send('Bir hata oluştu');
+        }
+    },
+
+    // Şef Oluştur
+    createSef: (req, res) => {
+        try {
+            const { username, full_name, password } = req.body;
+            const bcrypt = require('bcryptjs');
+
+            if (!username || !full_name || !password) {
+                return res.redirect('/admin/sefs?status=missing_fields');
+            }
+
+            if (password.length < 6) {
+                return res.redirect('/admin/sefs?status=password_too_short');
+            }
+
+            const existing = db.prepare('SELECT id FROM users WHERE username = ?').get(username);
+            if (existing) {
+                return res.redirect('/admin/sefs?status=username_taken');
+            }
+
+            const hashedPassword = bcrypt.hashSync(password, 10);
+            db.prepare(`
+                INSERT INTO users (username, full_name, password, role)
+                VALUES (?, ?, ?, 'sef')
+            `).run(username, full_name, hashedPassword);
+
+            res.redirect('/admin/sefs?status=created');
+        } catch (error) {
+            console.error('Şef oluşturma hatası:', error);
+            res.redirect('/admin/sefs?status=error');
+        }
+    },
+
+    // Şef Sil (Görevleri admin'e devret)
+    deleteSef: (req, res) => {
+        try {
+            const { id } = req.params;
+            const adminId = req.session.user.id;
+
+            const sef = db.prepare("SELECT * FROM users WHERE id = ? AND role = 'sef'").get(id);
+            if (!sef) return res.redirect('/admin/sefs?status=not_found');
+
+            // Şefin görevlerini admin'e devret
+            db.prepare('UPDATE tasks SET created_by = ? WHERE created_by = ?').run(adminId, id);
+
+            // Şefi sil
+            db.prepare('DELETE FROM users WHERE id = ?').run(id);
+
+            res.redirect('/admin/sefs?status=deleted');
+        } catch (error) {
+            console.error('Şef silme hatası:', error);
+            res.redirect('/admin/sefs?status=error');
+        }
+    },
+
+    // Şef Şifre Sıfırla
+    resetSefPassword: (req, res) => {
+        try {
+            const { id } = req.params;
+            const { new_password } = req.body;
+            const bcrypt = require('bcryptjs');
+
+            if (!new_password || new_password.length < 6) {
+                return res.redirect('/admin/sefs?status=password_too_short');
+            }
+
+            const sef = db.prepare("SELECT * FROM users WHERE id = ? AND role = 'sef'").get(id);
+            if (!sef) return res.redirect('/admin/sefs?status=not_found');
+
+            const hashedPassword = bcrypt.hashSync(new_password, 10);
+            db.prepare('UPDATE users SET password = ? WHERE id = ?').run(hashedPassword, id);
+
+            res.redirect('/admin/sefs?status=password_reset');
+        } catch (error) {
+            console.error('Şef şifre sıfırlama hatası:', error);
+            res.redirect('/admin/sefs?status=error');
+        }
     }
 };
 
 module.exports = adminController;
+

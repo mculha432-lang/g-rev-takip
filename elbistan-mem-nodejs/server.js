@@ -111,7 +111,8 @@ const conditionalCsrf = (req, res, next) => {
     const isMultipartRoute = req.method === 'POST' && (
         (req.path === '/admin/tasks' || req.path.match(/^\/admin\/tasks\/[A-Za-z0-9_-]+\/update$/)) ||
         req.path.match(/^\/okul\/tasks\/[A-Za-z0-9_-]+\/response$/) ||
-        req.path === '/admin/files'
+        req.path === '/admin/files' ||
+        req.path === '/sef/tasks'
     );
 
     if (req.path.startsWith('/push') || isMultipartRoute) {
@@ -151,6 +152,7 @@ const adminRoutes = require('./routes/admin');
 const schoolsRoutes = require('./routes/schools');
 const tasksRoutes = require('./routes/tasks');
 const schoolPanelRoutes = require('./routes/schoolPanel');
+const sefRoutes = require('./routes/sef');
 
 // Login rate limiter'ı sadece login POST'una uygula
 app.use('/login', loginLimiter);
@@ -160,6 +162,7 @@ app.use('/admin', adminRoutes);
 app.use('/admin/schools', schoolsRoutes);
 app.use('/admin/tasks', tasksRoutes);
 app.use('/okul', schoolPanelRoutes);
+app.use('/sef', sefRoutes);
 app.use('/push', require('./routes/push'));
 
 // Ana sayfa yönlendirmesi

@@ -1,0 +1,143 @@
+<%- include('../layouts/sef_header') %>
+
+<style>
+  .page-header { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+  .page-header h1 { font-size: 24px; font-weight: 800; color: #1e293b; }
+
+  .alert { padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+  .alert-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+  .alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+  .card { background: #fff; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,.04); margin-bottom: 24px; overflow: hidden; }
+  .card-header { padding: 20px 24px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px; }
+  .card-header h2 { font-size: 16px; font-weight: 700; color: #1e293b; }
+  .card-body { padding: 24px; }
+
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .info-item label { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .5px; display: block; margin-bottom: 6px; }
+  .info-item .value { font-size: 15px; font-weight: 600; color: #1e293b; }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .form-group label { font-size: 13px; font-weight: 600; color: #374151; }
+  .form-control { padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px; font-family: inherit; transition: border-color .2s; outline: none; }
+  .form-control:focus { border-color: #E31E24; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; text-decoration: none; transition: all .2s; }
+  .btn-primary { background: linear-gradient(135deg, #E31E24, #c41a1f); color: #fff; }
+  .btn-primary:hover { transform: translateY(-1px); }
+
+  .log-item { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+  .log-item:last-child { border-bottom: none; }
+  .log-icon { width: 36px; height: 36px; background: #f0fdf4; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #16a34a; flex-shrink: 0; }
+  .log-info { flex: 1; }
+  .log-action { font-size: 13px; font-weight: 600; color: #1e293b; }
+  .log-meta { font-size: 12px; color: #64748b; margin-top: 2px; }
+</style>
+
+<div class="page-header">
+  <div style="width: 52px; height: 52px; background: linear-gradient(135deg, #eab308, #ca8a04); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 22px; flex-shrink: 0;">
+    <%= user && user.full_name ? user.full_name.charAt(0).toUpperCase() : 'Ş' %>
+  </div>
+  <div>
+    <h1>Profilim</h1>
+    <p style="color: #64748b; font-size: 14px; font-weight: 500;"><%= user.full_name %> — Şef Paneli</p>
+  </div>
+</div>
+
+<!-- Durum -->
+<% if (status === 'password_changed') { %>
+  <div class="alert alert-success"><i class="fas fa-check-circle"></i> Şifreniz başarıyla değiştirildi.</div>
+<% } else if (status === 'wrong_password') { %>
+  <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> Mevcut şifreniz hatalı.</div>
+<% } else if (status === 'mismatch') { %>
+  <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> Yeni şifreler eşleşmiyor.</div>
+<% } else if (status === 'too_short') { %>
+  <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> Şifre en az 6 karakter olmalıdır.</div>
+<% } %>
+
+<!-- Hesap Bilgileri -->
+<div class="card">
+  <div class="card-header">
+    <i class="fas fa-id-card" style="color: #E31E24;"></i>
+    <h2>Hesap Bilgileri</h2>
+  </div>
+  <div class="card-body">
+    <div class="info-grid">
+      <div class="info-item">
+        <label>Ad Soyad</label>
+        <div class="value"><%= user.full_name %></div>
+      </div>
+      <div class="info-item">
+        <label>Kullanıcı Adı</label>
+        <div class="value"><code style="background: #f1f5f9; padding: 4px 10px; border-radius: 6px;"><%= user.username %></code></div>
+      </div>
+      <div class="info-item">
+        <label>Rol</label>
+        <div class="value" style="color: #b45309;"><i class="fas fa-user-tie"></i> Şef</div>
+      </div>
+      <div class="info-item">
+        <label>Kayıt Tarihi</label>
+        <div class="value"><%= new Date(user.created_at).toLocaleDateString('tr-TR') %></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Şifre Değiştir -->
+<div class="card">
+  <div class="card-header">
+    <i class="fas fa-lock" style="color: #E31E24;"></i>
+    <h2>Şifre Değiştir</h2>
+  </div>
+  <div class="card-body">
+    <form action="/sef/profile/password" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Mevcut Şifre *</label>
+          <input type="password" name="current_password" class="form-control" required placeholder="Mevcut şifrenizi girin">
+        </div>
+        <div class="form-group">
+          <label>Yeni Şifre *</label>
+          <input type="password" name="new_password" class="form-control" required minlength="6" placeholder="En az 6 karakter">
+        </div>
+        <div class="form-group">
+          <label>Yeni Şifre (Tekrar) *</label>
+          <input type="password" name="confirm_password" class="form-control" required placeholder="Şifreyi tekrar girin">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-save"></i> Şifreyi Değiştir
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Giriş Logları -->
+<% if (logs && logs.length > 0) { %>
+<div class="card">
+  <div class="card-header">
+    <i class="fas fa-history" style="color: #E31E24;"></i>
+    <h2>Son Giriş Aktivitesi</h2>
+  </div>
+  <div class="card-body">
+    <% logs.forEach(log => { %>
+    <div class="log-item">
+      <div class="log-icon">
+        <i class="fas <%= log.action === 'Giriş Yaptı' ? 'fa-sign-in-alt' : 'fa-sign-out-alt' %>"></i>
+      </div>
+      <div class="log-info">
+        <div class="log-action"><%= log.action %></div>
+        <div class="log-meta">
+          <i class="fas fa-clock" style="margin-right: 5px;"></i><%= new Date(log.created_at).toLocaleString('tr-TR') %>
+          <% if (log.ip_address) { %> &nbsp;·&nbsp; <i class="fas fa-network-wired" style="margin-right: 5px;"></i><%= log.ip_address %><% } %>
+        </div>
+      </div>
+    </div>
+    <% }) %>
+  </div>
+</div>
+<% } %>
+
+<%- include('../layouts/footer') %>

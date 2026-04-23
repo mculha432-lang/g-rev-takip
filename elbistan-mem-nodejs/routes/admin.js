@@ -152,4 +152,10 @@ router.get('/reports/login-activity/excel', async (req, res) => {
     }
 });
 
+// ==================== ŞEF YÖNETİMİ ====================
+router.get('/sefs', isAdmin, adminController.sefList);
+router.post('/sefs', isAdmin, adminController.createSef);
+router.post('/sefs/:id/delete', isAdmin, adminController.deleteSef);
+router.post('/sefs/:id/reset-password', isAdmin, adminController.resetSefPassword);
+
 module.exports = router;
