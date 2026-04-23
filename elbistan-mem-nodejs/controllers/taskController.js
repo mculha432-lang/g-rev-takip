@@ -152,7 +152,12 @@ const taskController = {
         try {
             const { id } = req.params;
 
-            const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
+            const task = db.prepare(`
+                SELECT t.*, u.full_name AS creator_name, u.role AS creator_role
+                FROM tasks t
+                LEFT JOIN users u ON t.created_by = u.id
+                WHERE t.id = ?
+            `).get(id);
             if (!task) return res.status(404).send('Görev bulunamadı');
 
             // Göreve ait tüm ek dosyaları getir
