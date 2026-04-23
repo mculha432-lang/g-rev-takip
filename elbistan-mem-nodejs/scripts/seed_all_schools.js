@@ -156,6 +156,71 @@ const kurumlar = [
 
     // ═══ ÇOK PROGRAMLI ANADOLU LİSESİ ═══
     ['184851', '39461999', 'Çok Programlı Anadolu Lisesi', 'lise', 0],
+
+    // ═══════════════════════════════════════════════════════
+    // ÖZEL KURUMLAR (şifre = kurum kodunun başından 1 hane silinmiş hali)
+    // ═══════════════════════════════════════════════════════
+
+    // ═══ ÖZEL ANAOKULU ═══
+    ['99993165', '9993165', 'Özel Güner Anaokulu', 'anaokulu', 0],
+
+    // ═══ ÖZEL İLKOKULLAR ═══
+    ['99982583', '9982583', 'Özel Elbistan Bahçeşehir Koleji İlkokulu', 'ilkokul', 0],
+    ['99911965', '9911965', 'Özel Elbistan Yıldız İlkokulu', 'ilkokul', 0],
+
+    // ═══ ÖZEL ORTAOKULLAR ═══
+    ['99982584', '9982584', 'Özel Elbistan Bahçeşehir Koleji Ortaokulu', 'ortaokul', 0],
+    ['99987185', '9987185', 'Özel Elbistan Final Akademi Ortaokulu', 'ortaokul', 0],
+    ['99952675', '9952675', 'Özel Elbistan Yıldız Ortaokulu', 'ortaokul', 0],
+
+    // ═══ ÖZEL LİSELER ═══
+    ['99982585', '9982585', 'Özel Elbistan Bahçeşehir Koleji Anadolu Lisesi', 'lise', 0],
+    ['99987184', '9987184', 'Özel Elbistan Final Akademi Anadolu Lisesi', 'lise', 0],
+    ['99987685', '9987685', 'Özel Elbistan Bahçeşehir Koleji Fen Lisesi', 'lise', 0],
+    ['99987177', '9987177', 'Özel Elbistan Final Akademi Fen Lisesi', 'lise', 0],
+    ['99975291', '9975291', 'Özel Elbistan Yıldız Koleji Fen Lisesi', 'lise', 0],
+    ['99991277', '9991277', 'Özel Elbistan Bilim Teknik ve İnovasyon Mesleki ve Teknik Anadolu Lisesi', 'lise', 0],
+
+    // ═══ ÖZEL EĞİTİM VE REHABİLİTASYON MERKEZLERİ ═══
+    ['99944838', '9944838', 'Özel Ceyhan Özel Eğitim ve Rehabilitasyon Merkezi', 'rehabilitasyon', 0],
+    ['99955964', '9955964', 'Özel Elbistan Destek Özel Eğitim ve Rehabilitasyon Merkezi', 'rehabilitasyon', 0],
+    ['99923789', '9923789', 'Özel Gelişen Sembol Özel Eğitim ve Rehabilitasyon Merkezi', 'rehabilitasyon', 0],
+    ['99974514', '9974514', 'Özel Yeni Hayat Özel Eğitim ve Rehabilitasyon Merkezi', 'rehabilitasyon', 0],
+
+    // ═══ ÖZEL MOTORLU TAŞIT SÜRÜCÜLERİ KURSLARI ═══
+    ['99944681', '9944681', 'Özel Canlar Motorlu Taşıt Sürücüleri Kursu', 'surucu_kursu', 0],
+    ['99956897', '9956897', 'Özel Deniz Motorlu Taşıt Sürücüleri Kursu', 'surucu_kursu', 0],
+    ['99940582', '9940582', 'Özel Elbistan Feza Motorlu Taşıt Sürücüleri Kursu', 'surucu_kursu', 0],
+    ['99940369', '9940369', 'Özel Elbistan Modern Fen Motorlu Taşıt Sürücüleri Kursu', 'surucu_kursu', 0],
+    ['99942518', '9942518', 'Özel Elbistan Motorlu Taşıt Sürücüleri Kursu', 'surucu_kursu', 0],
+    ['99947746', '9947746', 'Özel Elbistan Uğurlu Motorlu Taşıt Sürücüleri Kursu', 'surucu_kursu', 0],
+    ['99968797', '9968797', 'Özel Güçlü Şardağı Motorlu Taşıt Sürücüleri Kursu', 'surucu_kursu', 0],
+    ['99942797', '9942797', 'Özel Lider Vizyon Motorlu Taşıt Sürücüleri Kursu', 'surucu_kursu', 0],
+    ['99951133', '9951133', 'Özel Özen Öz Şahinler Motorlu Taşıt Sürücüleri Kursu', 'surucu_kursu', 0],
+
+    // ═══ ÖZEL MUHTELİF KURSLAR ═══
+    ['99998610', '9998610', 'Özel Alfa1 Kişisel Gelişim Kursu', 'kurs', 0],
+    ['99993126', '9993126', 'Özel Elbistan Amerikan Kültür Yabancı Dil Kursu', 'kurs', 0],
+    ['99976022', '9976022', 'Özel Elbistan Ulaştırma Hizmetleri Mesleki Eğitim ve Geliştirme Kursu', 'kurs', 0],
+
+    // ═══ ÖZEL ÖĞRETİM KURSLARI ═══
+    ['99916510', '9916510', 'Özel Elbistan Başarı Özel Öğretim Kursu', 'kurs', 0],
+    ['99925015', '9925015', 'Özel Elbistan Beyaz Kalem Özel Öğretim Kursu', 'kurs', 0],
+    ['99992438', '9992438', 'Özel Elbistan Dört İşlem Özel Öğretim Kursu', 'kurs', 0],
+    ['99972333', '9972333', 'Özel Elbistan Final Özel Öğretim Kursu', 'kurs', 0],
+    ['99918487', '9918487', 'Özel Elbistan Kariyerim Özel Öğretim Kursu', 'kurs', 0],
+    ['99927091', '9927091', 'Özel Elbistan Kültür Özel Öğretim Kursu', 'kurs', 0],
+    ['99925435', '9925435', 'Özel Elbistan Piramit Akademi Fen Bilimleri Özel Öğretim Kursu', 'kurs', 0],
+    ['99916747', '9916747', 'Özel Elbistan Pratik Hafıza Özel Öğretim Kursu', 'kurs', 0],
+
+    // ═══ ÖZEL YURTLAR ═══
+    ['99966819', '9966819', 'Özel Fatih Ortaokul Erkek Öğrenci Yurdu', 'yurt', 0],
+    ['99991318', '9991318', 'Özel Güneşli Ortaöğretim Erkek Öğrenci Yurdu', 'yurt', 0],
+    ['99992032', '9992032', 'Özel Orhangazi Ortaokul Erkek Öğrenci Yurdu', 'yurt', 0],
+    ['99997672', '9997672', 'Özel Pınarbaşı Ortaokul Kız Öğrenci Yurdu', 'yurt', 0],
+
+    // ═══ SOSYAL ETKİNLİK MERKEZİ ═══
+    ['99939392', '9939392', 'Özel Nova Akademi Sosyal Etkinlik ve Gelişim Merkezi', 'diger', 0],
 ];
 
 // Ekleme işlemi
