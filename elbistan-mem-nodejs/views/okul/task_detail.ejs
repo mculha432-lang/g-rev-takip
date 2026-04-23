@@ -379,7 +379,8 @@
                                                                                                     <input type="number"
                                                                                                         name="field_<%= field.id %>"
                                                                                                         class="form-control"
-                                                                                                        value="<%= responsesMap[field.id] || '' %>"
+                                                                                                        min="0"
+                                                                                                        value="<%= responsesMap[field.id] != null ? responsesMap[field.id] : '' %>"
                                                                                                         <%=field.is_required
                                                                                                         ? 'required'
                                                                                                         : '' %>>
@@ -671,8 +672,7 @@
                                                                                                 </div>
                                                                                                 <div
                                                                                                     style="font-size:14px; color:var(--gray-800);">
-                                                                                                    <%= responsesMap[field.id]
-                                                                                                        || '-' %>
+                                                                                                    <%= responsesMap[field.id] != null ? responsesMap[field.id] : '-' %>
                                                                                                 </div>
                                                                                             </div>
                                                                                             <% }) %>

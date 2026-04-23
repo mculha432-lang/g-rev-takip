@@ -171,7 +171,7 @@
 
             const val = document.createElement('div');
             val.style.cssText = 'font-size:13px;color:var(--text-2);';
-            val.textContent = r.response_value || '—';
+            val.textContent = (r.response_value != null && r.response_value !== '') ? r.response_value : '—';
 
             card.append(label, val);
             list.appendChild(card);

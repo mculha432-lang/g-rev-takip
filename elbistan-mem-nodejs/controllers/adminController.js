@@ -99,6 +99,7 @@ const adminController = {
                 'pending': 'Bekleyen',
                 'in_progress': 'Devam Eden',
                 'completed': 'Tamamlanan',
+                'pending_approval': 'Onay Bekliyor',
                 'rejected': 'Reddedilen'
             };
             const statusChartData = {
