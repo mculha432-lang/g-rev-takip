@@ -138,6 +138,17 @@ function initDatabase() {
             `ALTER TABLE tasks ADD COLUMN created_by INTEGER REFERENCES users(id) ON DELETE SET NULL`
         ];
         migrations.forEach(sql => { try { db.exec(sql); } catch (e) { /* sütun zaten var */ } });
+        
+        // KRİTİK DÜZELTME: Eski (sahipsiz) görevleri Admin'e ata
+        try {
+            db.prepare(`
+                UPDATE tasks 
+                SET created_by = (SELECT id FROM users WHERE role = 'admin' LIMIT 1) 
+                WHERE created_by IS NULL
+            `).run();
+            console.log("✓ Eski görevler Admin hesabına bağlandı.");
+        } catch (e) { console.error("Görev eşitleme hatası:", e); }
+        
         setSchemaVersion(3);
     }
 
