@@ -152,6 +152,18 @@ function initDatabase() {
         setSchemaVersion(3);
     }
 
+    if (schemaVersion < 4) {
+        // v4: task_assignments tablosuna completed_at ve read_at sütunları
+        const migrations = [
+            `ALTER TABLE task_assignments ADD COLUMN completed_at DATETIME`,
+            `ALTER TABLE task_assignments ADD COLUMN read_at DATETIME`,
+            `ALTER TABLE users ADD COLUMN has_pension INTEGER DEFAULT 0`,
+            `ALTER TABLE users ADD COLUMN has_canteen INTEGER DEFAULT 0`
+        ];
+        migrations.forEach(sql => { try { db.exec(sql); } catch (e) { /* sütun zaten var */ } });
+        setSchemaVersion(4);
+    }
+
     // Duyurular tablosu
     db.exec(`
         CREATE TABLE IF NOT EXISTS announcements (
