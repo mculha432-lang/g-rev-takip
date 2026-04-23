@@ -9,18 +9,25 @@ const csrfProtection = csrf({ cookie: true });
 
 // Tüm şef rotaları için şef auth kontrolü
 router.use(isSef);
-router.use(csrfProtection);
+
+// GET rotalarına CSRF uygula (token oluşturma için)
+router.use((req, res, next) => {
+    if (req.method === 'GET') {
+        return csrfProtection(req, res, next);
+    }
+    next();
+});
 
 // Dashboard
 router.get('/dashboard', sefController.dashboard);
 
 // Profil
 router.get('/profile', sefController.profile);
-router.post('/profile/password', sefController.changePassword);
+router.post('/profile/password', csrfProtection, sefController.changePassword);
 
 // Görev Listesi + Yeni Görev Oluştur
 router.get('/tasks', sefController.taskList);
-router.post('/tasks', sefController.uploadMulter, virusScanner, sefController.store);
+router.post('/tasks', sefController.uploadMulter, virusScanner, csrfProtection, sefController.store);
 
 // Görev Detay
 router.get('/tasks/:id', sefController.detail);
