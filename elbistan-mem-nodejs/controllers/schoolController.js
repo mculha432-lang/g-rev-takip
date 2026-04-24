@@ -2,6 +2,18 @@ const db = require('../config/database');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 
+const _loadDetMap = (() => {
+    const fs = require('fs');
+    const content = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'seed_all_schools.js'), 'utf8');
+    const regex = /\[\s*['"](\d+[-\d]*)['"]\s*,\s*['"](\d+)['"]\]/g;
+    const map = {};
+    let match;
+    while ((match = regex.exec(content)) !== null) {
+        map[match[1]] = match[2];
+    }
+    return map;
+})();
+
 const schoolController = {
     // Okul Listesi
     index: (req, res) => {
@@ -192,20 +204,6 @@ const schoolController = {
     },
 
     // Şifre Sıfırla (Kurum Kodunu şifre yapar)
-    // Load detsis mapping once (cached)
-    const _loadDetMap = (() => {
-        const fs = require('fs');
-        const path = require('path');
-        const content = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'seed_all_schools.js'), 'utf8');
-        const regex = /\[\s*['"](\d+[-\d]*)['"]\s*,\s*['"](\d+)['"]\]/g;
-        const map = {};
-        let match;
-        while ((match = regex.exec(content)) !== null) {
-            map[match[1]] = match[2];
-        }
-        return map;
-    })();
-
     resetPassword: (req, res) => {
         try {
             const { id } = req.params;
