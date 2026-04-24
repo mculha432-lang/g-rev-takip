@@ -191,6 +191,20 @@ const schoolController = {
     },
 
     // Şifre Sıfırla (Kurum Kodunu şifre yapar)
+    // Load detsis mapping once (cached)
+    const _loadDetMap = (() => {
+        const fs = require('fs');
+        const path = require('path');
+        const content = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'seed_all_schools.js'), 'utf8');
+        const regex = /\[\s*['"](\d+[-\d]*)['"]\s*,\s*['"](\d+)['"]\]/g;
+        const map = {};
+        let match;
+        while ((match = regex.exec(content)) !== null) {
+            map[match[1]] = match[2];
+        }
+        return map;
+    })();
+
     resetPassword: (req, res) => {
         try {
             const { id } = req.params;
@@ -200,7 +214,9 @@ const schoolController = {
                 return res.redirect('/admin/schools?status=not_found');
             }
 
-            const newPassword = bcrypt.hashSync(school.username, 10);
+            // Use detsis code if available, otherwise fallback to username
+            const detsis = _loadDetMap[school.username] || school.username;
+            const newPassword = bcrypt.hashSync(detsis, 10);
             db.prepare('UPDATE users SET password = ? WHERE id = ?').run(newPassword, id);
 
             res.redirect('/admin/schools?status=password_reset');
