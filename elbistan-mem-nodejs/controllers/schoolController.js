@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const bcrypt = require('bcryptjs');
+const path = require('path');
 
 const schoolController = {
     // Okul Listesi
