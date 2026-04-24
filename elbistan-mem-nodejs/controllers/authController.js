@@ -22,7 +22,8 @@ const authController = {
 
     // Giriş İşlemi
     login: (req, res) => {
-        const { username, password } = req.body;
+        const username = req.body.username?.trim();
+        const password = req.body.password?.trim();
 
         try {
             // Kullanıcıyı veritabanında ara
