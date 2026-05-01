@@ -29,13 +29,27 @@ router.post('/profile/password', csrfProtection, sefController.changePassword);
 router.get('/tasks', sefController.taskList);
 router.post('/tasks', sefController.uploadMulter, virusScanner, csrfProtection, sefController.store);
 
+/* ── Statik alt rotalar (/:id rotasından ÖNCE tanımla) ── */
+// Yanıt Dosyası İndir
+router.get('/tasks/assignments/:assignmentId/download', sefController.downloadResponseFile);
+
+// Mesaj Gönder (admin seviyesi - form POST)
+router.post('/tasks/assignments/:assignmentId/message', csrfProtection, sefController.sendAdminMessage);
+
+/* ── Dinamik /:id rotaları ── */
 // Görev Detay
 router.get('/tasks/:id', sefController.detail);
 
 // Rapor İndir
 router.get('/tasks/:id/report/excel', sefController.downloadReport);
 
-// Mesaj Gönder
-router.post('/tasks/assignments/:assignmentId/message', sefController.sendMessage);
+// Görev Onayla
+router.post('/tasks/:taskId/assignments/:assignmentId/approve', csrfProtection, sefController.approveAssignment);
+
+// Görev İade Et (Reject)
+router.post('/tasks/:taskId/assignments/:assignmentId/reject', csrfProtection, sefController.rejectAssignment);
+
+// Toplu Onay
+router.post('/tasks/:taskId/approve-bulk', csrfProtection, sefController.approveBulk);
 
 module.exports = router;

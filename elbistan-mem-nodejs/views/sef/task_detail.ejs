@@ -1,149 +1,403 @@
 <%- include('../layouts/sef_header') %>
 
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/admin_task_detail.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
+        rel="stylesheet">
 
-<style>
-  .back-btn { display: inline-flex; align-items: center; gap: 8px; color: #64748b; font-size: 13px; font-weight: 600; text-decoration: none; margin-bottom: 20px; transition: color .2s; }
-  .back-btn:hover { color: #E31E24; }
-  .report-btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; background: #f0fdf4; color: #16a34a; border: 1.5px solid #bbf7d0; border-radius: 10px; font-size: 13px; font-weight: 600; text-decoration: none; transition: all .2s; }
-  .report-btn:hover { background: #dcfce7; }
-</style>
+    <link rel="stylesheet" href="/css/admin_task_detail.css">
 
-<a href="/sef/tasks" class="back-btn"><i class="fas fa-chevron-left"></i> Görev Listesine Dön</a>
+    <div class="tp">
 
-<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
-  <div>
-    <h1 style="font-size: 22px; font-weight: 800; color: #1e293b; margin-bottom: 6px;"><%= task.title %></h1>
-    <p style="font-size: 13px; color: #64748b;">
-      <i class="fas fa-calendar-alt" style="margin-right: 5px;"></i>
-      Son Tarih: <%= new Date(task.deadline).toLocaleDateString('tr-TR') %>
-      &nbsp;·&nbsp;
-      <i class="fas fa-school" style="margin-right: 5px;"></i>
-      <%= assignments.length %> okul atandı
-    </p>
-  </div>
-  <a href="/sef/tasks/<%= task.id %>/report/excel" class="report-btn">
-    <i class="fas fa-file-excel"></i> Excel Rapor İndir
-  </a>
-</div>
-
-<!-- Admin task_detail.ejs'nin aynı yapısını kullanıyoruz -->
-<!-- Mevcut admin_task_detail.css ve JS kullanılır -->
-
-<script type="application/json" id="messagesMapData"><%- messagesMapJSON %></script>
-<script type="application/json" id="assignmentsData"><%- assignmentsJSON %></script>
-
-<script>
-  window.ME = '<%= user.id %>';
-  window.TASK_ID = '<%= task.id %>';
-  window.IS_SEF = true;
-</script>
-
-<!-- Atamalar Tablosu -->
-<div style="background: #fff; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,.04); overflow: hidden;">
-  <div style="padding: 20px 24px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-    <h2 style="font-size: 16px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px;">
-      <i class="fas fa-school" style="color: #E31E24;"></i> Okul Yanıtları
-    </h2>
-    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-      <input type="text" id="searchInput" placeholder="Okul ara..." 
-        style="padding: 8px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 13px; font-family: inherit; outline: none;"
-        oninput="filterTable(this.value)">
-    </div>
-  </div>
-
-  <div style="overflow-x: auto;">
-    <table style="width: 100%; border-collapse: collapse;" id="assignmentsTable">
-      <thead>
-        <tr>
-          <th style="background:#f8fafc; font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.5px; padding:12px 18px; text-align:left; border-bottom:1px solid #e2e8f0;">Okul</th>
-          <th style="background:#f8fafc; font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.5px; padding:12px 18px; text-align:left; border-bottom:1px solid #e2e8f0;">Durum</th>
-          <th style="background:#f8fafc; font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.5px; padding:12px 18px; text-align:left; border-bottom:1px solid #e2e8f0;">Yanıt</th>
-          <th style="background:#f8fafc; font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.5px; padding:12px 18px; text-align:left; border-bottom:1px solid #e2e8f0;">Dosya</th>
-          <th style="background:#f8fafc; font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.5px; padding:12px 18px; text-align:left; border-bottom:1px solid #e2e8f0;">Form Cevapları</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody">
-        <% assignments.forEach(a => {
-          const statusLabels = { pending: 'Bekleyen', in_progress: 'Devam Ediyor', completed: 'Tamamlandı', rejected: 'İade Edildi', pending_approval: 'Onay Bekliyor' };
-          const statusColors = { pending: '#f59e0b', in_progress: '#2563eb', completed: '#16a34a', rejected: '#dc2626', pending_approval: '#7c3aed' };
-          const statusBg = { pending: '#fffbeb', in_progress: '#eff6ff', completed: '#f0fdf4', rejected: '#fef2f2', pending_approval: '#f5f3ff' };
-        %>
-        <tr data-name="<%= a.full_name.toLowerCase() %>">
-          <td style="padding: 14px 18px; border-bottom: 1px solid #f1f5f9;">
-            <div style="font-weight: 700; color: #1e293b; font-size: 14px;"><%= a.full_name %></div>
-            <div style="font-size: 12px; color: #64748b; margin-top: 2px;"><%= a.username %></div>
-          </td>
-          <td style="padding: 14px 18px; border-bottom: 1px solid #f1f5f9;">
-            <span style="background: <%= statusBg[a.status] || '#f8fafc' %>; color: <%= statusColors[a.status] || '#6b7280' %>; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; white-space: nowrap;">
-              <%= statusLabels[a.status] || a.status %>
-            </span>
-          </td>
-          <td style="padding: 14px 18px; border-bottom: 1px solid #f1f5f9; max-width: 200px;">
-            <% if (a.response_note) { %>
-              <p style="font-size: 13px; color: #374151; margin: 0; line-height: 1.5; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;"><%= a.response_note %></p>
-            <% } else { %>
-              <span style="font-size: 12px; color: #94a3b8;">—</span>
-            <% } %>
-          </td>
-          <td style="padding: 14px 18px; border-bottom: 1px solid #f1f5f9;">
-            <% if (a.files && a.files.length > 0) { %>
-              <% a.files.forEach(f => { %>
-                <a href="/uploads/responses/<%= f.file_path %>" target="_blank" 
-                   style="display: flex; align-items: center; gap: 5px; font-size: 12px; color: #2563eb; text-decoration: none; margin-bottom: 4px;">
-                  <i class="fas fa-download"></i> <%= f.original_name || f.file_path %>
-                </a>
-              <% }) %>
-            <% } else if (a.response_file) { %>
-              <a href="/uploads/responses/<%= a.response_file %>" target="_blank" 
-                 style="display: flex; align-items: center; gap: 5px; font-size: 12px; color: #2563eb; text-decoration: none;">
-                <i class="fas fa-download"></i> İndir
-              </a>
-            <% } else { %>
-              <span style="font-size: 12px; color: #94a3b8;">—</span>
-            <% } %>
-          </td>
-          <td style="padding: 14px 18px; border-bottom: 1px solid #f1f5f9;">
-            <% if (a.fieldResponses && a.fieldResponses.length > 0) { %>
-              <% a.fieldResponses.forEach(r => { %>
-                <div style="margin-bottom: 6px;">
-                  <span style="font-size: 11px; font-weight: 600; color: #64748b; display: block;"><%= r.field_label %>:</span>
-                  <span style="font-size: 13px; color: #1e293b;">
-                    <% 
-                      let val = r.response_value;
-                      if (val && val.startsWith('[')) {
-                        try { val = JSON.parse(val).join(', '); } catch(e) {}
-                      }
-                    %>
-                    <%= val || '—' %>
-                  </span>
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="ph-left">
+                <div class="ph-icon"><i class="fas fa-chart-bar"></i></div>
+                <div>
+                    <h1>Görev Takibi</h1>
+                    <p>Görevin okul bazlı durumunu ve istatistiklerini inceleyin.</p>
                 </div>
-              <% }) %>
-            <% } else { %>
-              <span style="font-size: 12px; color: #94a3b8;">—</span>
-            <% } %>
-          </td>
-        </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </div>
+            </div>
+            <a href="/sef/tasks" class="btn-back"><i class="fas fa-arrow-left"></i> Geri Dön</a>
+        </div>
 
-  <% if (assignments.length === 0) { %>
-    <div style="text-align: center; padding: 60px; color: #94a3b8;">
-      <i class="fas fa-school" style="font-size: 40px; margin-bottom: 14px; display: block; opacity: .3;"></i>
-      <p style="font-weight: 600;">Bu göreve henüz okul atanmamış.</p>
+        <!-- Task Info Card -->
+        <div class="task-card">
+            <div class="task-card-top">
+                <div class="task-title">
+                    <%= task.title %>
+                </div>
+                <a href="/sef/tasks/<%= task.id %>/report/excel" class="btn-primary" style="background:#16a34a;">
+                    <i class="fas fa-file-excel"></i> Excel Rapor
+                </a>
+            </div>
+            <% if (task.description) { %>
+                <div class="task-desc">
+                    <%- task.description %>
+                </div>
+                <% } %>
+                    <div class="task-meta">
+                        <div class="task-meta-item">
+                            <span class="meta-icon"><i class="fas fa-calendar-alt"></i></span>
+                            <div>
+                                <span class="meta-label">Son Teslim</span>
+                                <%= task.deadline || 'Belirtilmemiş' %>
+                            </div>
+                        </div>
+
+                        <!-- Çoklu ek dosyalar -->
+                        <% if (taskAttachments && taskAttachments.length > 0) { %>
+                            <div class="task-meta-item" style="flex-basis: 100%; border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 10px;">
+                                <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                                    <span class="meta-icon" style="background:#eff6ff; color:#3b82f6;"><i class="fas fa-paperclip"></i></span>
+                                    <span style="font-size:13px; font-weight:700; color:#475569;">Ekli Dosyalar (<%= taskAttachments.length %>)</span>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; width: 100%;">
+                                    <% taskAttachments.forEach(function(attach) { %>
+                                        <a href="/uploads/tasks/<%= attach.file_path %>" target="_blank" 
+                                           style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;text-decoration:none;transition:all .2s;"
+                                           title="<%= attach.original_name %>">
+                                            <div style="width:30px;height:30px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#3b82f6;font-size:13px;border:1px solid #e2e8f0;flex-shrink:0;"><i class="fas fa-file-download"></i></div>
+                                            <div style="display:flex;flex-direction:column;min-width:0;">
+                                                <span style="font-size:11px;font-weight:600;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                                    <%= attach.original_name ? (attach.original_name.length > 25 ? attach.original_name.substring(0, 22) + '...' : attach.original_name) : 'Dosya' %>
+                                                </span>
+                                                <% if (attach.file_size) { %>
+                                                    <span style="font-size:9px;color:#64748b;"><%= (attach.file_size / 1024).toFixed(0) %> KB</span>
+                                                <% } %>
+                                            </div>
+                                        </a>
+                                    <% }) %>
+                                </div>
+                            </div>
+                        <% } else if (task.file_path) { %>
+                                <div class="task-meta-item">
+                                    <span class="meta-icon"><i class="fas fa-file-alt"></i></span>
+                                    <div>
+                                        <span class="meta-label">Ek Dosya</span>
+                                        <a href="/uploads/tasks/<%= task.file_path %>" target="_blank">Dosyayı Görüntüle</a>
+                                    </div>
+                                </div>
+                        <% } %>
+                    </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card s-blue">
+                <div class="stat-icon"><i class="fas fa-school"></i></div>
+                <div class="stat-info">
+                    <h3><%= total %></h3>
+                    <p>Toplam Atama</p>
+                </div>
+            </div>
+            <div class="stat-card s-yellow">
+                <div class="stat-icon"><i class="fas fa-eye"></i></div>
+                <div class="stat-info">
+                    <h3><%= readCount %></h3>
+                    <p>Okuyan Okul</p>
+                </div>
+            </div>
+            <div class="stat-card s-orange">
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-info">
+                    <h3><%= pendingApprovalCount %></h3>
+                    <p>Onay Bekleyen</p>
+                </div>
+            </div>
+            <div class="stat-card s-green">
+                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-info">
+                    <h3><%= completedCount %></h3>
+                    <p>Tamamlanan</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assignments Table -->
+        <div class="card">
+            <div class="card-header"
+                style="display: flex; justify-content: space-between; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="ch-icon"><i class="fas fa-list-ul"></i></div>
+                    Okul Durumları
+                </div>
+                <button type="button" onclick="document.getElementById('bulkApproveForm').submit()" class="btn-primary"
+                    style="padding: 6px 12px; font-size: 12px;">
+                    <i class="fas fa-check-double"></i> Seçilenleri Onayla
+                </button>
+            </div>
+            <div class="table-wrap">
+                <form id="bulkApproveForm" action="/sef/tasks/<%= task.id %>/approve-bulk" method="POST">
+                    <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAllItems"
+                                        title="Tümünü Seç"></th>
+                                <th class="sortable" data-sort="name">Okul <i class="fas fa-sort sort-icon"></i></th>
+                                <th>Kurum Kodu</th>
+                                <th>Okundu</th>
+                                <th class="sortable" data-sort="status">Durum <i class="fas fa-sort sort-icon"></i></th>
+                                <th>Yanıt / Form</th>
+                                <th>Dosya</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <% assignments.forEach(assignment=> {
+                                const isCompleted = assignment.status === 'completed';
+                                const isPendingApp = assignment.status === 'pending_approval';
+                                const isRejected = assignment.status === 'rejected';
+
+                                const hasDeadline = task.deadline && task.deadline.trim() !== '';
+                                const isOverdue = hasDeadline && new Date(task.deadline) < new Date(); const
+                                    needsAction=isCompleted || isPendingApp || isOverdue; const
+                                    showRejectBtn=!isRejected && needsAction; %>
+                                    <tr data-name="<%= assignment.full_name %>" data-status="<%= assignment.status %>"
+                                        data-read="<%= assignment.is_read ? 1 : 0 %>">
+
+                                        <td style="text-align: center;">
+                                            <% if (isPendingApp) { %>
+                                                <input type="checkbox" name="assignmentIds" value="<%= assignment.id %>"
+                                                    class="bulk-cb" style="width: 16px; height: 16px; cursor: pointer;">
+                                                <% } %>
+                                        </td>
+
+                                        <td>
+                                            <div class="school-name">
+                                                <%= assignment.full_name %>
+                                            </div>
+                                        </td>
+                                        <td><span class="school-code">
+                                                <%= assignment.username %>
+                                            </span></td>
+
+                                        <td>
+                                            <% if (assignment.is_read) { %>
+                                                <span style="color:var(--green);font-size:12px;font-weight:600;">
+                                                    <i class="fas fa-check-double"></i> Evet
+                                                </span>
+                                                <div style="font-size:10px;color:var(--text-4);margin-top:2px;">
+                                                    <%= assignment.read_at ? new
+                                                        Date(assignment.read_at).toLocaleString('tr-TR') : '' %>
+                                                </div>
+                                                <% } else { %>
+                                                    <span style="color:var(--text-4);font-size:12px;">
+                                                        <i class="fas fa-minus-circle"></i> Hayır
+                                                    </span>
+                                                    <% } %>
+                                        </td>
+
+                                        <td>
+                                            <% if (isCompleted) { %>
+                                                <span class="badge badge-completed"><i class="fas fa-check"></i>
+                                                    Tamamlandı</span>
+                                                <span class="badge-time">
+                                                    <%= assignment.completed_at ? new
+                                                        Date(assignment.completed_at).toLocaleString('tr-TR') : '' %>
+                                                </span>
+                                                <% } else if (isRejected) { %>
+                                                    <span class="badge badge-rejected"><i class="fas fa-times"></i>
+                                                        Reddedildi</span>
+                                                    <% } else if (isPendingApp) { %>
+                                                        <span class="badge badge-pending_approval">
+                                                            <i class="fas fa-hourglass-half"></i> Onay Bekliyor
+                                                        </span>
+                                                        <% } else if (assignment.status==='in_progress' ) { %>
+                                                            <span class="badge badge-in_progress">
+                                                                <i class="fas fa-spinner fa-spin"></i> İşleniyor
+                                                            </span>
+                                                            <% } else { %>
+                                                                <span class="badge badge-pending"><i
+                                                                        class="fas fa-clock"></i> Bekliyor</span>
+                                                                <% } %>
+                                        </td>
+
+                                        <td>
+                                            <% if (assignment.fieldResponses && assignment.fieldResponses.length> 0) {
+                                                %>
+                                                <button type="button" class="btn-sm btn-red js-open-answers"
+                                                    data-id="<%= assignment.id %>"
+                                                    data-name="<%= assignment.full_name %>">
+                                                    <i class="fas fa-list"></i> Form Cevapları
+                                                </button>
+                                                <% } %>
+                                                    <% if (assignment.response_note) { %>
+                                                        <div
+                                                            style="font-style:italic;color:var(--text-3);font-size:12px;margin-top:5px;">
+                                                            "<%= assignment.response_note %>"
+                                                        </div>
+                                                        <% } %>
+                                                            <% if (!assignment.fieldResponses?.length &&
+                                                                !assignment.response_note) { %>
+                                                                <span style="color:var(--text-4);">—</span>
+                                                                <% } %>
+                                        </td>
+
+                                        <td>
+                                            <% if (assignment.files && assignment.files.length> 0) { %>
+                                                <div style="display:flex;flex-direction:column;gap:4px;">
+                                                    <% assignment.files.forEach(file=> { %>
+                                                        <a href="/uploads/responses/<%= file.file_path %>"
+                                                            target="_blank" class="btn-sm btn-blue"
+                                                            style="font-size:11px;padding:4px 8px;">
+                                                            <i class="fas fa-file-download"></i>
+                                                            <%= file.original_name ? (file.original_name.length> 15 ?
+                                                                file.original_name.substring(0,12)+'...' :
+                                                                file.original_name)
+                                                                : 'Dosya' %>
+                                                        </a>
+                                                        <% }) %>
+                                                </div>
+                                                <% } else if (assignment.response_file) { %>
+                                                    <a href="/sef/tasks/assignments/<%= assignment.id %>/download"
+                                                        target="_blank" class="btn-sm btn-blue">
+                                                        <i class="fas fa-paperclip"></i> İncele
+                                                    </a>
+                                                    <% } else { %>
+                                                        <span style="color:var(--text-4);">—</span>
+                                                        <% } %>
+                                        </td>
+
+                                        <td>
+                                            <div style="display:flex;gap:5px;align-items:center;">
+                                                <button type="button" class="btn-sm btn-blue js-open-message"
+                                                    data-id="<%= assignment.id %>"
+                                                    data-name="<%= assignment.full_name %>" title="Mesajlar">
+                                                    <i class="fas fa-comment-dots"></i>
+                                                </button>
+                                                <% if (isPendingApp) { %>
+                                                    <button type="button" class="btn-sm btn-green js-open-approve"
+                                                        data-id="<%= assignment.id %>"
+                                                        data-name="<%= assignment.full_name %>" title="Onayla">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <% } %>
+                                                        <% if (showRejectBtn) { %>
+                                                            <button type="button" class="btn-sm btn-red js-open-reject"
+                                                                data-id="<%= assignment.id %>"
+                                                                data-name="<%= assignment.full_name %>"
+                                                                title="<%= isCompleted ? 'Geri Al' : 'Reddet' %>">
+                                                                <i
+                                                                    class="<%= isCompleted ? 'fas fa-undo' : 'fas fa-times' %>"></i>
+                                                            </button>
+                                                            <% } %>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                        </tbody>
+                    </table>
+                </form>
+            </div>
+        </div>
     </div>
-  <% } %>
-</div>
 
-<script>
-  function filterTable(q) {
-    document.querySelectorAll('#tableBody tr').forEach(row => {
-      row.style.display = row.dataset.name && row.dataset.name.includes(q.toLowerCase()) ? '' : 'none';
-    });
-  }
-</script>
+    <!-- ── REJECT MODAL ── -->
+    <div id="rejectModal" class="tp-modal">
+        <div class="tp-modal-box tp">
+            <div class="tp-modal-header">
+                <div class="tp-modal-title" style="color:var(--red);">
+                    <i class="fas fa-exclamation-triangle"></i> Görevi Reddet
+                </div>
+                <button class="tp-btn-close" data-close="rejectModal"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="tp-modal-sub">
+                <strong id="rejectSchoolName"></strong> tarafından gönderilen görevi reddetmek üzeresiniz:
+            </p>
+            <form id="rejectForm" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <textarea class="tp-input" name="rejection_note" placeholder="Red sebebini belirtin..."
+                    required></textarea>
+                <div class="tp-modal-footer">
+                    <button type="button" class="btn-back" data-close="rejectModal">İptal</button>
+                    <button type="submit" class="btn-primary" style="padding:10px 20px;">Reddet</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-<%- include('../layouts/footer') %>
+    <!-- ── APPROVE MODAL ── -->
+    <div id="approveModal" class="tp-modal">
+        <div class="tp-modal-box tp" style="border-top-color:var(--green);">
+            <div class="tp-modal-header">
+                <div class="tp-modal-title" style="color:var(--green);">
+                    <i class="fas fa-check-circle"></i> Görevi Onayla
+                </div>
+                <button class="tp-btn-close" data-close="approveModal"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="tp-modal-sub">
+                <strong id="approveSchoolName"></strong> tarafından yapılan görevi onaylamak üzeresiniz.
+            </p>
+            <form id="approveForm" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div class="tp-modal-footer">
+                    <button type="button" class="btn-back" data-close="approveModal">İptal</button>
+                    <button type="submit" class="btn-primary"
+                        style="background:var(--green);padding:10px 20px;">Onayla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── MESSAGE MODAL ── -->
+    <div id="messageModal" class="tp-modal">
+        <div class="tp-modal-box tp" style="border-top-color:var(--blue);max-width:580px;">
+            <div class="tp-modal-header">
+                <div class="tp-modal-title" style="color:var(--blue);">
+                    <i class="fas fa-comments"></i> Mesajlar
+                </div>
+                <button class="tp-btn-close" data-close="messageModal"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="tp-modal-sub">
+                <strong id="msgSchoolName"></strong> ile mesajlaşma geçmişi:
+            </p>
+            <div class="tp-msg-list" id="msgList"></div>
+            <form id="messageForm" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="task_id" value="<%= task.id %>">
+                <div class="tp-msg-row">
+                    <input type="text" name="message" class="tp-input" placeholder="Bir mesaj yazın..." required>
+                    <button type="submit" class="btn-primary"
+                        style="background:var(--blue);margin:0;padding:10px 16px;flex-shrink:0;">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── ANSWERS MODAL ── -->
+    <div id="answersModal" class="tp-modal">
+        <div class="tp-modal-box tp" style="max-width:580px;">
+            <div class="tp-modal-header">
+                <div class="tp-modal-title" style="color:var(--red);">
+                    <i class="fas fa-tasks"></i> Form Cevapları
+                </div>
+                <button class="tp-btn-close" data-close="answersModal"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="tp-modal-sub">
+                <strong id="ansSchoolName"></strong> tarafından gönderilen form cevapları:
+            </p>
+            <div id="ansList" style="background:#f8fafc;border:1px solid var(--border);border-radius:12px;
+                    max-height:380px;overflow-y:auto;padding:14px;
+                    display:flex;flex-direction:column;gap:12px;margin-bottom:18px;"></div>
+            <div class="tp-modal-footer">
+                <button type="button" class="btn-back" data-close="answersModal">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Veriler JSON script tag'lerinde güvenli biçimde aktarılıyor -->
+    <script id="messagesMapData"
+        type="application/json"><%- JSON.stringify(messagesMap  || {}).replace(/</g, '\\u003c') %></script>
+    <script id="assignmentsData"
+        type="application/json"><%- JSON.stringify(assignments || []).replace(/</g, '\\u003c') %></script>
+    <script>
+        window.TASK_ID = '<%= task.id %>';
+        window.ME = String('<%= typeof currentUserId !== "undefined" ? currentUserId : "" %>');
+        window.IS_SEF = true;
+    </script>
+
+    <script src="/js/sef_task_detail.js?v=<%= Date.now() %>"></script>
+    <%- include('../layouts/footer') %>
