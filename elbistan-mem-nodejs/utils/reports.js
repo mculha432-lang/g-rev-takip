@@ -1158,6 +1158,264 @@ function cleanOldReports() {
     });
 }
 
+// Şeflik Performans Raporu (Excel)
+async function generateSefPerformanceExcel() {
+    ensureReportsDir();
+
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Elbistan İlçe MEM';
+    workbook.created = new Date();
+
+    // ── SAYFA 1: Şef Özet ──
+    const summarySheet = workbook.addWorksheet('Şeflik Özeti');
+
+    // Başlık
+    summarySheet.mergeCells('A1:I1');
+    const titleCell = summarySheet.getCell('A1');
+    titleCell.value = 'ŞEFLİK PERFORMANS RAPORU';
+    titleCell.font = { bold: true, size: 16, color: { argb: 'FFE31E24' } };
+    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    summarySheet.getRow(1).height = 35;
+
+    summarySheet.mergeCells('A2:I2');
+    const dateCell = summarySheet.getCell('A2');
+    dateCell.value = `Rapor Tarihi: ${formatDate(new Date())}`;
+    dateCell.font = { italic: true, size: 10, color: { argb: 'FF6B7280' } };
+    dateCell.alignment = { horizontal: 'center' };
+
+    // Tablo başlıkları
+    const headerRow = 4;
+    const headers = [
+        'Şef Adı', 'Kullanıcı Adı', 'Toplam Görev', 'Toplam Atama',
+        'Tamamlanan', 'Onay Bekleyen', 'İade Edilen', 'Bekleyen',
+        'Başarı Oranı (%)'
+    ];
+
+    summarySheet.columns = [
+        { key: 'name', width: 30 },
+        { key: 'username', width: 18 },
+        { key: 'taskCount', width: 14 },
+        { key: 'totalAssign', width: 14 },
+        { key: 'completed', width: 14 },
+        { key: 'pendingApproval', width: 16 },
+        { key: 'rejected', width: 14 },
+        { key: 'pending', width: 14 },
+        { key: 'rate', width: 16 }
+    ];
+
+    const hRow = summarySheet.getRow(headerRow);
+    headers.forEach((h, i) => {
+        const cell = hRow.getCell(i + 1);
+        cell.value = h;
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = {
+            top: { style: 'thin' }, bottom: { style: 'thin' },
+            left: { style: 'thin' }, right: { style: 'thin' }
+        };
+    });
+    hRow.height = 28;
+
+    // Şefleri getir
+    const sefs = db.prepare("SELECT * FROM users WHERE role = 'sef' ORDER BY full_name ASC").all();
+
+    let grandTotalTasks = 0, grandTotalAssign = 0, grandCompleted = 0;
+    let grandPendingApproval = 0, grandRejected = 0, grandPending = 0;
+
+    sefs.forEach((sef, idx) => {
+        const tasks = db.prepare('SELECT * FROM tasks WHERE created_by = ?').all(sef.id);
+        const taskIds = tasks.map(t => t.id);
+
+        let totalAssign = 0, completed = 0, pendingApproval = 0, rejected = 0, pending = 0;
+
+        if (taskIds.length > 0) {
+            const placeholders = taskIds.map(() => '?').join(',');
+            const assignments = db.prepare(`SELECT * FROM task_assignments WHERE task_id IN (${placeholders})`).all(...taskIds);
+            totalAssign = assignments.length;
+            completed = assignments.filter(a => a.status === 'completed').length;
+            pendingApproval = assignments.filter(a => a.status === 'pending_approval').length;
+            rejected = assignments.filter(a => a.status === 'rejected').length;
+            pending = assignments.filter(a => a.status === 'pending' || a.status === 'in_progress').length;
+        }
+
+        const rate = totalAssign > 0 ? Math.round((completed / totalAssign) * 100) : 0;
+
+        grandTotalTasks += tasks.length;
+        grandTotalAssign += totalAssign;
+        grandCompleted += completed;
+        grandPendingApproval += pendingApproval;
+        grandRejected += rejected;
+        grandPending += pending;
+
+        const row = summarySheet.addRow({
+            name: sef.full_name,
+            username: sef.username,
+            taskCount: tasks.length,
+            totalAssign,
+            completed,
+            pendingApproval,
+            rejected,
+            pending,
+            rate
+        });
+
+        // Zebra renklendirme
+        if (idx % 2 === 0) {
+            row.eachCell({ includeEmpty: true }, cell => {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+            });
+        }
+
+        // Kenarlık
+        row.eachCell({ includeEmpty: true }, cell => {
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+            cell.border = {
+                top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+            };
+        });
+        // İsim sola hizalı
+        row.getCell(1).alignment = { horizontal: 'left', vertical: 'middle' };
+
+        // Başarı oranına göre renk
+        const rateCell = row.getCell(9);
+        if (rate >= 80) {
+            rateCell.font = { bold: true, color: { argb: 'FF059669' } };
+            rateCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECFDF5' } };
+        } else if (rate >= 50) {
+            rateCell.font = { bold: true, color: { argb: 'FFD97706' } };
+            rateCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFBEB' } };
+        } else if (rate > 0) {
+            rateCell.font = { bold: true, color: { argb: 'FFDC2626' } };
+            rateCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF2F2' } };
+        }
+    });
+
+    // Toplam satırı
+    const totalRow = summarySheet.addRow({
+        name: 'TOPLAM',
+        username: '',
+        taskCount: grandTotalTasks,
+        totalAssign: grandTotalAssign,
+        completed: grandCompleted,
+        pendingApproval: grandPendingApproval,
+        rejected: grandRejected,
+        pending: grandPending,
+        rate: grandTotalAssign > 0 ? Math.round((grandCompleted / grandTotalAssign) * 100) : 0
+    });
+    totalRow.eachCell({ includeEmpty: true }, cell => {
+        cell.font = { bold: true, size: 11 };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = {
+            top: { style: 'medium' }, bottom: { style: 'medium' },
+            left: { style: 'thin' }, right: { style: 'thin' }
+        };
+    });
+    totalRow.getCell(1).alignment = { horizontal: 'left', vertical: 'middle' };
+
+    // ── SAYFA 2: Görev Bazlı Detay ──
+    const detailSheet = workbook.addWorksheet('Görev Detayları');
+
+    detailSheet.columns = [
+        { key: 'sefName', width: 25 },
+        { key: 'taskTitle', width: 40 },
+        { key: 'deadline', width: 14 },
+        { key: 'totalAssign', width: 14 },
+        { key: 'completed', width: 14 },
+        { key: 'pendingApproval', width: 16 },
+        { key: 'rejected', width: 14 },
+        { key: 'pending', width: 14 },
+        { key: 'rate', width: 14 },
+        { key: 'status', width: 14 }
+    ];
+
+    detailSheet.mergeCells('A1:J1');
+    const dtTitle = detailSheet.getCell('A1');
+    dtTitle.value = 'ŞEFLİK GÖREV DETAY RAPORU';
+    dtTitle.font = { bold: true, size: 14, color: { argb: 'FF1E40AF' } };
+    dtTitle.alignment = { horizontal: 'center', vertical: 'middle' };
+    detailSheet.getRow(1).height = 30;
+
+    const dHeaders = [
+        'Şef Adı', 'Görev Başlığı', 'Son Tarih', 'Toplam Atama',
+        'Tamamlanan', 'Onay Bekl.', 'İade', 'Bekleyen', 'Oran (%)', 'Durum'
+    ];
+
+    const dhRow = detailSheet.getRow(3);
+    dHeaders.forEach((h, i) => {
+        const cell = dhRow.getCell(i + 1);
+        cell.value = h;
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2563EB' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = {
+            top: { style: 'thin' }, bottom: { style: 'thin' },
+            left: { style: 'thin' }, right: { style: 'thin' }
+        };
+    });
+    dhRow.height = 26;
+
+    sefs.forEach(sef => {
+        const tasks = db.prepare('SELECT * FROM tasks WHERE created_by = ? ORDER BY created_at DESC').all(sef.id);
+
+        tasks.forEach(task => {
+            const assignments = db.prepare('SELECT * FROM task_assignments WHERE task_id = ?').all(task.id);
+            const total = assignments.length;
+            const completed = assignments.filter(a => a.status === 'completed').length;
+            const pApproval = assignments.filter(a => a.status === 'pending_approval').length;
+            const rej = assignments.filter(a => a.status === 'rejected').length;
+            const pend = assignments.filter(a => a.status === 'pending' || a.status === 'in_progress').length;
+            const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            const isExpired = task.deadline && new Date(task.deadline) < new Date();
+            const taskStatus = isExpired ? 'Süresi Doldu' : 'Aktif';
+
+            const row = detailSheet.addRow({
+                sefName: sef.full_name,
+                taskTitle: task.title,
+                deadline: formatDate(task.deadline),
+                totalAssign: total,
+                completed,
+                pendingApproval: pApproval,
+                rejected: rej,
+                pending: pend,
+                rate,
+                status: taskStatus
+            });
+
+            row.eachCell({ includeEmpty: true }, cell => {
+                cell.alignment = { vertical: 'middle', wrapText: true };
+                cell.border = {
+                    top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                    bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                    left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                    right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+                };
+            });
+
+            // Durum rengi
+            const statusCell = row.getCell(10);
+            if (isExpired) {
+                statusCell.font = { bold: true, color: { argb: 'FFDC2626' } };
+                statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF2F2' } };
+            } else {
+                statusCell.font = { bold: true, color: { argb: 'FF059669' } };
+                statusCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECFDF5' } };
+            }
+        });
+    });
+
+    const fileName = `seflik_performans_${Date.now()}.xlsx`;
+    const filePath = path.join(REPORTS_DIR, fileName);
+    await workbook.xlsx.writeFile(filePath);
+
+    return { fileName, filePath };
+}
+
 // Günde bir kez çalıştır (ve başlatırken)
 setInterval(cleanOldReports, 24 * 60 * 60 * 1000);
 setTimeout(cleanOldReports, 5000); // Başlangıçtan 5 saniye sonra ilk temizlik
@@ -1169,6 +1427,7 @@ module.exports = {
     generateTaskDetailExcel,
     generateTaskSummaryPDF,
     generateLoginActivityExcel,
+    generateSefPerformanceExcel,
     cleanOldReports,
     REPORTS_DIR
 };

@@ -140,6 +140,17 @@ router.get('/reports/task/:id/excel', async (req, res) => {
     }
 });
 
+// Şeflik Performans Raporu
+router.get('/reports/sef-performance/excel', async (req, res) => {
+    try {
+        const result = await reports.generateSefPerformanceExcel();
+        res.download(result.filePath, result.fileName);
+    } catch (error) {
+        console.error('Şeflik rapor hatası:', error);
+        res.redirect('/admin/reports?status=error');
+    }
+});
+
 // Okul Giriş-Çıkış Raporu
 router.get('/reports/login-activity/excel', async (req, res) => {
     try {
