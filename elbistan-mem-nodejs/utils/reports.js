@@ -793,7 +793,7 @@ async function generateSchoolPerformancePDF() {
         doc.text('KURUM BAZLI PERFORMANS', marginL, curY);
         curY += 18;
 
-        const colWidths = [22, 50, 213, 50, 40, 40, 40, 40];
+        const colWidths = [20, 48, 237, 48, 38, 38, 38, 38];
         const headers = ['#', 'Kurum Kodu', 'Kurum Adı', 'Türü', 'Atama', 'Tamam', 'Bekl.', 'Oran'];
         const rowH = 20;
         const headerH = 24;
@@ -814,8 +814,14 @@ async function generateSchoolPerformancePDF() {
 
         // Satırları çiz
         schoolData.forEach((s, idx) => {
+            // İsmin kaç satır tutacağını hesapla (wrap desteği)
+            const nameColW = colWidths[2] - 6;
+            const nameText = s.name || '-';
+            const nameHeight = doc.font('ArialBd').fontSize(7).heightOfString(nameText, { width: nameColW });
+            const dynamicRowH = Math.max(rowH, nameHeight + 10);
+
             // Sayfa kontrolü
-            if (curY + rowH > doc.page.height - 80) {
+            if (curY + dynamicRowH > doc.page.height - 80) {
                 doc.addPage();
                 curY = drawTableHeader(50);
             }
@@ -823,21 +829,20 @@ async function generateSchoolPerformancePDF() {
             // Zebra
             if (idx % 2 === 0) {
                 doc.save();
-                doc.rect(marginL, curY, contentW, rowH).fill(hexToRGB(COLORS.rowEven));
+                doc.rect(marginL, curY, contentW, dynamicRowH).fill(hexToRGB(COLORS.rowEven));
                 doc.restore();
             }
 
             // Alt çizgi
             doc.save();
-            doc.moveTo(marginL, curY + rowH).lineTo(marginL + contentW, curY + rowH).lineWidth(0.3).strokeColor(hexToRGB(COLORS.border)).stroke();
+            doc.moveTo(marginL, curY + dynamicRowH).lineTo(marginL + contentW, curY + dynamicRowH).lineWidth(0.3).strokeColor(hexToRGB(COLORS.border)).stroke();
             doc.restore();
 
-            const truncName = s.name && s.name.length > 38 ? s.name.substring(0, 35) + '...' : (s.name || '-');
-
-            const rowData = [String(idx + 1), s.code || '-', truncName, s.type, String(s.total), String(s.completed), String(s.pending), `%${s.rate}`];
+            const rowData = [String(idx + 1), s.code || '-', nameText, s.type, String(s.total), String(s.completed), String(s.pending), `%${s.rate}`];
 
             let cx = marginL;
             rowData.forEach((val, i) => {
+                const cellY = curY + (i === 2 ? 4 : Math.floor((dynamicRowH - 10) / 2));
                 if (i === 7) {
                     // Oran badge
                     let badgeColor = COLORS.primary, badgeBg = COLORS.primaryLt;
@@ -845,17 +850,22 @@ async function generateSchoolPerformancePDF() {
                     else if (s.rate >= 50) { badgeColor = COLORS.orange; badgeBg = COLORS.orangeLt; }
                     else if (s.rate >= 1) { badgeColor = COLORS.blue; badgeBg = COLORS.blueLt; }
 
-                    drawRoundedRect(doc, cx + 6, curY + 3, colWidths[i] - 12, 14, 3, badgeBg);
+                    const badgeY = curY + Math.floor((dynamicRowH - 14) / 2);
+                    drawRoundedRect(doc, cx + 6, badgeY, colWidths[i] - 12, 14, 3, badgeBg);
                     doc.font('ArialBd').fontSize(7).fillColor(hexToRGB(badgeColor));
-                    doc.text(val, cx + 3, curY + 5, { width: colWidths[i] - 6, align: 'center' });
+                    doc.text(val, cx + 3, badgeY + 2, { width: colWidths[i] - 6, align: 'center' });
+                } else if (i === 2) {
+                    // İsim sütunu — text wrapping ile tam göster
+                    doc.font('ArialBd').fontSize(7).fillColor(hexToRGB(COLORS.dark));
+                    doc.text(val, cx + 3, cellY, { width: nameColW, lineBreak: true });
                 } else {
-                    doc.font(i === 2 ? 'ArialBd' : 'Arial').fontSize(7).fillColor(hexToRGB(i === 2 ? COLORS.dark : COLORS.text));
-                    doc.text(val, cx + 3, curY + 5, { width: colWidths[i] - 6, align: i === 2 ? 'left' : 'center' });
+                    doc.font('Arial').fontSize(7).fillColor(hexToRGB(COLORS.text));
+                    doc.text(val, cx + 3, cellY, { width: colWidths[i] - 6, align: 'center' });
                 }
                 cx += colWidths[i];
             });
 
-            curY += rowH;
+            curY += dynamicRowH;
         });
 
         // Tablo alt kenar
