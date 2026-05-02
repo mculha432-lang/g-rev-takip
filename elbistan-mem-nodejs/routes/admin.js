@@ -59,13 +59,24 @@ router.post('/backups/:name/restore', isAdmin, (req, res) => {
 const db = require('../config/database');
 
 router.get('/reports', (req, res) => {
-    // Görevleri listele
     const tasks = db.prepare('SELECT id, title FROM tasks ORDER BY id DESC').all();
+
+    // Anlamlı metrikler
+    const totalTasks = db.prepare('SELECT COUNT(*) as c FROM tasks').get().c;
+    const totalSchools = db.prepare("SELECT COUNT(*) as c FROM users WHERE role = 'school'").get().c;
+    const totalAssignments = db.prepare('SELECT COUNT(*) as c FROM task_assignments').get().c;
+    const completedAssignments = db.prepare("SELECT COUNT(*) as c FROM task_assignments WHERE status = 'completed'").get().c;
+    const pendingApproval = db.prepare("SELECT COUNT(*) as c FROM task_assignments WHERE status = 'pending_approval'").get().c;
+    const completionRate = totalAssignments > 0 ? Math.round((completedAssignments / totalAssignments) * 100) : 0;
 
     res.render('admin/reports', {
         title: 'Raporlar',
         activePage: 'reports',
         tasks,
+        totalTasks,
+        totalSchools,
+        completionRate,
+        pendingApproval,
         status: req.query.status || null
     });
 });

@@ -1,259 +1,212 @@
 <%- include('../layouts/header') %>
 
-    <link rel="stylesheet" href="/css/admin_reports.css?v=<%= Date.now() %>">
+<link rel="stylesheet" href="/css/admin_reports.css?v=<%= Date.now() %>">
 
-    <div class="page-header">
-        <div class="page-header-left">
-            <div class="page-header-icon">
-                <i class="fas fa-chart-pie"></i>
-            </div>
+<!-- ═══ HEADER ═══ -->
+<div class="rp-header">
+    <div class="rp-header-left">
+        <div class="rp-header-icon"><i class="fas fa-chart-pie"></i></div>
+        <div>
+            <h1>Raporlar</h1>
+            <p>Sistem raporlarını Excel veya PDF formatında indirin ve analiz edin.</p>
+        </div>
+    </div>
+    <div class="rp-stats">
+        <div class="rp-stat">
+            <div class="rp-stat-icon blue"><i class="fas fa-tasks"></i></div>
             <div>
-                <h1>Raporlar</h1>
-                <p>Sistem raporlarını Excel veya PDF formatında indirin ve analiz edin.</p>
+                <div class="rp-stat-value"><%= typeof totalTasks !== 'undefined' ? totalTasks : 0 %></div>
+                <div class="rp-stat-label">Toplam Görev</div>
             </div>
         </div>
-        <div class="page-header-stats">
-            <div class="page-header-stat">
-                <div class="page-header-stat-value">
-                    <%= typeof tasks !=='undefined' ? tasks.length : 0 %>
-                </div>
-                <div class="page-header-stat-label">Toplam Görev</div>
-            </div>
-            <div class="page-header-stat">
-                <div class="page-header-stat-value">5</div>
-                <div class="page-header-stat-label">Rapor Türü</div>
+        <div class="rp-stat">
+            <div class="rp-stat-icon green"><i class="fas fa-school"></i></div>
+            <div>
+                <div class="rp-stat-value"><%= typeof totalSchools !== 'undefined' ? totalSchools : 0 %></div>
+                <div class="rp-stat-label">Kayıtlı Okul</div>
             </div>
         </div>
-    </div>
-
-    <% if(status==='error' ) { %>
-        <div class="alert alert-danger"><i class="fas fa-times-circle"></i> Rapor oluşturulurken hata!</div>
-    <% } %>
-
-    <!-- ÜST SATIR: 3 Rapor Kartı -->
-    <div class="reports-layout">
-        <div class="report-card">
-            <div class="report-header">
-                <div class="report-icon excel">
-                    <i class="fas fa-file-excel"></i>
-                </div>
-                <div>
-                    <h3>Görev Özet Raporu</h3>
-                    <span style="font-size: 11px; color: #059669; font-weight: 600;">📋 Tüm görevler</span>
-                </div>
-            </div>
-            <p>Tüm görevler, atama sayıları ve tamamlanma oranları.</p>
-            <div class="report-actions">
-                <a href="/admin/reports/task-summary/excel" class="btn-download btn-excel">
-                    <i class="fas fa-download"></i> Excel
-                </a>
-                <a href="/admin/reports/task-summary/pdf" class="btn-download btn-pdf">
-                    <i class="fas fa-file-pdf"></i> PDF
-                </a>
+        <div class="rp-stat">
+            <div class="rp-stat-icon orange"><i class="fas fa-hourglass-half"></i></div>
+            <div>
+                <div class="rp-stat-value"><%= typeof pendingApproval !== 'undefined' ? pendingApproval : 0 %></div>
+                <div class="rp-stat-label">Onay Bekleyen</div>
             </div>
         </div>
-
-        <div class="report-card">
-            <div class="report-header">
-                <div class="report-icon stats">
-                    <i class="fas fa-chart-bar"></i>
-                </div>
-                <div>
-                    <h3>Okul Performans Raporu</h3>
-                    <span style="font-size: 11px; color: #1e3a5a; font-weight: 600;">🏫 Kurum bazlı</span>
-                </div>
-            </div>
-            <p>Okul bazlı görev tamamlama ve başarı oranları.</p>
-            <div class="report-actions">
-                <a href="/admin/reports/school-performance/excel" class="btn-download btn-excel">
-                    <i class="fas fa-download"></i> Excel
-                </a>
-                <a href="/admin/reports/school-performance/pdf" class="btn-download btn-pdf">
-                    <i class="fas fa-file-pdf"></i> PDF
-                </a>
-            </div>
-        </div>
-
-        <div class="report-card">
-            <div class="report-header">
-                <div class="report-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);">
-                    <i class="fas fa-user-tie"></i>
-                </div>
-                <div>
-                    <h3>Şeflik Performans Raporu</h3>
-                    <span style="font-size: 11px; color: #d97706; font-weight: 600;">📊 2 sayfalık analiz</span>
-                </div>
-            </div>
-            <p>Şef bazlı görev oluşturma, atama sayıları, tamamlanma oranları ve görev kırılımı.</p>
-            <div class="report-actions">
-                <a href="/admin/reports/sef-performance/excel" class="btn-download btn-excel">
-                    <i class="fas fa-download"></i> Excel
-                </a>
+        <div class="rp-stat">
+            <div class="rp-stat-icon purple"><i class="fas fa-percentage"></i></div>
+            <div>
+                <div class="rp-stat-value">%<%= typeof completionRate !== 'undefined' ? completionRate : 0 %></div>
+                <div class="rp-stat-label">Tamamlanma</div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- ORTA SATIR: Giriş-Çıkış Raporu (Sol: Bilgi + İndir, Sağ: Takvim) -->
-    <div class="login-report-section">
-        <!-- Sol: Rapor Bilgisi -->
-        <div class="login-report-card">
-            <div class="report-header">
-                <div class="report-icon"
-                    style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);">
-                    <i class="fas fa-sign-in-alt"></i>
-                </div>
-                <div>
-                    <h3>Giriş-Çıkış Raporu</h3>
-                    <span style="font-size: 11px; color: #8b5cf6; font-weight: 500;">📊 Tarih aralığı seçip
-                        indirin</span>
-                </div>
+<% if(status === 'error') { %>
+    <div class="rp-alert"><i class="fas fa-times-circle"></i> Rapor oluşturulurken hata!</div>
+<% } %>
+
+<!-- ═══ REPORT CARDS — 2×2 GRID ═══ -->
+<div class="rp-grid">
+
+    <!-- 1. Görev Özet Raporu -->
+    <div class="rp-card" data-accent="green">
+        <div class="rp-card-head">
+            <div class="rp-card-icon ic-green"><i class="fas fa-file-excel"></i></div>
+            <div>
+                <div class="rp-card-title">Görev Özet Raporu</div>
+                <span class="rp-card-badge bg-green"><i class="fas fa-list-ul"></i> Tüm görevler</span>
             </div>
-            <p>Okulların sisteme giriş-çıkış durumları, aktif/pasif bilgileri ve aktivite logları.</p>
+        </div>
+        <p class="rp-card-desc">Tüm görevlerin atama sayıları, tamamlanma oranları ve genel performans özeti.</p>
+        <div class="rp-actions">
+            <a href="/admin/reports/task-summary/excel" class="rp-btn rp-btn-excel"><i class="fas fa-download"></i> Excel</a>
+            <a href="/admin/reports/task-summary/pdf" class="rp-btn rp-btn-pdf"><i class="fas fa-file-pdf"></i> PDF</a>
+        </div>
+    </div>
 
-            <!-- Tarih Göstergeleri -->
-            <div class="date-display">
-                <div class="date-box" id="startDateBox" onclick="setActiveDate('start')">
-                    <div class="date-box-label"><i class="fas fa-calendar-alt" style="margin-right: 4px;"></i>
-                        Başlangıç</div>
-                    <div id="startDateDisplay" class="date-box-placeholder">Tarih seçin →</div>
-                    <input type="hidden" id="loginStartDate" value="">
-                </div>
-                <div class="date-box" id="endDateBox" onclick="setActiveDate('end')">
-                    <div class="date-box-label"><i class="fas fa-calendar-alt" style="margin-right: 4px;"></i>
-                        Bitiş</div>
-                    <div id="endDateDisplay" class="date-box-placeholder">Tarih seçin →</div>
-                    <input type="hidden" id="loginEndDate" value="">
-                </div>
+    <!-- 2. Okul Performans Raporu -->
+    <div class="rp-card" data-accent="blue">
+        <div class="rp-card-head">
+            <div class="rp-card-icon ic-blue"><i class="fas fa-chart-bar"></i></div>
+            <div>
+                <div class="rp-card-title">Okul Performans Raporu</div>
+                <span class="rp-card-badge bg-blue"><i class="fas fa-school"></i> Kurum bazlı</span>
             </div>
+        </div>
+        <p class="rp-card-desc">Okul bazlı görev tamamlama oranları, başarı sıralaması ve kurum kırılımı.</p>
+        <div class="rp-actions">
+            <a href="/admin/reports/school-performance/excel" class="rp-btn rp-btn-excel"><i class="fas fa-download"></i> Excel</a>
+            <a href="/admin/reports/school-performance/pdf" class="rp-btn rp-btn-pdf"><i class="fas fa-file-pdf"></i> PDF</a>
+        </div>
+    </div>
 
-            <button onclick="downloadLoginReport()" class="btn-download"
-                style="width: 100%; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; padding: 14px; font-size: 14px; font-weight: 700; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);"
-                onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 6px 20px rgba(139, 92, 246, 0.4)';"
-                onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 15px rgba(139, 92, 246, 0.3)';">
-                <i class="fas fa-download"></i> Excel Raporu İndir
+    <!-- 3. Şeflik Performans Raporu -->
+    <div class="rp-card" data-accent="amber">
+        <div class="rp-card-head">
+            <div class="rp-card-icon ic-amber"><i class="fas fa-user-tie"></i></div>
+            <div>
+                <div class="rp-card-title">Şeflik Performans Raporu</div>
+                <span class="rp-card-badge bg-amber"><i class="fas fa-chart-line"></i> Detaylı istatistik içerir</span>
+            </div>
+        </div>
+        <p class="rp-card-desc">Şef bazlı görev oluşturma, atama sayıları, tamamlanma oranları ve görev kırılımı.</p>
+        <div class="rp-actions">
+            <a href="/admin/reports/sef-performance/excel" class="rp-btn rp-btn-excel"><i class="fas fa-download"></i> Excel</a>
+        </div>
+    </div>
+
+    <!-- 4. Giriş-Çıkış Raporu + Takvim (yan yana içeride) -->
+    <div class="rp-card" data-accent="purple">
+        <div class="rp-card-head">
+            <div class="rp-card-icon ic-purple"><i class="fas fa-sign-in-alt"></i></div>
+            <div>
+                <div class="rp-card-title">Giriş-Çıkış Raporu</div>
+                <span class="rp-card-badge bg-purple"><i class="fas fa-calendar-alt"></i> Tarih aralığı seçebilirsiniz</span>
+            </div>
+        </div>
+        <p class="rp-card-desc">Okulların sisteme giriş-çıkış durumları, aktif/pasif bilgileri ve aktivite logları.</p>
+
+        <div class="rp-date-row">
+            <div class="rp-date-box" id="startDateBox" onclick="setActiveDate('start')">
+                <div class="rp-date-label"><i class="fas fa-calendar-alt"></i> Başlangıç</div>
+                <div id="startDateDisplay" class="rp-date-placeholder">Tarih seçin →</div>
+                <input type="hidden" id="loginStartDate" value="">
+            </div>
+            <div class="rp-date-box" id="endDateBox" onclick="setActiveDate('end')">
+                <div class="rp-date-label"><i class="fas fa-calendar-alt"></i> Bitiş</div>
+                <div id="endDateDisplay" class="rp-date-placeholder">Tarih seçin →</div>
+                <input type="hidden" id="loginEndDate" value="">
+            </div>
+        </div>
+
+        <button onclick="downloadLoginReport()" class="rp-btn-purple">
+            <i class="fas fa-download"></i> Excel Raporu İndir
+        </button>
+
+        <div class="rp-date-hint">
+            <i class="fas fa-info-circle"></i> Tarih seçmezseniz tüm kayıtlar indirilir
+        </div>
+    </div>
+
+    <!-- 5. Tek Görev Detay Raporu (Full Width) -->
+    <div class="rp-card rp-full" data-accent="red">
+        <div class="rp-card-head">
+            <div class="rp-card-icon ic-red"><i class="fas fa-clipboard-list"></i></div>
+            <div>
+                <div class="rp-card-title">Tek Görev Detay Raporu</div>
+                <span class="rp-card-badge bg-red"><i class="fas fa-table"></i> Form cevapları dahil Excel raporu</span>
+            </div>
+        </div>
+        <p class="rp-card-desc">Belirli bir göreve ait tüm okul cevaplarını ve form alanı verilerini Excel olarak indirin.</p>
+
+        <div class="rp-task-row">
+            <select id="taskSelect" class="rp-task-select">
+                <option value="">— Görev Seçin —</option>
+                <% if(typeof tasks !== 'undefined') { %>
+                    <% tasks.forEach(task => { %>
+                        <option value="<%= task.id %>"><%= task.title %></option>
+                    <% }); %>
+                <% } %>
+            </select>
+            <button onclick="downloadTaskReport()" class="rp-btn-red">
+                <i class="fas fa-file-excel"></i> Excel İndir
             </button>
-
-            <div
-                style="margin-top: 14px; padding: 10px 14px; background: #f5f3ff; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-info-circle" style="color: #8b5cf6; font-size: 13px;"></i>
-                <span style="font-size: 11px; color: #6d28d9; font-weight: 500;">Tarih seçmezseniz tüm kayıtlar
-                    indirilir</span>
-            </div>
         </div>
+    </div>
 
-        <!-- Sağ: Takvim -->
-        <div class="login-calendar-card">
-            <div class="lc-header" style="padding-top: 24px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div
-                        style="width: 30px; height: 30px; background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-calendar-alt" style="color: #8b5cf6; font-size: 12px;"></i>
-                    </div>
-                    <span class="lc-month" id="lcMonthYear"></span>
+</div>
+
+<!-- Takvim Modal (Giriş-Çıkış tarih seçici için) -->
+<div id="calendarModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.4); z-index:9999; display:none; align-items:center; justify-content:center;">
+    <div class="rp-calendar" style="width:360px; max-width:90vw;">
+        <div class="lc-header" style="padding-top:22px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:28px;height:28px;background:#f5f3ff;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-calendar-alt" style="color:#8b5cf6;font-size:11px;"></i>
                 </div>
+                <span class="lc-month" id="lcMonthYear"></span>
+            </div>
+            <div style="display:flex;gap:4px;align-items:center;">
                 <div class="lc-nav">
                     <button onclick="lcChangeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
-                    <button onclick="lcGoToday()"
-                        style="width: auto; padding: 0 10px; font-size: 10px; font-weight: 700; font-family: inherit;">Bugün</button>
+                    <button onclick="lcGoToday()" style="width:auto;padding:0 10px;font-size:10px;font-weight:700;font-family:inherit;">Bugün</button>
                     <button onclick="lcChangeMonth(1)"><i class="fas fa-chevron-right"></i></button>
                 </div>
+                <button onclick="closeCalendar()" style="width:30px;height:30px;border-radius:8px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:11px;margin-left:6px;"><i class="fas fa-times"></i></button>
             </div>
-
-            <div class="lc-grid" id="lcCalendarGrid"></div>
-
-            <div class="lc-quick-btns">
-                <button class="lc-quick-btn" onclick="setQuickRange('today')">Bugün</button>
-                <button class="lc-quick-btn" onclick="setQuickRange('week')">Bu Hafta</button>
-                <button class="lc-quick-btn" onclick="setQuickRange('month')">Bu Ay</button>
-                <button class="lc-quick-btn" onclick="setQuickRange('last30')">Son 30 Gün</button>
-                <button class="lc-quick-btn" onclick="setQuickRange('clear')">Temizle</button>
-            </div>
+        </div>
+        <div class="lc-grid" id="lcCalendarGrid"></div>
+        <div class="lc-quick-btns">
+            <button class="lc-quick-btn" onclick="setQuickRange('today')">Bugün</button>
+            <button class="lc-quick-btn" onclick="setQuickRange('week')">Bu Hafta</button>
+            <button class="lc-quick-btn" onclick="setQuickRange('month')">Bu Ay</button>
+            <button class="lc-quick-btn" onclick="setQuickRange('last30')">Son 30 Gün</button>
+            <button class="lc-quick-btn" onclick="setQuickRange('clear')">Temizle</button>
         </div>
     </div>
+</div>
 
-    <!-- ALT SATIR: Görev Detay + Sidebar -->
-    <div class="bottom-section">
-        <div class="task-report-card">
-            <div class="report-header">
-                <div class="report-icon"
-                    style="background: linear-gradient(135deg, #E31E24 0%, #b91c1c 100%); color: white; box-shadow: 0 4px 15px rgba(227, 30, 36, 0.3); width: 55px; height: 55px; font-size: 22px;">
-                    <i class="fas fa-clipboard-list"></i>
-                </div>
-                <div>
-                    <h3>Tek Görev Detay Raporu</h3>
-                    <span style="font-size: 12px; color: #E31E24; font-weight: 500;">📋 Form cevapları dahil
-                        Excel raporu</span>
-                </div>
-            </div>
-            <p>Belirli bir göreve ait tüm okul cevaplarını ve form alanı verilerini Excel olarak indirin.</p>
+<script>
+// Takvim modal açma/kapama
+function openCalendar() {
+    const m = document.getElementById('calendarModal');
+    m.style.display = 'flex';
+}
+function closeCalendar() {
+    document.getElementById('calendarModal').style.display = 'none';
+}
+document.getElementById('calendarModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeCalendar();
+});
 
-            <div style="display: flex; gap: 12px; align-items: center;">
-                <select id="taskSelect" class="task-select">
-                    <option value="">-- Görev Seçin --</option>
-                    <% if(typeof tasks !=='undefined' ) { %>
-                        <% tasks.forEach(task=> { %>
-                            <option value="<%= task.id %>">
-                                <%= task.title %>
-                            </option>
-                        <% }); %>
-                    <% } %>
-                </select>
-                <button onclick="downloadTaskReport()" class="btn-download btn-primary">
-                    <i class="fas fa-file-excel"></i> Excel İndir
-                </button>
-            </div>
-        </div>
+// Tarih seçim kutusuna tıklayınca takvimi aç
+const origSetActiveDate = typeof setActiveDate === 'function' ? setActiveDate : null;
+window._setActiveDateOrig = null;
+document.getElementById('startDateBox')?.addEventListener('click', function() { openCalendar(); });
+document.getElementById('endDateBox')?.addEventListener('click', function() { openCalendar(); });
+</script>
 
-        <div class="sidebar-info">
-            <h4><i class="fas fa-info-circle" style="color: #1e3a5a;"></i> Rapor Bilgisi</h4>
-
-            <div class="info-item">
-                <div class="icon-excel"><i class="fas fa-file-excel"></i></div>
-                <div class="info-item-content">
-                    <h5>Excel Raporları</h5>
-                    <p>Filtreleme yapılabilir, düzenlenebilir tablo formatı</p>
-                </div>
-            </div>
-
-            <div class="info-item">
-                <div class="icon-pdf"><i class="fas fa-file-pdf"></i></div>
-                <div class="info-item-content">
-                    <h5>PDF Raporları</h5>
-                    <p>Yazdırmaya hazır resmi rapor formatı</p>
-                </div>
-            </div>
-
-            <div class="info-item">
-                <div class="icon-detail"><i class="fas fa-clipboard-list"></i></div>
-                <div class="info-item-content">
-                    <h5>Görev Detay Raporu</h5>
-                    <p>Her görev sayfasından ayrı ayrı indirilebilir</p>
-                </div>
-            </div>
-
-            <div class="info-item">
-                <div
-                    style="background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); color: #8b5cf6; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">
-                    <i class="fas fa-sign-in-alt"></i>
-                </div>
-                <div class="info-item-content">
-                    <h5>Giriş-Çıkış Raporu</h5>
-                    <p>Okul bazlı giriş-çıkış logları ve aktivite durumu</p>
-                </div>
-            </div>
-
-            <div class="info-item">
-                <div
-                    style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); color: #d97706; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">
-                    <i class="fas fa-user-tie"></i>
-                </div>
-                <div class="info-item-content">
-                    <h5>Şeflik Performans Raporu</h5>
-                    <p>Şef bazlı görev istatistikleri ve detaylı kırılım</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="/js/admin_reports.js"></script>
-    <%- include('../layouts/footer') %>
+<script src="/js/admin_reports.js"></script>
+<%- include('../layouts/footer') %>
