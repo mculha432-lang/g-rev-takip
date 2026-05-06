@@ -123,14 +123,31 @@ const sefController = {
             }
 
             // Form alanlarını kaydet
-            let fields = [];
-            try { fields = JSON.parse(req.body.fields_json || '[]'); } catch(e) {}
-            fields.forEach((field, idx) => {
-                db.prepare(`
-                    INSERT INTO task_fields (task_id, field_type, field_label, field_options, is_required, field_order)
+            const fieldTypes = req.body.field_types || [];
+            const fieldLabels = req.body.field_labels || [];
+            const fieldOptions = req.body.field_options || [];
+            const fieldRequired = req.body.field_required || [];
+
+            if (fieldTypes && fieldLabels) {
+                const typesArr = Array.isArray(fieldTypes) ? fieldTypes : [fieldTypes];
+                const labelsArr = Array.isArray(fieldLabels) ? fieldLabels : [fieldLabels];
+                const optionsArr = Array.isArray(fieldOptions) ? fieldOptions : [fieldOptions];
+                const requiredArr = Array.isArray(fieldRequired) ? fieldRequired : [fieldRequired];
+
+                const fieldStmt = db.prepare(`
+                    INSERT INTO task_fields
+                        (task_id, field_type, field_label, field_options, is_required, field_order)
                     VALUES (?, ?, ?, ?, ?, ?)
-                `).run(taskId, field.type, field.label, JSON.stringify(field.options || []), field.required ? 1 : 0, idx);
-            });
+                `);
+
+                typesArr.forEach((type, i) => {
+                    if (labelsArr[i] && labelsArr[i].trim()) {
+                        const options = optionsArr[i] || '';
+                        const isRequired = requiredArr.includes(i.toString()) ? 1 : 0;
+                        fieldStmt.run(taskId, type, labelsArr[i], options, isRequired, i);
+                    }
+                });
+            }
 
             // Okullara ata
             const ids = Array.isArray(school_ids) ? school_ids : (school_ids ? [school_ids] : []);
