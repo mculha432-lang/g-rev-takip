@@ -6515,3 +6515,16 @@ Or, if you meant to create an async function, pass `async: true` as an option.
 [2026-04-03 03:08:30] INFO: GET / - 302 - 6ms - IP: ::ffff:127.0.0.1
 [2026-04-03 03:08:30] INFO: GET /login - 200 - 12ms - IP: ::ffff:127.0.0.1
 [2026-04-03 03:08:30] INFO: GET /admin/tasks - 302 - 1ms - IP: ::ffff:127.0.0.1
+[2026-05-02 03:14:23] INFO: Sunucu başlatıldı: http://localhost:3000
+[2026-05-02 03:14:23] INFO: Yedekleme sistemi başlatıldı
+[2026-05-02 03:14:23] INFO: Deadline hatırlatma sistemi başlatıldı (08:00 ve 20:00)
+[2026-05-02 03:32:53] WARN: GET /auth/login - 404 - 12ms - IP: ::1
+[2026-05-02 03:32:53] INFO: GET /admin/dashboard - 302 - 1ms - IP: ::1
+[2026-05-02 03:32:53] INFO: GET /sef/dashboard - 302 - 1ms - IP: ::1
+[2026-05-02 03:33:04] INFO: GET /login - 200 - 12ms - IP: ::1
+[2026-05-02 03:33:04] WARN: GET /auth/login - 404 - 1ms - IP: ::1
+[2026-05-02 03:33:04] INFO: GET / - 302 - 0ms - IP: ::1
+[2026-05-02 03:33:21] INFO: GET / - 302 - 1ms - IP: ::1
+[2026-05-02 03:33:21] INFO: GET /login - 200 - 3ms - IP: ::1
+[2026-05-02 03:33:21] INFO: GET /sef/dashboard - 302 - 0ms - IP: ::1
+[2026-05-02 03:33:21] INFO: GET /admin/dashboard - 302 - 0ms - IP: ::1

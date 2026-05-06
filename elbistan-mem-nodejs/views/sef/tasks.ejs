@@ -8,6 +8,7 @@
 
 <% const safeSchoolTypes = typeof schoolTypes !== 'undefined' ? schoolTypes : [];
 const typeLabels = { ilkokul:'İlkokul', ortaokul:'Ortaokul', lise:'Lise', anaokulu:'Anaokulu', diger:'Diğer Kurumlar', rehabilitasyon:'Rehabilitasyon', surucu_kursu:'Sürücü Kursu', kurs:'Kurs', yurt:'Yurt' };
+const typeIcons = { ilkokul:'fa-child', ortaokul:'fa-book-reader', lise:'fa-graduation-cap', anaokulu:'fa-baby', diger:'fa-building', rehabilitasyon:'fa-hands-helping', surucu_kursu:'fa-car', kurs:'fa-chalkboard-teacher', yurt:'fa-bed' };
 const typeColors = { ilkokul:'#3b82f6', ortaokul:'#8b5cf6', lise:'#ef4444', anaokulu:'#f59e0b', diger:'#6b7280', rehabilitasyon:'#10b981', surucu_kursu:'#f97316', kurs:'#06b6d4', yurt:'#ec4899' };
 %>
 
@@ -202,31 +203,70 @@ const typeColors = { ilkokul:'#3b82f6', ortaokul:'#8b5cf6', lise:'#ef4444', anao
           <div class="step-pane" id="pane-4">
             <div class="gf-section-header" style="border-top-color:var(--green);">
               <h3><i class="fas fa-school" style="color:var(--green); margin-right:10px;"></i>Okul Seçimi</h3>
-              <p>Görevi hangi okullara göndereceğinizi seçin.</p>
+              <p>Görevi hangi okul ve kurumlara göndereceğinizi seçin.</p>
             </div>
             <div class="school-picker">
               <div class="school-search">
                 <i class="fas fa-search" style="color:var(--text-3); align-self:center; margin-left:10px;"></i>
-                <input type="text" id="schoolSearch" class="form-control" style="border:none; background:transparent; flex:1;" placeholder="Okul adı ile ara...">
+                <input type="text" id="schoolSearch" class="form-control" style="border:none; background:transparent; flex:1;" placeholder="Okul veya kurum adı ile ara...">
                 <button type="button" class="btn btn-navy btn-sm" onclick="toggleAllSchools(true)">Tümünü Seç</button>
                 <button type="button" class="btn btn-ghost btn-sm" onclick="toggleAllSchools(false)">Temizle</button>
+
+                <!-- Okul Türü Filtre Butonları -->
                 <div class="type-btn-group" id="typeButtonGroup">
                   <% safeSchoolTypes.forEach(type => { %>
                     <button type="button" class="type-btn" data-type="<%= type %>"
                       style="color:<%= typeColors[type] || '#6b7280' %>; border-color:<%= typeColors[type] || '#6b7280' %>;"
                       onclick="toggleTypeSelection('<%= type %>', this)">
+                      <i class="fas <%= typeIcons[type] || 'fa-building' %>"></i>
                       <%= typeLabels[type] || type %>
                     </button>
                   <% }) %>
+
+                    <!-- Ayraç -->
+                    <div class="feature-filter-divider"></div>
+
+                    <!-- Kantin Filtresi -->
+                    <button type="button" class="type-btn" id="filterCanteen"
+                      style="color:#ea580c; border-color:#ea580c;" onclick="toggleFeatureFilter('canteen', this)"
+                      title="Kantini olan okulları filtrele">
+                      <i class="fas fa-utensils"></i> Kantin
+                    </button>
+
+                    <!-- Pansiyon Filtresi -->
+                    <button type="button" class="type-btn" id="filterPension"
+                      style="color:#059669; border-color:#059669;" onclick="toggleFeatureFilter('pension', this)"
+                      title="Pansiyonu olan okulları filtrele">
+                      <i class="fas fa-bed"></i> Pansiyon
+                    </button>
                 </div>
+
               </div>
               <div class="school-list" id="schoolList">
                 <% (schools || []).forEach(s => { %>
-                  <label class="school-item" data-name="<%= s.full_name.toLowerCase() %>" data-type="<%= s.school_type %>">
+                  <label class="school-item" data-name="<%= s.full_name.toLowerCase() %>" data-type="<%= s.school_type %>"
+                    data-canteen="<%= s.has_canteen ? '1' : '0' %>" data-pension="<%= s.has_pension ? '1' : '0' %>">
                     <input type="checkbox" name="school_ids" value="<%= s.id %>">
                     <span style="font-size:14px; font-weight:600; flex:1;"><%= s.full_name %></span>
-                    <span style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:12px; background:<%= typeColors[s.school_type] ? typeColors[s.school_type]+'18' : '#f1f5f9' %>; color:<%= typeColors[s.school_type] || '#6b7280' %>;">
-                      <%= typeLabels[s.school_type] || s.school_type || '-' %>
+                    <span style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
+                      <% if(s.has_canteen) { %>
+                        <span
+                          style="font-size:10px; padding:2px 7px; border-radius:8px; background:#fff7ed; color:#ea580c; border:1px solid #fed7aa;"
+                          title="Kantini Var">
+                          <i class="fas fa-utensils"></i>
+                        </span>
+                      <% } %>
+                      <% if(s.has_pension) { %>
+                        <span
+                          style="font-size:10px; padding:2px 7px; border-radius:8px; background:#ecfdf5; color:#059669; border:1px solid #a7f3d0;"
+                          title="Pansiyonu Var">
+                          <i class="fas fa-bed"></i>
+                        </span>
+                      <% } %>
+                      <span
+                        style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:12px; background:<%= typeColors[s.school_type] ? typeColors[s.school_type]+'18' : '#f1f5f9' %>; color:<%= typeColors[s.school_type] || '#6b7280' %>;">
+                        <%= typeLabels[s.school_type] || s.school_type || '-' %>
+                      </span>
                     </span>
                   </label>
                 <% }) %>
